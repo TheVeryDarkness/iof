@@ -1,13 +1,10 @@
 use iof::*;
-use std::{
-    collections::{BTreeSet, VecDeque},
-    io::BufReader,
-};
+use std::{collections::BTreeSet, io::BufReader};
 
 #[test]
 fn parse_vec_by_space() -> anyhow::Result<()> {
-    let buf = VecDeque::from("1 2 3".to_owned().into_bytes());
-    let mut reader = BufReader::new(buf);
+    let buf = Vec::from("1 2 3".to_owned().into_bytes());
+    let mut reader = BufReader::new(buf.as_slice());
     let vec = reader.parse_vec_by_space::<u32>(3)?;
     assert_eq!(vec, &[1, 2, 3]);
 
@@ -18,10 +15,10 @@ fn parse_vec_by_space() -> anyhow::Result<()> {
 
 #[test]
 fn parse_by_space() -> anyhow::Result<()> {
-    let buf = VecDeque::from("3 2 1".to_owned().into_bytes());
-    let mut reader = BufReader::new(buf);
+    let buf = Vec::from("3 2 1".to_owned().into_bytes());
+    let mut reader = BufReader::new(buf.as_slice());
 
-    let set: BTreeSet<u32> = reader.parse_by_space();
+    let set: BTreeSet<u32> = reader.parse_by_space()?;
 
     assert_eq!(set, BTreeSet::from([1, 2, 3]));
 
@@ -30,8 +27,8 @@ fn parse_by_space() -> anyhow::Result<()> {
 
 #[test]
 fn read_vec_err() -> anyhow::Result<()> {
-    let buf = VecDeque::from(" 1 2 3".to_owned().into_bytes());
-    let mut reader = BufReader::new(buf);
+    let buf = Vec::from(" 1 2 3".to_owned().into_bytes());
+    let mut reader = BufReader::new(buf.as_slice());
 
     assert!(matches!(
         reader.parse_vec_by_space::<u32>(1),
