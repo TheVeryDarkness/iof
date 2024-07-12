@@ -9,7 +9,7 @@ rust-version = "1.58"
 
 [features]
 # default = ["auto_unwrap"]
-auto_unwrap = []
+# auto_unwrap = []
 
 [dev-dependencies]
 anyhow = "1.0.86"

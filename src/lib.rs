@@ -2,12 +2,14 @@
 //! A utility library from input/output.
 use std::{
     fmt::{self, Debug},
-    io::BufRead,
+    io::{BufRead, Seek, SeekFrom},
     mem::take,
     str::{FromStr, Utf8Error},
     string::FromUtf8Error,
     usize,
 };
+
+pub use Vec;
 
 #[derive(Debug)]
 /// An error type for reading from buffer into specified type `T`.
@@ -51,17 +53,6 @@ where
 }
 impl<T: FromStr + Debug> std::error::Error for Error<T> where T::Err: fmt::Display + fmt::Debug {}
 
-#[cfg(not(feature = "auto_unwrap"))]
-mod util {
-    pub type Result<T, E> = std::result::Result<T, E>;
-}
-#[cfg(feature = "auto_unwrap")]
-mod util {
-    pub type Result<T, E> = T;
-}
-
-use util::Result;
-
 fn read_until<'r, R: BufRead + ?Sized>(
     reader: &'r mut R,
     buf: &mut Vec<u8>,
@@ -104,7 +95,14 @@ type SperatedParsed<'b, B, T> =
     std::iter::Map<Separated<'b, B>, fn(Result<String, ReadError>) -> Result<T, Error<T>>>;
 
 /// Reading in specified format.
-pub trait Formatted: BufRead {
+pub trait Formatted: BufRead + Seek {
+    /// Parse an element.
+    fn parse_once<T: FromStr + Debug>(&mut self) -> Result<T, Error<T>> {
+        let mut buf = Vec::new();
+        let frag = read_until(self, &mut buf, b' ').map_err(Error::ReadError)?;
+        let res = T::from_str(frag.as_str()).map_err(|err| Error::ParseError(err, frag))?;
+        Ok(res)
+    }
     /// Iterate over multiple elements that are separated by a given separator.
     fn parse_by_sep_iter<T: FromStr + Debug>(
         &mut self,
@@ -133,7 +131,7 @@ pub trait Formatted: BufRead {
         self.parse_by_sep(b' ')
     }
     /// Read multiple elements that are separated by a given separator into a [Vec].
-    fn parse_vec_by_sep<T: FromStr + Debug>(
+    fn parse_n_to_vec_by_sep<T: FromStr + Debug>(
         &mut self,
         n: usize,
         separator: u8,
@@ -149,25 +147,74 @@ pub trait Formatted: BufRead {
         Ok(res)
     }
     /// Read multiple elements that are separated by a space into a [Vec].
-    fn parse_vec_by_space<T: FromStr + Debug>(&mut self, n: usize) -> Result<Vec<T>, Error<T>> {
-        self.parse_vec_by_sep(n, b' ')
+    fn parse_n_to_vec_by_space<T: FromStr + Debug>(
+        &mut self,
+        n: usize,
+    ) -> Result<Vec<T>, Error<T>> {
+        self.parse_n_to_vec_by_sep(n, b' ')
+    }
+    /// Skip all leading characters that is the same with c.
+    fn ltrim_matches(&mut self, c: u8) -> std::io::Result<()> {
+        loop {
+            let mut buf = [c; 1];
+            self.read_exact(&mut buf)?;
+            if buf[0] != c {
+                self.seek(SeekFrom::Current(-1))?;
+                return Ok(());
+            }
+        }
+    }
+    /// Skip all spaces.
+    fn ltrim(&mut self) -> std::io::Result<()> {
+        self.ltrim_matches(b' ')
+    }
+    /// Skip all spaces and then read and parse an element.
+    fn ltrim_and_parse<T: FromStr + Debug>(&mut self) -> Result<T, Error<T>> {
+        self.ltrim()
+            .map_err(ReadError::IOError)
+            .map_err(Error::ReadError)?;
+        let res = self.parse_once()?;
+        Ok(res)
     }
 }
 
-impl<T: BufRead> Formatted for T {}
+impl<T: BufRead + Seek> Formatted for T {}
 
-/// Read from stdin.
+/// Unwrap [Result].
 #[macro_export]
-macro_rules! read_once {
-    ($src:expr, $ty:ty) => {};
+macro_rules! unwrap {
+    ($expr:expr) => {
+        $expr.unwrap_or_else(|err| ::core::panic!("{}", err));
+    };
 }
 
-/// Read from stdin.
+/// Read from given buffer.
 #[macro_export]
-macro_rules! read {
-    ($src:expr, $($ty:ty),* $(,)?) => {
+macro_rules! read_once {
+    ($src:expr, [$ty:path; $m:expr, $n:expr]) => {
+        $crate::unwrap!($src.parse_n_to_vec_by_space::<$ty>($n))
+    };
+    ($src:expr, [$ty:path; $n:expr]) => {
+        $crate::unwrap!($src.parse_n_to_vec_by_space::<$ty>($n))
+    };
+    ($src:expr, [$ty:path]) => {
+        $crate::unwrap!($src.parse_by_space::<$crate::Vec<$ty>, $ty>())
+    };
+    ($src:expr, $ty:path) => {
+        $crate::unwrap!($src.parse_once::<$ty>())
+    };
+}
+
+/// Read from given buffer.
+#[macro_export]
+macro_rules! readln {
+    ($src:expr, $( $tt:tt ),* $(,)?) => {
         {
-            ( $($crate::scan_once!($src, $ty), )* )
+            (
+                $(
+                    $crate::read_once!($src, $tt),
+                )*
+            )
         }
     };
 }
