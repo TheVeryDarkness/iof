@@ -86,7 +86,7 @@ impl<T> Mat<T> {
     }
 }
 
-impl<'a, T: Clone> FromIterator<&'a [T]> for Mat<T> {
+impl<'a, T: Clone + 'a> FromIterator<&'a [T]> for Mat<T> {
     fn from_iter<I: IntoIterator<Item = &'a [T]>>(iter: I) -> Self {
         let iter = iter.into_iter();
         let mut iter = iter.peekable();
@@ -106,7 +106,7 @@ impl<'a, T: Clone> FromIterator<&'a [T]> for Mat<T> {
     }
 }
 
-impl<'a, T: Clone, const N: usize> FromIterator<&'a [T; N]> for Mat<T> {
+impl<'a, T: Clone + 'a, const N: usize> FromIterator<&'a [T; N]> for Mat<T> {
     fn from_iter<I: IntoIterator<Item = &'a [T; N]>>(iter: I) -> Self {
         let iter = iter.into_iter();
         let n = N;

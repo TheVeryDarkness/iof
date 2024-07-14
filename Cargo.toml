@@ -3,7 +3,7 @@ name = "iof"
 version = "0.1.0"
 edition = "2021"
 description = "Read and write data from console or file in specified formats."
-rust-version = "1.58"
+rust-version = "1.63"
 
 [dependencies]
 

@@ -106,5 +106,5 @@ pub fn read<T: FromStr>() -> T
 where
     T::Err: std::error::Error,
 {
-    STDIN.with_borrow_mut(|lock| lock.read())
+    STDIN.with(|lock| lock.borrow_mut().read())
 }
