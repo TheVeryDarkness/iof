@@ -1,4 +1,8 @@
-use crate::stdio::STDIN;
+use crate::{
+    mat::Mat,
+    stdio::STDIN,
+    stream::{InputStream, RealAll},
+};
 use std::{
     fmt::{Debug, Display},
     io::BufRead,
@@ -39,31 +43,60 @@ where
 
 impl<T: FromStr> std::error::Error for ReadIntoError<T> where T::Err: std::error::Error {}
 
+macro_rules! unwrap {
+    ($result:expr) => {
+        $result.unwrap_or_else(|err| panic!("{err}"))
+    };
+}
+
 /// Read data from input stream.
 pub trait ReadInto<T> {
     /// Errors that come from [ReadInto].
     type Error: std::error::Error;
-    /// Read from `self` and parse into given type.
-    fn try_read(&mut self) -> Result<T, Self::Error> {
-        self.try_read_with(&mut String::new())
-    }
-    /// Read from `self` with given buffer and parse into given type.
-    fn try_read_with(&mut self, buf: &mut String) -> Result<T, Self::Error>;
-    /// Read from `self` and parse into given type.
+    /// Read from `self` and parse into `T`.
+    fn try_read(&mut self) -> Result<T, Self::Error>;
+    /// Unwrapping version of [ReadInto::try_read].
     fn read(&mut self) -> T {
-        self.try_read().unwrap_or_else(|err| panic!("{err}"))
+        unwrap!(self.try_read())
+    }
+    /// Read `n` elements from `self`, parse into `T` and aggregate them into a single [Vec].
+    fn try_read_n(&mut self, n: usize) -> Result<Vec<T>, Self::Error> {
+        let mut res = Vec::new();
+        for _ in 0..n {
+            res.push(self.try_read()?);
+        }
+        Ok(res)
+    }
+    /// Unwrapping version of [ReadInto::try_read_n].
+    fn read_n(&mut self, n: usize) -> Vec<T> {
+        unwrap!(self.try_read_n(n))
+    }
+    /// Read `m * n` elements from `self`, parse into `T` and aggregate them into a single [Mat].
+    fn try_read_m_n(&mut self, m: usize, n: usize) -> Result<Mat<T>, Self::Error> {
+        let mut res = Vec::new();
+        for _ in 0..m {
+            for _ in 0..n {
+                res.push(self.try_read()?);
+            }
+        }
+        Ok(Mat::from_vec(m, n, res))
+    }
+    /// Read all remaining elements from `self`.
+    fn read_all(&mut self) -> RealAll<'_, Self, T> {
+        RealAll::new(self)
     }
 }
 
-impl<T: FromStr, B: BufRead> ReadInto<T> for B
+impl<T: FromStr, B: BufRead> ReadInto<T> for InputStream<B>
 where
     T::Err: std::error::Error,
 {
     type Error = ReadIntoError<T>;
-    fn try_read_with(&mut self, buf: &mut String) -> Result<T, Self::Error> {
-        buf.clear();
-        self.read_line(buf).map_err(ReadIntoError::IOError)?;
-        let res = T::from_str(buf).map_err(ReadIntoError::FromStrError)?;
+    fn try_read(&mut self) -> Result<T, Self::Error> {
+        let res = self
+            .consume_string(|s| T::from_str(s))
+            .map_err(ReadIntoError::IOError)?
+            .map_err(ReadIntoError::FromStrError)?;
         Ok(res)
     }
 }

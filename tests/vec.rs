@@ -2,44 +2,24 @@ use iof::*;
 use std::{collections::BTreeSet, io::Cursor};
 
 #[test]
-fn parse_vec_by_space() -> anyhow::Result<()> {
-    let buf = Vec::from("1 2 3".to_owned().into_bytes());
-    let mut reader = Cursor::new(buf.as_slice());
-    let vec = reader.parse_n_to_vec_by_space::<u32>(3)?;
+fn read_n_1() {
+    let reader = Cursor::new("1 2 3".as_bytes());
+    let mut reader = InputStream::new(reader);
+
+    let vec: Vec<u32> = reader.read_n(3);
     assert_eq!(vec, &[1, 2, 3]);
 
-    assert!(reader.parse_n_to_vec_by_space::<u32>(1).is_err());
-
-    Ok(())
+    assert!(iof::ReadInto::<u32>::try_read_n(&mut reader, 1).is_err());
 }
 
 #[test]
-fn parse_by_space() -> anyhow::Result<()> {
-    let buf = Vec::from("3 2 1".to_owned().into_bytes());
-    let mut reader = Cursor::new(buf.as_slice());
+fn read_all() -> anyhow::Result<()> {
+    let reader = Cursor::new("3 2 1".as_bytes());
+    let mut reader = InputStream::new(reader);
 
-    let set: BTreeSet<u32> = reader.parse_by_space()?;
+    let set: BTreeSet<u32> = reader.read_all().collect();
 
     assert_eq!(set, BTreeSet::from([1, 2, 3]));
 
     Ok(())
-}
-
-#[test]
-fn read_vec_err() -> anyhow::Result<()> {
-    let buf = Vec::from(" 1 2 3".to_owned().into_bytes());
-    let mut reader = Cursor::new(buf.as_slice());
-
-    assert!(matches!(
-        reader.parse_n_to_vec_by_space::<u32>(1),
-        Err(Error::ParseError(_, _))
-    ));
-
-    Ok(())
-}
-
-fn main() {
-    // let lock = stdin().lock();
-    // let a: usize = read();
-    // let a: usize = stdin().read();
 }
