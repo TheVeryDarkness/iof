@@ -2,7 +2,7 @@
 //! A utility library for reading integers, floating numbers and strings from input/output.
 
 pub use {
-    read_into::{read, ReadInto, ReadIntoError},
+    read_into::{read, try_read, ReadInto, ReadIntoError},
     stream::InputStream,
     Vec,
 };

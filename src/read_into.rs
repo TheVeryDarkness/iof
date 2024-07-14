@@ -102,6 +102,14 @@ where
 }
 
 /// Read from [std::io::Stdin] and parse into `T`.
+pub fn try_read<T: FromStr>() -> Result<T, ReadIntoError<T>>
+where
+    T::Err: std::error::Error,
+{
+    STDIN.with(|lock| lock.borrow_mut().try_read())
+}
+
+/// Unwrapping version of [try_read].
 pub fn read<T: FromStr>() -> T
 where
     T::Err: std::error::Error,
