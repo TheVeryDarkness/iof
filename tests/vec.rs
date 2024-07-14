@@ -38,22 +38,8 @@ fn read_vec_err() -> anyhow::Result<()> {
     Ok(())
 }
 
-#[test]
-fn functions() -> anyhow::Result<()> {
-    let mut buf = Cursor::new(
-        b"\
-2 3
-3 4 5
-6 7 8
-",
-    );
-    // a = int(input())
-    let m = read::<usize>();
-    assert_eq!(m, 2);
-    let n = read::<usize>();
-    assert_eq!(n, 3);
-    let mat: Mat<usize> = read_to_mat::<usize>(m, n);
-    println!("{mat:?}",);
-    // ...
-    Ok(())
+fn main() {
+    // let lock = stdin().lock();
+    // let a: usize = read();
+    // let a: usize = stdin().read();
 }

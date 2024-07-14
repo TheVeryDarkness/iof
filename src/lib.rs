@@ -1,5 +1,5 @@
 #![forbid(missing_docs, rust_2021_compatibility, rust_2018_idioms)]
-//! A utility library from input/output.
+//! A utility library for reading integers, floating numbers and strings from input/output.
 use std::{
     fmt::{self, Debug},
     io::{BufRead, Seek, SeekFrom},
@@ -9,7 +9,14 @@ use std::{
     usize,
 };
 
-pub use Vec;
+pub use {
+    read_into::{read, ReadInto, ReadIntoError},
+    Vec,
+};
+
+mod mat;
+mod read_into;
+mod stdio;
 
 #[derive(Debug)]
 /// An error type for reading from buffer into specified type `T`.
