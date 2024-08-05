@@ -6,6 +6,14 @@ pub struct RowIter<'a, T> {
     i: usize,
 }
 
+impl<'a, T> RowIter<'a, T> {
+    /// Create a [RowIter] from a [Mat].
+    pub const fn new(mat: &'a Mat<T>) -> Self {
+        let i = 0;
+        Self { mat, i }
+    }
+}
+
 impl<'a, T> Iterator for RowIter<'a, T> {
     type Item = &'a [T];
 

@@ -81,6 +81,10 @@ pub trait ReadInto<T> {
         }
         Ok(Mat::from_vec(m, n, res))
     }
+    /// Unwrapping version of [ReadInto::try_read_n].
+    fn read_m_n(&mut self, m: usize, n: usize) -> Mat<T> {
+        unwrap!(self.try_read_m_n(m, n))
+    }
     /// Read all remaining elements from `self`.
     fn read_all(&mut self) -> RealAll<'_, Self, T> {
         RealAll::new(self)
@@ -115,4 +119,36 @@ where
     T::Err: std::error::Error,
 {
     STDIN.with(|lock| lock.borrow_mut().read())
+}
+
+/// Read `n` elements from [std::io::Stdin] and parse into `Vec<T>`.
+pub fn try_read_n<T: FromStr>(n: usize) -> Result<Vec<T>, ReadIntoError<T>>
+where
+    T::Err: std::error::Error,
+{
+    STDIN.with(|lock| lock.borrow_mut().try_read_n(n))
+}
+
+/// Unwrapping version of [try_read_n].
+pub fn read_n<T: FromStr>(n: usize) -> Vec<T>
+where
+    T::Err: std::error::Error,
+{
+    STDIN.with(|lock| lock.borrow_mut().read_n(n))
+}
+
+/// Read `n` elements from [std::io::Stdin] and parse into `Vec<T>`.
+pub fn try_read_m_n<T: FromStr>(m: usize, n: usize) -> Result<Mat<T>, ReadIntoError<T>>
+where
+    T::Err: std::error::Error,
+{
+    STDIN.with(|lock| lock.borrow_mut().try_read_m_n(m, n))
+}
+
+/// Unwrapping version of [try_read_n].
+pub fn read_m_n<T: FromStr>(m: usize, n: usize) -> Mat<T>
+where
+    T::Err: std::error::Error,
+{
+    STDIN.with(|lock| lock.borrow_mut().read_m_n(m, n))
 }

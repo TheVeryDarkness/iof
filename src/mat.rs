@@ -1,8 +1,10 @@
-use std::{iter::repeat_with, ops::Index};
+use row_iter::RowIter;
+use std::{fmt::Debug, iter::repeat_with, ops::Index};
 
 mod row_iter;
 
-#[derive(Default)]
+/// A matrix.
+#[derive(Clone, Default, PartialEq, Eq)]
 pub struct Mat<T> {
     inner: Vec<T>,
     n: usize,
@@ -74,6 +76,11 @@ impl<T> Mat<T> {
     pub fn len_columns(&self) -> usize {
         self.n
     }
+    /// First row.
+    pub fn first_row(&self) -> Option<&[T]> {
+        let n = self.len_columns();
+        self.inner.get(0..n)
+    }
     /// Last row.
     pub fn last_row(&self) -> Option<&[T]> {
         let n = self.len_columns();
@@ -83,6 +90,40 @@ impl<T> Mat<T> {
         } else {
             None
         }
+    }
+    /// Convert `self` into a [RowIter].
+    pub fn iter(&self) -> RowIter<'_, T> {
+        RowIter::new(self)
+    }
+}
+
+impl<'a, T> IntoIterator for &'a Mat<T> {
+    type Item = &'a [T];
+
+    type IntoIter = RowIter<'a, T>;
+
+    fn into_iter(self) -> Self::IntoIter {
+        self.iter()
+    }
+}
+
+impl<T: Debug> Debug for Mat<T> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_list().entries(self.iter()).finish()
+    }
+}
+
+impl<T: Clone> Mat<T> {
+    /// Transpose.
+    pub fn transpose(&self) -> Self {
+        let n = self.n;
+        let mut inner = Vec::with_capacity(self.inner.capacity());
+        for j in 0..n {
+            for i in 0..self.inner.len() / n {
+                inner.push(self.inner[i * n + j].clone());
+            }
+        }
+        Self { inner, n }
     }
 }
 
