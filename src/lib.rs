@@ -10,6 +10,7 @@
 //! A utility library for reading integers, floating numbers and strings from input/output.
 
 pub use {
+    formatted::*,
     mat::Mat,
     read_into::{
         read, read_m_n, read_n, try_read, try_read_m_n, try_read_n, ReadInto, ReadIntoError,
@@ -17,7 +18,9 @@ pub use {
     stream::InputStream,
 };
 
+mod formatted;
 mod mat;
 mod read_into;
+mod sep_by;
 mod stdio;
 mod stream;
