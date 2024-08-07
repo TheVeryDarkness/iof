@@ -13,7 +13,8 @@ pub use {
     formatted::*,
     mat::Mat,
     read_into::{
-        read, read_m_n, read_n, try_read, try_read_m_n, try_read_n, ReadInto, ReadIntoError,
+        read, read_array, read_m_n, read_n, read_tuple, try_read, try_read_array, try_read_m_n,
+        try_read_n, try_read_tuple, ReadInto, ReadIntoError,
     },
     stream::InputStream,
 };

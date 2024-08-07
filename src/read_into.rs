@@ -61,7 +61,7 @@ pub trait ReadInto<T> {
     }
     /// Read `n` elements from `self`, parse into `T` and aggregate them into a single [Vec].
     fn try_read_n(&mut self, n: usize) -> Result<Vec<T>, Self::Error> {
-        let mut res = Vec::new();
+        let mut res = Vec::with_capacity(n);
         for _ in 0..n {
             res.push(self.try_read()?);
         }
@@ -73,7 +73,7 @@ pub trait ReadInto<T> {
     }
     /// Read `m * n` elements from `self`, parse into `T` and aggregate them into a single [Mat].
     fn try_read_m_n(&mut self, m: usize, n: usize) -> Result<Mat<T>, Self::Error> {
-        let mut res = Vec::new();
+        let mut res = Vec::with_capacity(m * n);
         for _ in 0..m {
             for _ in 0..n {
                 res.push(self.try_read()?);
@@ -85,11 +85,59 @@ pub trait ReadInto<T> {
     fn read_m_n(&mut self, m: usize, n: usize) -> Mat<T> {
         unwrap!(self.try_read_m_n(m, n))
     }
+    /// Read `N` elements from `self`, parse into `T` and aggregate them into a single [std::array].
+    ///
+    /// Use [std::array::try_from_fn] if it's stabilized.
+    fn try_read_array<const N: usize>(&mut self) -> Result<Box<[T; N]>, Self::Error> {
+        let res = self.try_read_n(N)?.into_boxed_slice().try_into();
+        let res = unsafe { res.unwrap_unchecked() };
+        Ok(res)
+    }
+    /// Unwrapping version of [ReadInto::try_read_array].
+    fn read_array<const N: usize>(&mut self) -> Box<[T; N]> {
+        unwrap!(self.try_read_array())
+    }
+    /// Read several elements from `self`, parse into `T` and aggregate them into a single tuple.
+    fn try_read_tuple<U: MonoTuple<T, Self>>(&mut self) -> Result<U, Self::Error> {
+        MonoTuple::read_from(self)
+    }
+    /// Unwrapping version of [ReadInto::try_read_array].
+    fn read_tuple<U: MonoTuple<T, Self>>(&mut self) -> U {
+        unwrap!(self.try_read_tuple())
+    }
     /// Read all remaining elements from `self`.
     fn read_all(&mut self) -> RealAll<'_, Self, T> {
         RealAll::new(self)
     }
 }
+
+/// For all tuple types, all of whose elements is the same.
+pub trait MonoTuple<T, S: ReadInto<T> + ?Sized>: Sized {
+    fn read_from(stream: &mut S) -> Result<Self, S::Error>;
+}
+
+macro_rules! impl_mono {
+    ($($ty:ty)*) => {
+        impl<T, S: ReadInto<T> + ?Sized> MonoTuple<T, S> for ( $($ty, )* ) {
+            fn read_from(stream: &mut S) -> Result<Self, S::Error> {
+                Ok(( $(ReadInto::<$ty>::try_read(stream)?, )* ))
+            }
+        }
+    };
+}
+
+impl_mono!(T);
+impl_mono!(T T);
+impl_mono!(T T T);
+impl_mono!(T T T T);
+impl_mono!(T T T T T);
+impl_mono!(T T T T T T);
+impl_mono!(T T T T T T T);
+impl_mono!(T T T T T T T T);
+impl_mono!(T T T T T T T T T);
+impl_mono!(T T T T T T T T T T);
+impl_mono!(T T T T T T T T T T T);
+impl_mono!(T T T T T T T T T T T T);
 
 impl<T: FromStr, B: BufRead> ReadInto<T> for InputStream<B>
 where
@@ -151,4 +199,37 @@ where
     T::Err: std::error::Error,
 {
     STDIN.with(|lock| lock.borrow_mut().read_m_n(m, n))
+}
+
+/// Read `n` elements from [std::io::Stdin] and parse into `Vec<T>`.
+pub fn try_read_array<T: FromStr, const N: usize>() -> Result<Box<[T; N]>, ReadIntoError<T>>
+where
+    T::Err: std::error::Error,
+{
+    STDIN.with(|lock| lock.borrow_mut().try_read_array())
+}
+
+/// Unwrapping version of [try_read_array].
+pub fn read_array<T: FromStr, const N: usize>() -> Box<[T; N]>
+where
+    T::Err: std::error::Error,
+{
+    STDIN.with(|lock| lock.borrow_mut().read_array())
+}
+
+/// Read `n` elements from [std::io::Stdin] and parse into `Vec<T>`.
+pub fn try_read_tuple<T: FromStr, U: MonoTuple<T, InputStream<std::io::StdinLock<'static>>>>(
+) -> Result<U, ReadIntoError<T>>
+where
+    T::Err: std::error::Error,
+{
+    STDIN.with(|lock| lock.borrow_mut().try_read_tuple())
+}
+
+/// Unwrapping version of [try_read_tuple].
+pub fn read_tuple<T: FromStr, U: MonoTuple<T, InputStream<std::io::StdinLock<'static>>>>() -> U
+where
+    T::Err: std::error::Error,
+{
+    STDIN.with(|lock| lock.borrow_mut().read_tuple())
 }

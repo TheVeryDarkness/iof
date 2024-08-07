@@ -6,7 +6,7 @@ pub struct SepBy<'a, I> {
     iter: I,
 }
 
-impl<'a, I> SepBy<'a, I> {
+impl<'a, I: Iterator + Clone> SepBy<'a, I> {
     /// Create a [SepBy].
     pub fn new(iter: I, sep: &'a str) -> Self {
         Self { sep, iter }

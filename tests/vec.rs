@@ -8,6 +8,7 @@ fn read_n_1() {
 
     let vec: Vec<u32> = reader.read_n(3);
     assert_eq!(vec, &[1, 2, 3]);
+    assert_eq!(vec.sep_by(" ").to_string(), "1 2 3");
 
     assert!(iof::ReadInto::<u32>::try_read_n(&mut reader, 1).is_err());
 }
@@ -20,6 +21,7 @@ fn read_all() -> anyhow::Result<()> {
     let set: BTreeSet<u32> = reader.read_all().collect();
 
     assert_eq!(set, BTreeSet::from([1, 2, 3]));
+    assert_eq!(set.iter().sep_by(" ").to_string(), "1 2 3");
 
     Ok(())
 }

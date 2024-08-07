@@ -6,7 +6,10 @@ pub trait SepBy: IntoIterator {
     fn sep_by(self, sep: &'_ str) -> sep_by::SepBy<'_, Self::IntoIter>;
 }
 
-impl<I: IntoIterator> SepBy for I {
+impl<I: IntoIterator> SepBy for I
+where
+    I::IntoIter: Clone,
+{
     fn sep_by(self, sep: &'_ str) -> sep_by::SepBy<'_, Self::IntoIter> {
         super::sep_by::SepBy::new(self.into_iter(), sep)
     }
