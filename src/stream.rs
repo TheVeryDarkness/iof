@@ -96,7 +96,7 @@ impl<B: BufRead> InputStream<B> {
     pub fn consume_remained_line<T>(&mut self, f: impl FnOnce(&str) -> T) -> Result<T, Error> {
         let line = &self.line_buf[self.cursor..];
         self.cursor = self.line_buf.len();
-        return Ok(f(line));
+        Ok(f(line))
     }
 }
 
