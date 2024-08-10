@@ -79,6 +79,25 @@ impl<B: BufRead> InputStream<B> {
             }
         }
     }
+    /// Consume a line of non-empty string.
+    pub fn consume_line<T>(&mut self, f: impl FnOnce(&str) -> T) -> Result<T, Error> {
+        loop {
+            let remaining = self.remove_white()?;
+            if remaining.is_empty() {
+                continue;
+            } else {
+                let line = &self.line_buf[self.cursor..].trim_end_matches(WHITE);
+                self.cursor = self.line_buf.len();
+                return Ok(f(line));
+            }
+        }
+    }
+    /// Consume the remained line.
+    pub fn consume_remained_line<T>(&mut self, f: impl FnOnce(&str) -> T) -> Result<T, Error> {
+        let line = &self.line_buf[self.cursor..];
+        self.cursor = self.line_buf.len();
+        return Ok(f(line));
+    }
 }
 
 /// Iterator for all elements.

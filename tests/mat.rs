@@ -1,5 +1,5 @@
 use iof::*;
-use std::io::Cursor;
+use std::{io::Cursor, vec};
 
 #[test]
 fn read_m_n_1() {
@@ -9,8 +9,13 @@ fn read_m_n_1() {
     let mat: Mat<u32> = reader.read_m_n(2, 3);
     assert_eq!(mat.first_row(), Some([1, 2, 3].as_slice()));
     assert_eq!(mat.last_row(), Some([4, 5, 6].as_slice()));
+    assert_eq!(&mat[0], [1, 2, 3].as_slice());
+    assert_eq!(&mat[1], [4, 5, 6].as_slice());
     assert_eq!(mat.len_rows(), 2);
     assert_eq!(mat.len_columns(), 3);
+    assert_eq!(mat.iter().count(), 2);
+    assert_eq!(mat.iter().size_hint(), (2, Some(2)));
+    assert_eq!(mat.iter().last(), Some([4, 5, 6].as_slice()));
     assert_eq!(format!("{:?}", mat), "[[1, 2, 3], [4, 5, 6]]");
     assert_eq!(
         format!("{:#?}", mat),
@@ -28,6 +33,51 @@ fn read_m_n_1() {
     ],
 ]"
     );
+    assert_eq!(mat.iter().collect::<Mat<_>>(), mat);
+    assert_eq!(mat.transpose(), Mat::from_iter([[1, 4], [2, 5], [3, 6]]));
+    assert_eq!(mat.transpose().transpose(), mat);
+    assert_eq!(mat.last_row(), Some([4, 5, 6].as_slice()));
 
     assert!(iof::ReadInto::<u32>::try_read_n(&mut reader, 1).is_err());
+}
+
+#[test]
+fn read_same_rows() {
+    let reader = Cursor::new("2 3 2\n2 3 2\n2 3 2".as_bytes());
+    let mut reader = InputStream::new(reader);
+
+    let mat: Mat<u32> = reader.read_m_n(3, 3);
+    assert_eq!(mat.first_row(), Some([2, 3, 2].as_slice()));
+    assert_eq!(mat.last_row(), Some([2, 3, 2].as_slice()));
+    assert_eq!(&mat[0], &[2, 3, 2]);
+    assert_eq!(&mat[1], &[2, 3, 2]);
+    assert_eq!(&mat[2], &[2, 3, 2]);
+    assert_eq!(mat.len_rows(), 3);
+    assert_eq!(mat.len_columns(), 3);
+    assert_eq!(mat.iter().count(), 3);
+    assert_eq!(mat.iter().size_hint(), (3, Some(3)));
+    assert_eq!(mat.iter().last(), Some([2, 3, 2].as_slice()));
+    assert_eq!(format!("{:?}", mat), "[[2, 3, 2], [2, 3, 2], [2, 3, 2]]");
+    assert_eq!(mat.iter().collect::<Mat<_>>(), mat);
+    assert_eq!(mat, Mat::with_repeat(3, vec![2, 3, 2]));
+}
+
+#[test]
+fn read_all_same() {
+    let reader = Cursor::new("2 2 2\n2 2 2".as_bytes());
+    let mut reader = InputStream::new(reader);
+
+    let mat: Mat<u32> = reader.read_m_n(2, 3);
+    assert_eq!(mat.first_row(), Some([2, 2, 2].as_slice()));
+    assert_eq!(mat.last_row(), Some([2, 2, 2].as_slice()));
+    assert_eq!(&mat[0], [2, 2, 2].as_slice());
+    assert_eq!(&mat[1], [2, 2, 2].as_slice());
+    assert_eq!(mat.len_rows(), 2);
+    assert_eq!(mat.len_columns(), 3);
+    assert_eq!(mat.iter().count(), 2);
+    assert_eq!(mat.iter().size_hint(), (2, Some(2)));
+    assert_eq!(mat.iter().last(), Some([2, 2, 2].as_slice()));
+    assert_eq!(format!("{:?}", mat), "[[2, 2, 2], [2, 2, 2]]");
+    assert_eq!(mat.iter().collect::<Mat<_>>(), mat);
+    assert_eq!(mat, Mat::with_clone(2, 3, 2));
 }

@@ -101,9 +101,21 @@ pub trait ReadInto<T> {
     fn try_read_tuple<U: MonoTuple<T, Self>>(&mut self) -> Result<U, Self::Error> {
         MonoTuple::read_from(self)
     }
-    /// Unwrapping version of [ReadInto::try_read_array].
+    /// Unwrapping version of [ReadInto::try_read_tuple].
     fn read_tuple<U: MonoTuple<T, Self>>(&mut self) -> U {
         unwrap!(self.try_read_tuple())
+    }
+    /// Read an element in the remained line from `self`, parse into `T`.
+    fn try_read_remained_line(&mut self) -> Result<T, Self::Error>;
+    /// Unwrapping version of [ReadInto::try_read_remained_line].
+    fn read_remained_line(&mut self) -> T {
+        unwrap!(self.try_read_remained_line())
+    }
+    /// Read an element in a single trimmed line from `self`, parse into `T`.
+    fn try_read_line(&mut self) -> Result<T, Self::Error>;
+    /// Unwrapping version of [ReadInto::try_read_line].
+    fn read_line(&mut self) -> T {
+        unwrap!(self.try_read_line())
     }
     /// Read all remaining elements from `self`.
     fn read_all(&mut self) -> RealAll<'_, Self, T> {
@@ -147,6 +159,20 @@ where
     fn try_read(&mut self) -> Result<T, Self::Error> {
         let res = self
             .consume_string(|s| T::from_str(s))
+            .map_err(ReadIntoError::IOError)?
+            .map_err(ReadIntoError::FromStrError)?;
+        Ok(res)
+    }
+    fn try_read_line(&mut self) -> Result<T, Self::Error> {
+        let res = self
+            .consume_line(|s| T::from_str(s))
+            .map_err(ReadIntoError::IOError)?
+            .map_err(ReadIntoError::FromStrError)?;
+        Ok(res)
+    }
+    fn try_read_remained_line(&mut self) -> Result<T, Self::Error> {
+        let res = self
+            .consume_remained_line(|s| T::from_str(s))
             .map_err(ReadIntoError::IOError)?
             .map_err(ReadIntoError::FromStrError)?;
         Ok(res)
