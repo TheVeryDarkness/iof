@@ -45,7 +45,7 @@ jobs:
         with:
           file: lcov.info
           flags: unittests
-          name: pest3-ci-coverage
+          name: iof
           # Failing to upload results will cause a CI error.
           # So remember to use a token.
           fail_ci_if_error: true
