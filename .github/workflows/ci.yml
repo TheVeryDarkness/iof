@@ -26,7 +26,6 @@ jobs:
 
   coverage:
     name: Test Coverage
-    needs: check
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Repository
