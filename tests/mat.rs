@@ -12,7 +12,9 @@ fn read_m_n_1() {
     assert_eq!(mat.len_rows(), 2);
     assert_eq!(mat.len_columns(), 3);
     assert_eq!(format!("{:?}", mat), "[[1, 2, 3], [4, 5, 6]]");
-    assert_eq!(format!("{:#?}", mat), "\
+    assert_eq!(
+        format!("{:#?}", mat),
+        "\
 [
     [
         1,
@@ -24,7 +26,8 @@ fn read_m_n_1() {
         5,
         6,
     ],
-]");
+]"
+    );
 
     assert!(iof::ReadInto::<u32>::try_read_n(&mut reader, 1).is_err());
 }
