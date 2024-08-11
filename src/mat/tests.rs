@@ -10,6 +10,14 @@ fn empty() {
     assert_eq!(mat.len_rows(), 0);
     assert_eq!(mat.len_columns(), 0);
     assert_eq!(mat.iter().count(), 0);
+    assert_eq!(mat.iter().size_hint(), (0, Some(0)));
+    assert_eq!(mat.iter().last(), None);
+    assert_eq!(format!("{:?}", mat), "[]");
+    assert_eq!(mat, Mat::from_iter([] as [[u32; 0]; 0]));
+    assert_eq!(mat, Mat::from_iter([] as [[u32; 1]; 0]));
+    assert_eq!(mat, Mat::from_iter(&[] as &[[u32; 0]; 0]));
+    // assert_eq!(mat, Mat::from_iter(&[] as &[[u32; 1]; 0]));
+    assert_eq!(mat, Mat::from_iter([] as [&[u32]; 0]));
 }
 
 #[test]
@@ -89,6 +97,20 @@ fn unit() {
         [0, 0, 0, 1, 0],
         [0, 0, 0, 0, 1],
     ];
+    let vec_ref_arr = vec![
+        &[1, 0, 0, 0, 0],
+        &[0, 1, 0, 0, 0],
+        &[0, 0, 1, 0, 0],
+        &[0, 0, 0, 1, 0],
+        &[0, 0, 0, 0, 1],
+    ];
+    let vec_slice_arr = vec![
+        [1, 0, 0, 0, 0].as_slice(),
+        [0, 1, 0, 0, 0].as_slice(),
+        [0, 0, 1, 0, 0].as_slice(),
+        [0, 0, 0, 1, 0].as_slice(),
+        [0, 0, 0, 0, 1].as_slice(),
+    ];
     let vec_vec = vec![
         vec![1, 0, 0, 0, 0],
         vec![0, 1, 0, 0, 0],
@@ -102,6 +124,10 @@ fn unit() {
     assert_eq!(b, arr_vec);
     assert_eq!(a, vec_arr);
     assert_eq!(b, vec_arr);
+    assert_eq!(a, vec_ref_arr);
+    assert_eq!(b, vec_ref_arr);
+    assert_eq!(a, vec_slice_arr);
+    assert_eq!(b, vec_slice_arr);
     assert_eq!(a, vec_vec);
     assert_eq!(b, vec_vec);
     assert_eq!(Mat::from(arr_arr), a);

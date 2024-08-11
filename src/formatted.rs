@@ -2,7 +2,7 @@ use crate::sep_by;
 
 /// [std::fmt::Display] with given separator.
 pub trait SepBy: IntoIterator {
-    /// Create a [sep_by::SepBy] with given separator.
+    /// Create an iterator that implement [core::fmt::Display] using given separator.
     fn sep_by(self, sep: &'_ str) -> sep_by::SepBy<'_, Self::IntoIter>;
 }
 

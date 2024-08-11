@@ -126,7 +126,7 @@ impl<T> Mat<T> {
             None
         }
     }
-    /// Convert `self` into a [RowIter].
+    /// Convert `self` into an iterator over all rows.
     pub fn iter(&self) -> RowIter<'_, T> {
         RowIter::new(self)
     }
@@ -177,9 +177,9 @@ impl<T, const M: usize, const N: usize> From<[[T; N]; M]> for Mat<T> {
 trait AsSlice {
     type Item;
     fn as_slice(&self) -> &[Self::Item];
-    fn len(&self) -> usize {
-        self.as_slice().len()
-    }
+    // fn len(&self) -> usize {
+    //     self.as_slice().len()
+    // }
 }
 impl<T> AsSlice for [T] {
     type Item = T;
@@ -198,9 +198,15 @@ impl<T, const N: usize> AsSlice for [T; N] {
     fn as_slice(&self) -> &[T] {
         self
     }
-    #[inline]
-    fn len(&self) -> usize {
-        N
+    // #[inline]
+    // fn len(&self) -> usize {
+    //     N
+    // }
+}
+impl<S: AsSlice + ?Sized> AsSlice for &S {
+    type Item = S::Item;
+    fn as_slice(&self) -> &[S::Item] {
+        (*self).as_slice()
     }
 }
 

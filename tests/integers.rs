@@ -19,6 +19,23 @@ fn read_3() {
 }
 
 #[test]
+fn read_char_3() {
+    let reader = Cursor::new("123".as_bytes());
+    let mut reader = InputStream::new(reader);
+
+    let a: u32 = reader.read_char();
+    assert_eq!(a, 1);
+
+    let b: u32 = reader.read_char();
+    assert_eq!(b, 2);
+
+    let c: u32 = reader.read_char();
+    assert_eq!(c, 3);
+
+    assert!(iof::ReadInto::<u32>::try_read_char(&mut reader).is_err());
+}
+
+#[test]
 #[should_panic = "invalid digit found in string"]
 fn read_sign_error() {
     let reader = Cursor::new("-1".as_bytes());

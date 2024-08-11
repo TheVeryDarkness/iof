@@ -1,3 +1,4 @@
+use iof::{read_n, try_read_n};
 use std::{
     io::Write,
     process::{Command, Stdio},
@@ -20,4 +21,12 @@ fn dot_product() {
         .unwrap();
     let status = child.wait().unwrap();
     assert!(status.success());
+}
+
+#[test]
+fn read_0() {
+    let s1: Vec<usize> = read_n(0);
+    let s2: Vec<char> = try_read_n(0).unwrap();
+    assert!(s1.is_empty());
+    assert!(s2.is_empty());
 }

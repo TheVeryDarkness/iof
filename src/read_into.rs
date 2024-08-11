@@ -1,6 +1,5 @@
 use crate::{
     mat::Mat,
-    stdio::STDIN,
     stream::{InputStream, RealAll},
 };
 use std::{
@@ -50,6 +49,12 @@ macro_rules! unwrap {
 }
 
 /// Read data from input stream.
+///
+/// # Errors
+///
+/// - If the input cannot be parsed into `T`, [ReadIntoError::FromStrError] is returned.
+/// - If the input is not valid UTF-8, [ReadIntoError::IOError] is returned.
+/// - If an I/O error occurs, [ReadIntoError::IOError] is returned.
 pub trait ReadInto<T> {
     /// Errors that come from [ReadInto].
     type Error: std::error::Error;
@@ -117,6 +122,12 @@ pub trait ReadInto<T> {
     fn read_line(&mut self) -> T {
         unwrap!(self.try_read_line())
     }
+    /// Read an element in a single non-whitespace character from `self`, parse into `T`.
+    fn try_read_char(&mut self) -> Result<T, Self::Error>;
+    /// Unwrapping version of [ReadInto::try_read_char].
+    fn read_char(&mut self) -> T {
+        unwrap!(self.try_read_char())
+    }
     /// Read all remaining elements from `self`.
     fn read_all(&mut self) -> RealAll<'_, Self, T> {
         RealAll::new(self)
@@ -177,85 +188,9 @@ where
             .map_err(ReadIntoError::FromStrError)?;
         Ok(res)
     }
-}
-
-/// Read from [std::io::Stdin] and parse into `T`.
-pub fn try_read<T: FromStr>() -> Result<T, ReadIntoError<T>>
-where
-    T::Err: std::error::Error,
-{
-    STDIN.with(|lock| lock.borrow_mut().try_read())
-}
-
-/// Unwrapping version of [try_read].
-pub fn read<T: FromStr>() -> T
-where
-    T::Err: std::error::Error,
-{
-    STDIN.with(|lock| lock.borrow_mut().read())
-}
-
-/// Read `n` elements from [std::io::Stdin] and parse into `Vec<T>`.
-pub fn try_read_n<T: FromStr>(n: usize) -> Result<Vec<T>, ReadIntoError<T>>
-where
-    T::Err: std::error::Error,
-{
-    STDIN.with(|lock| lock.borrow_mut().try_read_n(n))
-}
-
-/// Unwrapping version of [try_read_n].
-pub fn read_n<T: FromStr>(n: usize) -> Vec<T>
-where
-    T::Err: std::error::Error,
-{
-    STDIN.with(|lock| lock.borrow_mut().read_n(n))
-}
-
-/// Read `n` elements from [std::io::Stdin] and parse into `Vec<T>`.
-pub fn try_read_m_n<T: FromStr>(m: usize, n: usize) -> Result<Mat<T>, ReadIntoError<T>>
-where
-    T::Err: std::error::Error,
-{
-    STDIN.with(|lock| lock.borrow_mut().try_read_m_n(m, n))
-}
-
-/// Unwrapping version of [try_read_n].
-pub fn read_m_n<T: FromStr>(m: usize, n: usize) -> Mat<T>
-where
-    T::Err: std::error::Error,
-{
-    STDIN.with(|lock| lock.borrow_mut().read_m_n(m, n))
-}
-
-/// Read `n` elements from [std::io::Stdin] and parse into `Vec<T>`.
-pub fn try_read_array<T: FromStr, const N: usize>() -> Result<Box<[T; N]>, ReadIntoError<T>>
-where
-    T::Err: std::error::Error,
-{
-    STDIN.with(|lock| lock.borrow_mut().try_read_array())
-}
-
-/// Unwrapping version of [try_read_array].
-pub fn read_array<T: FromStr, const N: usize>() -> Box<[T; N]>
-where
-    T::Err: std::error::Error,
-{
-    STDIN.with(|lock| lock.borrow_mut().read_array())
-}
-
-/// Read `n` elements from [std::io::Stdin] and parse into `Vec<T>`.
-pub fn try_read_tuple<T: FromStr, U: MonoTuple<T, InputStream<std::io::StdinLock<'static>>>>(
-) -> Result<U, ReadIntoError<T>>
-where
-    T::Err: std::error::Error,
-{
-    STDIN.with(|lock| lock.borrow_mut().try_read_tuple())
-}
-
-/// Unwrapping version of [try_read_tuple].
-pub fn read_tuple<T: FromStr, U: MonoTuple<T, InputStream<std::io::StdinLock<'static>>>>() -> U
-where
-    T::Err: std::error::Error,
-{
-    STDIN.with(|lock| lock.borrow_mut().read_tuple())
+    fn try_read_char(&mut self) -> Result<T, Self::Error> {
+        let c = self.consume_char().map_err(ReadIntoError::IOError)?;
+        let res = T::from_str(&c.to_string()).map_err(ReadIntoError::FromStrError)?;
+        Ok(res)
+    }
 }

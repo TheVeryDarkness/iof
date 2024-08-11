@@ -7,15 +7,14 @@
     clippy::style,
     clippy::cargo
 )]
+#![forbid(clippy::should_panic_without_expect, clippy::incompatible_msrv)]
 //! A utility library for reading integers, floating numbers and strings from input/output.
 
 pub use {
     formatted::SepBy,
     mat::Mat,
-    read_into::{
-        read, read_array, read_m_n, read_n, read_tuple, try_read, try_read_array, try_read_m_n,
-        try_read_n, try_read_tuple, ReadInto, ReadIntoError,
-    },
+    read_into::{ReadInto, ReadIntoError},
+    stdio::read_into::*,
     stream::InputStream,
 };
 
