@@ -47,11 +47,13 @@ jobs:
         run: cargo llvm-cov --workspace --lcov --output-path lcov.info
       - name: Upload Results to Codecov
         uses: codecov/codecov-action@v3
+        env:
+          RUSTUP_TOOLCHAIN: ${{ steps.toolchain.outputs.name }}
         with:
           file: lcov.info
-          flags: unittests,${{ steps.toolchain.outputs.name }}
+          flags: unittests
           name: iof
-          env_vars: OS
+          env_vars: OS,RUSTUP_TOOLCHAIN
           # Failing to upload results will cause a CI error.
           # So remember to use a token.
           fail_ci_if_error: true
