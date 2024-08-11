@@ -13,8 +13,13 @@ pub struct InputStream<B> {
 }
 
 const WHITE: [char; 4] = [' ', '\t', '\n', '\r'];
+const EOL: [char; 2] = ['\n', '\r'];
 
-impl<B> InputStream<B> {
+fn err_eof(msg: &'static str) -> Error {
+    Error::new(ErrorKind::UnexpectedEof, msg)
+}
+
+impl<B: BufRead> InputStream<B> {
     /// Create an input stream from a buffer that implements [BufRead].
     pub fn new(buffer: B) -> Self {
         let line_buf = String::new();
@@ -26,25 +31,36 @@ impl<B> InputStream<B> {
         }
     }
 }
+
+#[inline]
+fn as_slice_from(s: &str, i: usize) -> &str {
+    // Assume we get correct encoding.
+    debug_assert!(s.is_char_boundary(i));
+    unsafe { s.get_unchecked(i..) }
+}
+#[inline]
+fn as_slice_to(s: &str, i: usize) -> &str {
+    // Assume we get correct encoding.
+    debug_assert!(s.is_char_boundary(i));
+    unsafe { s.get_unchecked(..i) }
+}
+
 impl<B: BufRead> InputStream<B> {
+    #[inline]
+    fn fill_buf(&mut self, msg: &'static str) -> Result<(), Error> {
+        self.line_buf.clear();
+        self.cursor = 0;
+        let i = self.buffer.read_line(&mut self.line_buf)?;
+        if i == 0 {
+            return Err(err_eof(msg));
+        }
+        Ok(())
+    }
     fn remove_white(&mut self) -> Result<&str, Error> {
         while self.cursor == self.line_buf.len() {
-            self.line_buf.clear();
-            self.cursor = 0;
-            let i = self.buffer.read_line(&mut self.line_buf)?;
-            if i == 0 {
-                return Err(Error::new(
-                    ErrorKind::UnexpectedEof,
-                    "failed to read a non-whitespace character before EOF",
-                ));
-            }
+            self.fill_buf("failed to read a non-whitespace character before EOF")?;
         }
-        // Assume we get correct encoding.
-        let remaining = if cfg!(debug_assertions) {
-            &self.line_buf[self.cursor..]
-        } else {
-            unsafe { self.line_buf.get_unchecked(self.cursor..) }
-        };
+        let remaining = as_slice_from(&self.line_buf, self.cursor);
         let remaining = remaining.trim_start_matches(WHITE);
         self.cursor = self.line_buf.len() - remaining.len();
         debug_assert!(self.line_buf.is_char_boundary(self.cursor));
@@ -68,11 +84,7 @@ impl<B: BufRead> InputStream<B> {
                 continue;
             } else {
                 let i = remaining.find(WHITE).unwrap_or(remaining.len());
-                let frag = if cfg!(debug_assertions) {
-                    &remaining[..i]
-                } else {
-                    unsafe { remaining.get_unchecked(..i) }
-                };
+                let frag = as_slice_to(remaining, i);
                 let res = f(frag);
                 self.cursor += i;
                 return Ok(res);
@@ -92,11 +104,25 @@ impl<B: BufRead> InputStream<B> {
             }
         }
     }
-    /// Consume the remained line.
+    #[inline]
+    fn read_buf(&mut self) -> Result<(), Error> {
+        self.line_buf.clear();
+        self.cursor = 0;
+        self.buffer.read_line(&mut self.line_buf)?;
+        Ok(())
+    }
+    /// Consume the remained line without trailing CR or LF.
+    ///
+    /// Similar to `std::getline` in C++.
     pub fn consume_remained_line<T>(&mut self, f: impl FnOnce(&str) -> T) -> Result<T, Error> {
+        if self.cursor == self.line_buf.len() {
+            self.read_buf()?;
+        }
         let line = &self.line_buf[self.cursor..];
+        let result = f(line.trim_end_matches(EOL));
         self.cursor = self.line_buf.len();
-        Ok(f(line))
+        self.read_buf()?;
+        Ok(result)
     }
 }
 

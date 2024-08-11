@@ -173,34 +173,84 @@ impl<T, const M: usize, const N: usize> From<[[T; N]; M]> for Mat<T> {
         Self { inner, n, m }
     }
 }
-impl<T: PartialEq> PartialEq<Vec<Vec<T>>> for Mat<T> {
-    fn eq(&self, other: &Vec<Vec<T>>) -> bool {
-        if self.len_rows() != other.len() {
-            return false;
-        }
-        for (row, other_row) in self.iter().zip(other.iter()) {
-            if row != other_row.as_slice() {
-                return false;
-            }
-        }
-        true
+
+trait AsSlice {
+    type Item;
+    fn as_slice(&self) -> &[Self::Item];
+    fn len(&self) -> usize {
+        self.as_slice().len()
     }
 }
-impl<T: PartialEq, const M: usize, const N: usize> PartialEq<[[T; N]; M]> for Mat<T> {
-    fn eq(&self, other: &[[T; N]; M]) -> bool {
-        if self.len_rows() != M || self.len_columns() != N {
-            return false;
-        }
-        for i in 0..M {
-            for j in 0..N {
-                if self[i][j] != other[i][j] {
-                    return false;
-                }
-            }
-        }
-        true
+impl<T> AsSlice for [T] {
+    type Item = T;
+    fn as_slice(&self) -> &[T] {
+        self
     }
 }
+impl<T> AsSlice for Vec<T> {
+    type Item = T;
+    fn as_slice(&self) -> &[T] {
+        self
+    }
+}
+impl<T, const N: usize> AsSlice for [T; N] {
+    type Item = T;
+    fn as_slice(&self) -> &[T] {
+        self
+    }
+    #[inline]
+    fn len(&self) -> usize {
+        N
+    }
+}
+
+impl<T: PartialEq, U2: AsSlice<Item = U1>, U1: AsSlice<Item = T>> PartialEq<U2> for Mat<T> {
+    fn eq(&self, other: &U2) -> bool {
+        self.iter()
+            .eq(other.as_slice().iter().map(|row| row.as_slice()))
+    }
+}
+
+// impl<T: PartialEq> PartialEq<Vec<Vec<T>>> for Mat<T> {
+//     fn eq(&self, other: &Vec<Vec<T>>) -> bool {
+//         self.iter().eq(other.iter().map(|row| row.as_slice()))
+//     }
+// }
+// impl<T: PartialEq> PartialEq<Mat<T>> for Vec<Vec<T>> {
+//     fn eq(&self, other: &Mat<T>) -> bool {
+//         other.eq(self)
+//     }
+// }
+// impl<T: PartialEq, const N: usize> PartialEq<Vec<[T; N]>> for Mat<T> {
+//     fn eq(&self, other: &Vec<[T; N]>) -> bool {
+//         self.iter().eq(other.iter().map(|row| row.as_ref()))
+//     }
+// }
+// impl<T: PartialEq, const N: usize> PartialEq<Mat<T>> for Vec<[T; N]> {
+//     fn eq(&self, other: &Mat<T>) -> bool {
+//         other.eq(self)
+//     }
+// }
+// impl<T: PartialEq, const N: usize> PartialEq<[[T; N]]> for Mat<T> {
+//     fn eq(&self, other: &[[T; N]]) -> bool {
+//         self.iter().eq(other.iter().map(|row| row.as_ref()))
+//     }
+// }
+// impl<T: PartialEq, const N: usize> PartialEq<Mat<T>> for [[T; N]] {
+//     fn eq(&self, other: &Mat<T>) -> bool {
+//         other.eq(self)
+//     }
+// }
+// impl<T: PartialEq, const M: usize, const N: usize> PartialEq<[[T; N]; M]> for Mat<T> {
+//     fn eq(&self, other: &[[T; N]; M]) -> bool {
+//         self.iter().eq(other.iter().map(|row| row.as_ref()))
+//     }
+// }
+// impl<T: PartialEq, const M: usize, const N: usize> PartialEq<Mat<T>> for [[T; N]; M] {
+//     fn eq(&self, other: &Mat<T>) -> bool {
+//         other.eq(self)
+//     }
+// }
 
 impl<T, const N: usize> FromIterator<[T; N]> for Mat<T> {
     fn from_iter<I: IntoIterator<Item = [T; N]>>(iter: I) -> Self {

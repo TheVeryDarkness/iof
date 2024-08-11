@@ -22,3 +22,12 @@ fn read_array_4() {
 
     assert!(iof::ReadInto::<u32>::try_read_n(&mut reader, 1).is_err());
 }
+
+#[test]
+#[should_panic = "failed to read a non-whitespace character before EOF"]
+fn read_array_insuffcient() {
+    let reader = Cursor::new("-1 -2".as_bytes());
+    let mut reader = InputStream::new(reader);
+
+    let _: [i32; 4] = *reader.read_array();
+}

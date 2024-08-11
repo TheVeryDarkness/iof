@@ -35,11 +35,31 @@ fn read_all_strings() {
 
 #[test]
 fn read_line() {
-    let reader = Cursor::new("There are 4 strings.".as_bytes());
+    let reader = Cursor::new("\n\nThere are 4 strings.".as_bytes());
     let mut reader = InputStream::new(reader);
 
     let strings: String = reader.read_line();
     assert_eq!(strings, "There are 4 strings.");
+    assert!(iof::ReadInto::<String>::try_read(&mut reader).is_err());
+}
+
+#[test]
+fn read_remained_line() {
+    let reader = Cursor::new("There are 4 strings.\n\n".as_bytes());
+    let mut reader = InputStream::new(reader);
+
+    let a: String = reader.read_remained_line();
+    assert_eq!(a, "There are 4 strings.");
+
+    let b: String = reader.read_remained_line();
+    assert_eq!(b, "");
+
+    let c: String = reader.read_remained_line();
+    assert_eq!(c, "");
+
+    let d: String = reader.read_remained_line();
+    assert_eq!(d, "");
+
     assert!(iof::ReadInto::<String>::try_read(&mut reader).is_err());
 }
 

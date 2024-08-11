@@ -58,4 +58,52 @@ fn repeating_rows() {
     for row in &mat {
         assert_eq!(row, [1, 2].as_slice());
     }
+    assert_eq!(mat, Mat::from_iter([[1, 2], [1, 2], [1, 2]]));
+    assert_eq!(mat, Mat::from_iter([&[1, 2], &[1, 2], &[1, 2]]));
+    assert_eq!(mat, Mat::from_iter(&[[1, 2], [1, 2], [1, 2]]));
+}
+
+#[test]
+fn unit() {
+    let a = Mat::diagonal_from_fn(5, |_| 1);
+    let b = Mat::scalar(5, 1);
+    assert_eq!(a, b);
+    let arr_arr = [
+        [1, 0, 0, 0, 0],
+        [0, 1, 0, 0, 0],
+        [0, 0, 1, 0, 0],
+        [0, 0, 0, 1, 0],
+        [0, 0, 0, 0, 1],
+    ];
+    let arr_vec = [
+        vec![1, 0, 0, 0, 0],
+        vec![0, 1, 0, 0, 0],
+        vec![0, 0, 1, 0, 0],
+        vec![0, 0, 0, 1, 0],
+        vec![0, 0, 0, 0, 1],
+    ];
+    let vec_arr = vec![
+        [1, 0, 0, 0, 0],
+        [0, 1, 0, 0, 0],
+        [0, 0, 1, 0, 0],
+        [0, 0, 0, 1, 0],
+        [0, 0, 0, 0, 1],
+    ];
+    let vec_vec = vec![
+        vec![1, 0, 0, 0, 0],
+        vec![0, 1, 0, 0, 0],
+        vec![0, 0, 1, 0, 0],
+        vec![0, 0, 0, 1, 0],
+        vec![0, 0, 0, 0, 1],
+    ];
+    assert_eq!(a, arr_arr);
+    assert_eq!(b, arr_arr);
+    assert_eq!(a, arr_vec);
+    assert_eq!(b, arr_vec);
+    assert_eq!(a, vec_arr);
+    assert_eq!(b, vec_arr);
+    assert_eq!(a, vec_vec);
+    assert_eq!(b, vec_vec);
+    assert_eq!(Mat::from(arr_arr), a);
+    assert_eq!(Mat::from(arr_arr), arr_arr);
 }

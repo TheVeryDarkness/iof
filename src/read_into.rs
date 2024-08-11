@@ -111,7 +111,7 @@ pub trait ReadInto<T> {
     fn read_remained_line(&mut self) -> T {
         unwrap!(self.try_read_remained_line())
     }
-    /// Read an element in a single trimmed line from `self`, parse into `T`.
+    /// Read an element in a single trimmed line that is not empty from `self`, parse into `T`.
     fn try_read_line(&mut self) -> Result<T, Self::Error>;
     /// Unwrapping version of [ReadInto::try_read_line].
     fn read_line(&mut self) -> T {

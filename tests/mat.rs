@@ -2,7 +2,16 @@ use iof::*;
 use std::{io::Cursor, vec};
 
 #[test]
-fn read_m_n_1() {
+#[should_panic = "failed to read a non-whitespace character before EOF"]
+fn read_m_n_insufficient() {
+    let reader = Cursor::new("1 2\n3".as_bytes());
+    let mut reader = InputStream::new(reader);
+
+    let _: Mat<u32> = reader.read_m_n(2, 2);
+}
+
+#[test]
+fn read_m_n() {
     let reader = Cursor::new("1 2 3\n4 5 6".as_bytes());
     let mut reader = InputStream::new(reader);
 

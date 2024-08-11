@@ -10,7 +10,7 @@
 //! A utility library for reading integers, floating numbers and strings from input/output.
 
 pub use {
-    formatted::*,
+    formatted::SepBy,
     mat::Mat,
     read_into::{
         read, read_array, read_m_n, read_n, read_tuple, try_read, try_read_array, try_read_m_n,
