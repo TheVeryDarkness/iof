@@ -18,6 +18,10 @@ impl<T> Mat<T> {
         assert_eq!(vec.len(), m * n);
         Self { m, n, inner: vec }
     }
+    /// Check if the [Mat] is empty.
+    pub fn is_empty(&self) -> bool {
+        self.m == 0 || self.n == 0
+    }
 }
 
 impl<T> Mat<T> {
