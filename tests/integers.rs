@@ -36,6 +36,15 @@ fn read_char_3() {
 }
 
 #[test]
+#[should_panic = "failed to read a non-whitespace character before EOF"]
+fn read_char_empty() {
+    let reader = Cursor::new("".as_bytes());
+    let mut reader = InputStream::new(reader);
+
+    let _: u32 = reader.read_char();
+}
+
+#[test]
 #[should_panic = "invalid digit found in string"]
 fn read_sign_error() {
     let reader = Cursor::new("-1".as_bytes());

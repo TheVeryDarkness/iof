@@ -14,6 +14,15 @@ fn read_n_1() {
 }
 
 #[test]
+#[should_panic = "invalid digit found in string"]
+fn read_n_from_str_err() {
+    let reader = Cursor::new("1 -2 -3".as_bytes());
+    let mut reader = InputStream::new(reader);
+
+    let _: Vec<u32> = reader.read_n(3);
+}
+
+#[test]
 fn read_all() -> anyhow::Result<()> {
     let reader = Cursor::new("3 2 1".as_bytes());
     let mut reader = InputStream::new(reader);

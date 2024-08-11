@@ -13,12 +13,21 @@ fn read_tuple_3() {
 }
 
 #[test]
-fn read_tuple_3_err() {
+fn try_read_tuple_3_from_str_err() {
     let reader = Cursor::new("1 2 -3".as_bytes());
     let mut reader = InputStream::new(reader);
 
     let vec: Result<(u32, u32, u32), _> = reader.try_read_tuple();
     assert!(vec.is_err());
+}
+
+#[test]
+#[should_panic = "invalid digit found in string"]
+fn read_tuple_3_from_str_err() {
+    let reader = Cursor::new("1 2 -3".as_bytes());
+    let mut reader = InputStream::new(reader);
+
+    let _: (u32, u32, u32) = reader.read_tuple();
 }
 
 #[test]

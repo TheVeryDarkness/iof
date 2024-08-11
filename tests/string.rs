@@ -45,14 +45,14 @@ fn read_line() {
 
 #[test]
 fn read_remained_line() {
-    let reader = Cursor::new("There are 4 strings.\n\n".as_bytes());
+    let reader = Cursor::new("There are 4 strings.\nThere are 3 lines.\n".as_bytes());
     let mut reader = InputStream::new(reader);
 
     let a: String = reader.read_remained_line();
     assert_eq!(a, "There are 4 strings.");
 
     let b: String = reader.read_remained_line();
-    assert_eq!(b, "");
+    assert_eq!(b, "There are 3 lines.");
 
     let c: String = reader.read_remained_line();
     assert_eq!(c, "");
@@ -60,7 +60,7 @@ fn read_remained_line() {
     let d: String = reader.read_remained_line();
     assert_eq!(d, "");
 
-    assert!(iof::ReadInto::<String>::try_read(&mut reader).is_err());
+    assert!(iof::ReadInto::<String>::try_read_line(&mut reader).is_err());
 }
 
 #[test]
@@ -71,6 +71,15 @@ fn read_line_spaces() {
     let s: String = reader.read_line();
     assert_eq!(s, "s");
     assert!(iof::ReadInto::<String>::try_read(&mut reader).is_err());
+}
+
+#[test]
+#[should_panic = "number too large to fit in target type"]
+fn read_remained_line_from_str_err() {
+    let reader = Cursor::new("123456789".as_bytes());
+    let mut reader = InputStream::new(reader);
+
+    let _: u16 = reader.read_remained_line();
 }
 
 #[test]
