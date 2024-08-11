@@ -36,6 +36,23 @@ fn read_char_3() {
 }
 
 #[test]
+fn read_char_in_3_lines() {
+    let reader = Cursor::new("\n1\n2\n3".as_bytes());
+    let mut reader = InputStream::new(reader);
+
+    let a: u32 = reader.read_char();
+    assert_eq!(a, 1);
+
+    let b: u32 = reader.read_char();
+    assert_eq!(b, 2);
+
+    let c: u32 = reader.read_char();
+    assert_eq!(c, 3);
+
+    assert!(iof::ReadInto::<u32>::try_read_char(&mut reader).is_err());
+}
+
+#[test]
 #[should_panic = "failed to read a non-whitespace character before EOF"]
 fn read_char_empty() {
     let reader = Cursor::new("".as_bytes());
