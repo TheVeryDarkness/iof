@@ -4,7 +4,12 @@ version = "0.1.4"
 edition = "2021"
 description = "Read and write data from console or file in specified formats."
 keywords = ["input", "oj", "stream", "formatted"]
-categories = ["value-formatting", "command-line-utilities", "mathematics"]
+categories = [
+    "value-formatting",
+    "command-line-interface",
+    "mathematics",
+    "data-structures",
+]
 readme = "README.md"
 rust-version = "1.63"
 repository = "https://github.com/TheVeryDarkness/iof"
