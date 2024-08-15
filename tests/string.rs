@@ -90,3 +90,43 @@ fn read_line_failure() {
 
     let _: String = reader.read_line();
 }
+
+#[test]
+fn read_unicode() {
+    let reader = Cursor::new("🦀🦀🦀 Rust 你好！ καλημέρα ".as_bytes());
+    let mut reader = InputStream::new(reader);
+
+    let s: String = reader.read();
+    assert_eq!(s, "🦀🦀🦀");
+
+    let s: String = reader.read();
+    assert_eq!(s, "Rust");
+
+    let s: String = reader.read();
+    assert_eq!(s, "你好！");
+
+    let s: String = reader.read();
+    assert_eq!(s, "καλημέρα");
+
+    assert!(iof::ReadInto::<String>::try_read(&mut reader).is_err());
+}
+
+#[test]
+fn read_line_unicode() {
+    let reader = Cursor::new("🦀🦀🦀\nRust \n 你好！\n καλημέρα ".as_bytes());
+    let mut reader = InputStream::new(reader);
+
+    let s: String = reader.read_line();
+    assert_eq!(s, "🦀🦀🦀");
+
+    let s: String = reader.read_line();
+    assert_eq!(s, "Rust");
+
+    let s: String = reader.read_line();
+    assert_eq!(s, "你好！");
+
+    let s: String = reader.read_line();
+    assert_eq!(s, "καλημέρα");
+
+    assert!(iof::ReadInto::<String>::try_read_line(&mut reader).is_err());
+}
