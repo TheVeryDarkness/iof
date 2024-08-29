@@ -1,6 +1,6 @@
 on: [push]
 
-name: and Test
+name: Lint and Test
 
 env:
   RUSTFLAGS: "-Dwarnings"
@@ -21,11 +21,13 @@ jobs:
           toolchain: 1.63
       - name: cargo test
         run: cargo test --workspace
-      - name: install cargo-msrv
+      - name: Install cargo-binstall
+        uses: cargo-bins/cargo-binstall@v1.10.3
+      - name: Install cargo-msrv
         run: cargo binstall --no-confirm cargo-msrv
-      - name: cargo msrv
+      - name: Check the version of cargo-msrv
         run: cargo msrv --version
-      - name: cargo msrv verify
+      - name: Verify the Minimum Supported Rust Version
         run: cargo msrv verify
   miri:
     name: MIRI Test
