@@ -1,4 +1,4 @@
-use iof::{InputStream, ReadInto};
+use iof::{InputStream, ReadInto, ReadIntoSingle};
 use std::io::Cursor;
 
 #[test]
@@ -60,7 +60,7 @@ fn read_remained_line() {
     let d: String = reader.read_remained_line();
     assert_eq!(d, "");
 
-    assert!(iof::ReadInto::<String>::try_read_line(&mut reader).is_err());
+    assert!(iof::ReadIntoSingle::<String>::try_read_line(&mut reader).is_err());
 }
 
 #[test]
@@ -128,5 +128,5 @@ fn read_line_unicode() {
     let s: String = reader.read_line();
     assert_eq!(s, "καλημέρα");
 
-    assert!(iof::ReadInto::<String>::try_read_line(&mut reader).is_err());
+    assert!(iof::ReadIntoSingle::<String>::try_read_line(&mut reader).is_err());
 }

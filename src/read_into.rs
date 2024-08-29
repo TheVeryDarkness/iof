@@ -1,24 +1,31 @@
 use crate::{
+    array::InitializingArray,
     mat::Mat,
     stream::{InputStream, RealAll},
 };
+use parse::Parse;
 use std::{
+    array::from_fn,
     fmt::{Debug, Display},
     io::BufRead,
-    str::FromStr,
+    mem::{forget, MaybeUninit},
 };
 
+pub(super) mod parse;
+
 /// Error during using [ReadInto].
-pub enum ReadIntoError<T: FromStr> {
+///
+/// This error is usually caused by [std::io::Error] or [std::str::FromStr::Err].
+pub enum ReadIntoError<E> {
     /// Error during reading from input.
     IOError(std::io::Error),
-    /// Error during calling [FromStr::from_str].
-    FromStrError(T::Err),
+    /// Error during converting a string to a value, usually caused by calling [std::str::FromStr::from_str].
+    FromStrError(E),
 }
 
-impl<T: FromStr> Debug for ReadIntoError<T>
+impl<E> Debug for ReadIntoError<E>
 where
-    T::Err: std::error::Error,
+    E: std::error::Error,
 {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
@@ -28,9 +35,9 @@ where
     }
 }
 
-impl<T: FromStr> Display for ReadIntoError<T>
+impl<E> Display for ReadIntoError<E>
 where
-    T::Err: std::error::Error,
+    E: std::error::Error,
 {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
@@ -40,12 +47,81 @@ where
     }
 }
 
-impl<T: FromStr> std::error::Error for ReadIntoError<T> where T::Err: std::error::Error {}
+impl<E> std::error::Error for ReadIntoError<E> where E: std::error::Error {}
 
 macro_rules! unwrap {
     ($result:expr) => {
         $result.unwrap_or_else(|err| panic!("{err}"))
     };
+}
+
+/// Read a single data item from input stream.
+///
+/// # Errors
+///
+/// - If the input cannot be parsed into `T`, [ReadIntoError::FromStrError] is returned.
+/// - If the input is not valid UTF-8, [ReadIntoError::IOError] is returned.
+/// - If an I/O error occurs, [ReadIntoError::IOError] is returned.
+pub trait ReadIntoSingle<T> {
+    /// Errors that come from [ReadInto].
+    ///
+    /// This is usually [ReadIntoError].
+    type Error: std::error::Error;
+
+    /// Read from `self` and parse into `T`.
+    fn try_read_single(&mut self) -> Result<T, Self::Error>;
+    /// Unwrapping version of [ReadInto::try_read].
+    fn read_single(&mut self) -> T {
+        unwrap!(self.try_read_single())
+    }
+    /// Read an element in the remained line from `self`, parse into `T`.
+    fn try_read_remained_line(&mut self) -> Result<T, Self::Error>;
+    /// Unwrapping version of [ReadIntoSingle::try_read_remained_line].
+    fn read_remained_line(&mut self) -> T {
+        unwrap!(self.try_read_remained_line())
+    }
+    /// Read an element in a single trimmed line that is not empty from `self`, parse into `T`.
+    fn try_read_line(&mut self) -> Result<T, Self::Error>;
+    /// Unwrapping version of [ReadIntoSingle::try_read_line].
+    fn read_line(&mut self) -> T {
+        unwrap!(self.try_read_line())
+    }
+    /// Read an element in a single non-whitespace character from `self`, parse into `T`.
+    fn try_read_char(&mut self) -> Result<T, Self::Error>;
+    /// Unwrapping version of [ReadIntoSingle::try_read_char].
+    fn read_char(&mut self) -> T {
+        unwrap!(self.try_read_char())
+    }
+}
+
+impl<T: Parse, B: BufRead> ReadIntoSingle<T> for InputStream<B> {
+    type Error = ReadIntoError<T::Err>;
+    fn try_read_single(&mut self) -> Result<T, Self::Error> {
+        let res = self
+            .consume_string(|s| T::parse(s))
+            .map_err(ReadIntoError::IOError)?
+            .map_err(ReadIntoError::FromStrError)?;
+        Ok(res)
+    }
+    fn try_read_remained_line(&mut self) -> Result<T, Self::Error> {
+        let res = self
+            .consume_remained_line(|s| T::parse(s))
+            .map_err(ReadIntoError::IOError)?
+            .map_err(ReadIntoError::FromStrError)?;
+        Ok(res)
+    }
+    fn try_read_line(&mut self) -> Result<T, Self::Error> {
+        let res = self
+            .consume_line(|s| T::parse(s))
+            .map_err(ReadIntoError::IOError)?
+            .map_err(ReadIntoError::FromStrError)?;
+        Ok(res)
+    }
+    fn try_read_char(&mut self) -> Result<T, Self::Error> {
+        let c = self.consume_char().map_err(ReadIntoError::IOError)?;
+        let res = T::parse(&c.to_string()).map_err(ReadIntoError::FromStrError)?;
+        Ok(res)
+    }
 }
 
 /// Read data from input stream.
@@ -57,7 +133,10 @@ macro_rules! unwrap {
 /// - If an I/O error occurs, [ReadIntoError::IOError] is returned.
 pub trait ReadInto<T> {
     /// Errors that come from [ReadInto].
+    ///
+    /// This is usually [ReadIntoError].
     type Error: std::error::Error;
+
     /// Read from `self` and parse into `T`.
     fn try_read(&mut self) -> Result<T, Self::Error>;
     /// Unwrapping version of [ReadInto::try_read].
@@ -90,107 +169,84 @@ pub trait ReadInto<T> {
     fn read_m_n(&mut self, m: usize, n: usize) -> Mat<T> {
         unwrap!(self.try_read_m_n(m, n))
     }
-    /// Read `N` elements from `self`, parse into `T` and aggregate them into a single [std::array].
-    ///
-    /// Use [std::array::try_from_fn] if it's stabilized.
-    fn try_read_array<const N: usize>(&mut self) -> Result<Box<[T; N]>, Self::Error> {
-        let res = self.try_read_n(N)?.into_boxed_slice().try_into();
-        let res = unsafe { res.unwrap_unchecked() };
-        Ok(res)
-    }
-    /// Unwrapping version of [ReadInto::try_read_array].
-    fn read_array<const N: usize>(&mut self) -> Box<[T; N]> {
-        unwrap!(self.try_read_array())
-    }
-    /// Read several elements from `self`, parse into `T` and aggregate them into a single tuple.
-    fn try_read_tuple<U: MonoTuple<T, Self>>(&mut self) -> Result<U, Self::Error> {
-        MonoTuple::read_from(self)
-    }
-    /// Unwrapping version of [ReadInto::try_read_tuple].
-    fn read_tuple<U: MonoTuple<T, Self>>(&mut self) -> U {
-        unwrap!(self.try_read_tuple())
-    }
-    /// Read an element in the remained line from `self`, parse into `T`.
-    fn try_read_remained_line(&mut self) -> Result<T, Self::Error>;
-    /// Unwrapping version of [ReadInto::try_read_remained_line].
-    fn read_remained_line(&mut self) -> T {
-        unwrap!(self.try_read_remained_line())
-    }
-    /// Read an element in a single trimmed line that is not empty from `self`, parse into `T`.
-    fn try_read_line(&mut self) -> Result<T, Self::Error>;
-    /// Unwrapping version of [ReadInto::try_read_line].
-    fn read_line(&mut self) -> T {
-        unwrap!(self.try_read_line())
-    }
-    /// Read an element in a single non-whitespace character from `self`, parse into `T`.
-    fn try_read_char(&mut self) -> Result<T, Self::Error>;
-    /// Unwrapping version of [ReadInto::try_read_char].
-    fn read_char(&mut self) -> T {
-        unwrap!(self.try_read_char())
-    }
     /// Read all remaining elements from `self`.
     fn read_all(&mut self) -> RealAll<'_, Self, T> {
         RealAll::new(self)
     }
 }
 
-/// For all tuple types, all of whose elements is the same.
-pub trait MonoTuple<T, S: ReadInto<T> + ?Sized>: Sized {
-    fn read_from(stream: &mut S) -> Result<Self, S::Error>;
+impl<T: Parse, B: BufRead> ReadInto<T> for InputStream<B> {
+    type Error = ReadIntoError<T::Err>;
+    fn try_read(&mut self) -> Result<T, Self::Error> {
+        self.try_read_single()
+    }
 }
 
-macro_rules! impl_mono {
-    ($($ty:ty)*) => {
-        impl<T, S: ReadInto<T> + ?Sized> MonoTuple<T, S> for ( $($ty, )* ) {
-            fn read_from(stream: &mut S) -> Result<Self, S::Error> {
-                Ok(( $(ReadInto::<$ty>::try_read(stream)?, )* ))
+impl<T, B: BufRead, const N: usize> ReadInto<[T; N]> for InputStream<B>
+where
+    Self: ReadInto<T>,
+{
+    type Error = <Self as ReadInto<T>>::Error;
+    fn try_read(&mut self) -> Result<[T; N], Self::Error> {
+        let mut array: [MaybeUninit<T>; N] = from_fn(|_| MaybeUninit::uninit());
+        let mut guard = InitializingArray::new(&mut array);
+        for _ in 0..N {
+            unsafe { guard.push_unchecked(self.try_read()?) }
+        }
+        forget(guard);
+        let array = array.map(|x| unsafe { x.assume_init() });
+        Ok(array)
+    }
+}
+
+impl<T, B: BufRead, const N: usize> ReadInto<Box<[T; N]>> for InputStream<B>
+where
+    Self: ReadInto<T>,
+{
+    type Error = <Self as ReadInto<T>>::Error;
+    fn try_read(&mut self) -> Result<Box<[T; N]>, Self::Error> {
+        let res = self.try_read_n(N)?.into_boxed_slice().try_into();
+        let res = unsafe { res.unwrap_unchecked() };
+        Ok(res)
+    }
+}
+
+macro_rules! impl_read_into_for_tuple {
+    ($e:ident $($t:ident)*) => {
+        #[derive(Debug)]
+        pub enum $e<$($t, )* > {
+            $($t($t), )*
+        }
+        impl<$($t: std::error::Error, )* > std::fmt::Display for $e<$($t, )* > {
+            fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+                match self {
+                    $(Self::$t(err) => std::fmt::Display::fmt(err, f), )*
+                }
+            }
+        }
+        impl<$($t: std::error::Error, )* > std::error::Error for $e<$($t, )* > {}
+        impl<$($t: Parse, )* S: $(ReadInto<$t> +)* ?Sized> ReadInto<($($t, )*)> for S {
+            type Error = $e<$(<S as ReadInto<$t>>::Error, )*>;
+            fn try_read(&mut self) -> Result<($($t, )*), Self::Error> {
+                Ok(( $(ReadInto::<$t>::try_read(self).map_err($e::$t)?, )* ))
+            }
+            fn read(&mut self) -> ($($t, )*) {
+                // Avoid constructing an enum value.
+                ( $(ReadInto::<$t>::read(self), )* )
             }
         }
     };
 }
 
-impl_mono!(T);
-impl_mono!(T T);
-impl_mono!(T T T);
-impl_mono!(T T T T);
-impl_mono!(T T T T T);
-impl_mono!(T T T T T T);
-impl_mono!(T T T T T T T);
-impl_mono!(T T T T T T T T);
-impl_mono!(T T T T T T T T T);
-impl_mono!(T T T T T T T T T T);
-impl_mono!(T T T T T T T T T T T);
-impl_mono!(T T T T T T T T T T T T);
-
-impl<T: FromStr, B: BufRead> ReadInto<T> for InputStream<B>
-where
-    T::Err: std::error::Error,
-{
-    type Error = ReadIntoError<T>;
-    fn try_read(&mut self) -> Result<T, Self::Error> {
-        let res = self
-            .consume_string(|s| T::from_str(s))
-            .map_err(ReadIntoError::IOError)?
-            .map_err(ReadIntoError::FromStrError)?;
-        Ok(res)
-    }
-    fn try_read_line(&mut self) -> Result<T, Self::Error> {
-        let res = self
-            .consume_line(|s| T::from_str(s))
-            .map_err(ReadIntoError::IOError)?
-            .map_err(ReadIntoError::FromStrError)?;
-        Ok(res)
-    }
-    fn try_read_remained_line(&mut self) -> Result<T, Self::Error> {
-        let res = self
-            .consume_remained_line(|s| T::from_str(s))
-            .map_err(ReadIntoError::IOError)?
-            .map_err(ReadIntoError::FromStrError)?;
-        Ok(res)
-    }
-    fn try_read_char(&mut self) -> Result<T, Self::Error> {
-        let c = self.consume_char().map_err(ReadIntoError::IOError)?;
-        let res = T::from_str(&c.to_string()).map_err(ReadIntoError::FromStrError)?;
-        Ok(res)
-    }
-}
+impl_read_into_for_tuple!(Tuple1Error T1);
+impl_read_into_for_tuple!(Tuple2Error T1 T2);
+impl_read_into_for_tuple!(Tuple3Error T1 T2 T3);
+impl_read_into_for_tuple!(Tuple4Error T1 T2 T3 T4);
+impl_read_into_for_tuple!(Tuple5Error T1 T2 T3 T4 T5);
+impl_read_into_for_tuple!(Tuple6Error T1 T2 T3 T4 T5 T6);
+impl_read_into_for_tuple!(Tuple7Error T1 T2 T3 T4 T5 T6 T7);
+impl_read_into_for_tuple!(Tuple8Error T1 T2 T3 T4 T5 T6 T7 T8);
+impl_read_into_for_tuple!(Tuple9Error T1 T2 T3 T4 T5 T6 T7 T8 T9);
+impl_read_into_for_tuple!(Tuple10Error T1 T2 T3 T4 T5 T6 T7 T8 T9 T10);
+impl_read_into_for_tuple!(Tuple11Error T1 T2 T3 T4 T5 T6 T7 T8 T9 T10 T11);
+impl_read_into_for_tuple!(Tuple12Error T1 T2 T3 T4 T5 T6 T7 T8 T9 T10 T11 T12);

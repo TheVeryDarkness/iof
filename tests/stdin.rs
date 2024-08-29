@@ -1,4 +1,4 @@
-use iof::{read_array, read_m_n, read_n, try_read_array, try_read_m_n, try_read_n, Mat};
+use iof::{read, read_m_n, read_n, try_read, try_read_m_n, try_read_n, Mat};
 use std::{
     io::Write,
     process::{Command, Stdio},
@@ -60,8 +60,8 @@ fn read_m_n_0_0() {
 
 #[test]
 fn read_array_0() {
-    let s1: [usize; 0] = *read_array();
-    let s2: [char; 0] = *try_read_array().unwrap();
+    let s1: [usize; 0] = read();
+    let s2: [char; 0] = try_read().unwrap();
     assert!(s1.is_empty());
     assert!(s2.is_empty());
 }

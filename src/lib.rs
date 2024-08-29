@@ -13,11 +13,12 @@
 pub use {
     formatted::SepBy,
     mat::Mat,
-    read_into::{ReadInto, ReadIntoError},
+    read_into::{ReadInto, ReadIntoError, ReadIntoSingle},
     stdio::read_into::*,
     stream::InputStream,
 };
 
+mod array;
 mod formatted;
 mod mat;
 mod read_into;
