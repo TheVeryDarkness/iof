@@ -47,10 +47,24 @@ fn test_sep_by() {
     let s = [1, 2, 3].sep_by(", ");
     assert_eq!(s.to_string(), "1, 2, 3");
     assert_eq!(s.try_write_into_string().unwrap(), "1, 2, 3");
+    assert_eq!(
+        format!("{:?}", s),
+        "SepBy { sep: \", \", iter: IntoIter([1, 2, 3]) }",
+    );
+
     let s = ([0i32; 0]).sep_by(", ");
     assert_eq!(s.to_string(), "");
     assert_eq!(s.try_write_into_string().unwrap(), "");
+    assert_eq!(
+        format!("{:?}", s),
+        "SepBy { sep: \", \", iter: IntoIter([]) }",
+    );
+
     let s = [1].sep_by(", ");
     assert_eq!(s.to_string(), "1");
     assert_eq!(s.try_write_into_string().unwrap(), "1");
+    assert_eq!(
+        format!("{:?}", s),
+        "SepBy { sep: \", \", iter: IntoIter([1]) }"
+    );
 }
