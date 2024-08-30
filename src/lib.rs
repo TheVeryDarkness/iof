@@ -180,7 +180,7 @@ pub use {
     read_into::{from_str::FromStr, ReadInto, ReadIntoError, ReadIntoSingle},
     stdio::read_into::*,
     stream::InputStream,
-    write_into::{display::Display, WriteInto},
+    write_into::WriteInto,
 };
 
 mod array;

@@ -1,8 +1,6 @@
 use crate::{mat::Mat, stdio::STDOUT, SepBy};
 use std::{io, io::Write, ops::DerefMut};
 
-pub(crate) mod display;
-
 macro_rules! unwrap {
     ($result:expr) => {
         $result.unwrap_or_else(|err| panic!("{err}"))
