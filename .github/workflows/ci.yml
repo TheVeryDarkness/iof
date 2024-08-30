@@ -78,6 +78,8 @@ jobs:
         run: cargo clippy --workspace --all-targets
       - name: cargo doc
         run: cargo doc --workspace
+      - name: cargo doc test
+        run: cargo test --doc --workspace
       - name: Install cargo-llvm-cov
         uses: taiki-e/install-action@cargo-llvm-cov
       - name: Generate Code Coverage
