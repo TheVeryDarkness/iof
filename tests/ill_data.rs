@@ -13,7 +13,7 @@ impl WriteInto for IllData {
 // Standard output won't return error.
 #[test]
 fn write_ill() {
-    let _ = IllData(b"\xab\xcd\xef").write();
+    IllData(b"\xab\xcd\xef").write();
 }
 
 #[test]
