@@ -5,7 +5,7 @@ struct IllData(&'static [u8]);
 
 impl WriteInto for IllData {
     fn try_write_into<S: Write>(&self, s: &mut S) -> Result<()> {
-        s.write(self.0)?;
+        s.write_all(self.0)?;
         Ok(())
     }
 }
