@@ -1,6 +1,11 @@
 #![forbid(missing_docs)]
 #![forbid(rust_2021_compatibility, rust_2018_idioms, future_incompatible)]
-#![forbid(unused_imports, unused_qualifications, unused_results)]
+#![warn(
+    unused_imports,
+    unused_qualifications,
+    unused_results,
+    unused_comparisons
+)]
 #![forbid(
     clippy::correctness,
     clippy::suspicious,
