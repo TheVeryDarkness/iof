@@ -16,21 +16,30 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v4
       - name: Install Rust Toolchain
+        id: toolchain
         uses: dtolnay/rust-toolchain@v1
         with:
           toolchain: 1.63
       - name: cargo test
         run: cargo test --workspace
-      # - name: Install cargo-binstall
-      #   uses: cargo-bins/cargo-binstall@v1.10.3
-      # - name: Install cargo-msrv
-      #   run: cargo binstall --no-confirm cargo-msrv
-      # - name: Check the version of cargo-msrv
-      #   run: cargo msrv --version
-      # - name: Show the Minimum Supported Rust Version
-      #   run: cargo msrv show
-      # - name: Verify the Minimum Supported Rust Version
-      #   run: cargo msrv verify
+      - name: Install cargo-llvm-cov
+        uses: taiki-e/install-action@cargo-llvm-cov
+      - name: Generate Code Coverage
+        run: cargo llvm-cov --workspace --lcov --output-path lcov.info
+      - name: Upload Results to Codecov
+        uses: codecov/codecov-action@v3
+        env:
+          RUSTUP_TOOLCHAIN: ${{ steps.toolchain.outputs.name }}
+        with:
+          file: lcov.info
+          flags: unittests
+          name: iof
+          env_vars: OS,RUSTUP_TOOLCHAIN
+          # Failing to upload results will cause a CI error.
+          # So remember to use a token.
+          fail_ci_if_error: true
+          token: ${{ secrets.CODECOV_TOKEN }}
+          verbose: true
 
   miri:
     name: MIRI Test
