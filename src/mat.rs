@@ -4,7 +4,16 @@ use std::{fmt::Debug, iter::repeat_with, ops::Index};
 mod row_iter;
 mod tests;
 
-/// A matrix.
+/// A matrix with `m` rows and `n` columns.
+///
+/// # Examples
+///
+/// ```rust
+/// use iof::Mat;
+/// let mat = Mat::from_vec(2, 3, vec![1, 2, 3, 4, 5, 6]);
+/// assert_eq!(mat[0], [1, 2, 3]);
+/// assert_eq!(mat[1], [4, 5, 6]);
+/// ```
 #[derive(Clone, Default, PartialEq, Eq)]
 pub struct Mat<T> {
     inner: Vec<T>,

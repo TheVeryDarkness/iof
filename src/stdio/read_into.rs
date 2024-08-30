@@ -14,17 +14,17 @@ macro_rules! expose_stdin {
         ///
         /// # Panics
         ///
-        /// If [
+        /// If [`
         #[doc = $str_try_fn]
-        /// ] panics.
+        /// `] panics.
         ///
         /// # Errors
         ///
         /// If this function is called in multiple threads, the behavior is undefined, possibly causing a deadlock.
         ///
-        /// If [
+        /// If [`
         #[doc = $str_try_fn]
-        /// ] returns an error.
+        /// `] returns an error.
         pub fn $try_fn<$($ty_arg)*>($($arg: $arg_ty),*) -> Result<$ret, $err>
         where
             InputStream<StdinLock<'static>>: ReadInto<T>,
@@ -38,9 +38,9 @@ macro_rules! expose_stdin {
         ///
         /// # Panics
         ///
-        /// If [
+        /// If [`
         #[doc = $str_try_fn]
-        /// ] returns an error or panics.
+        /// `] returns an error or panics.
         ///
         /// # Errors
         ///

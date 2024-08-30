@@ -1,19 +1,17 @@
 use crate::{
-    array::InitializingArray,
+    array::{array_from_fn, array_try_from_fn},
     mat::Mat,
     stream::{InputStream, RealAll},
 };
 use parse::Parse;
 use std::{
-    array::from_fn,
     fmt::{Debug, Display},
     io::BufRead,
-    mem::{forget, MaybeUninit},
 };
 
 pub(super) mod parse;
 
-/// Error during using [ReadInto].
+/// Error during using [ReadInto] or [ReadIntoSingle].
 ///
 /// This error is usually caused by [std::io::Error] or [std::str::FromStr::Err].
 pub enum ReadIntoError<E> {
@@ -56,6 +54,7 @@ macro_rules! unwrap {
 }
 
 /// Read a single data item from input stream.
+/// All types that implement this trait also implement [ReadInto].
 ///
 /// # Errors
 ///
@@ -188,14 +187,10 @@ where
 {
     type Error = <Self as ReadInto<T>>::Error;
     fn try_read(&mut self) -> Result<[T; N], Self::Error> {
-        let mut array: [MaybeUninit<T>; N] = from_fn(|_| MaybeUninit::uninit());
-        let mut guard = InitializingArray::new(&mut array);
-        for _ in 0..N {
-            unsafe { guard.push_unchecked(self.try_read()?) }
-        }
-        forget(guard);
-        let array = array.map(|x| unsafe { x.assume_init() });
-        Ok(array)
+        array_try_from_fn(|| self.try_read())
+    }
+    fn read(&mut self) -> [T; N] {
+        array_from_fn(|| self.read())
     }
 }
 
@@ -210,6 +205,44 @@ where
         Ok(res)
     }
 }
+
+// *These two implementations are not necessary*.
+//
+// impl<T, B: BufRead> ReadInto<Vec<T>> for InputStream<B>
+// where
+//     Self: ReadInto<T> + ReadInto<usize>,
+// {
+//     type Error = Tuple2Error<<Self as ReadInto<usize>>::Error, <Self as ReadInto<T>>::Error>;
+//     fn try_read(&mut self) -> Result<Vec<T>, Self::Error> {
+//         let len = self.try_read().map_err(Tuple2Error::T1)?;
+//         Ok(self.try_read_n(len).map_err(Tuple2Error::T2)?)
+//     }
+//     // Avoid constructing an enum value.
+//     fn read(&mut self) -> Vec<T> {
+//         let len = self.read();
+//         self.read_n(len)
+//     }
+// }
+//
+// impl<T, B: BufRead> ReadInto<Mat<T>> for InputStream<B>
+// where
+//     Self: ReadInto<T> + ReadInto<usize>,
+// {
+//     // This is a bit tricky, as `m` and `n` are both `usize`.
+//     // We need to read `m` and `n` first, then read `m * n` elements.
+//     type Error = Tuple2Error<<Self as ReadInto<usize>>::Error, <Self as ReadInto<T>>::Error>;
+//     fn try_read(&mut self) -> Result<Mat<T>, Self::Error> {
+//         let m = self.try_read().map_err(Tuple2Error::T1)?;
+//         let n = self.try_read().map_err(Tuple2Error::T1)?;
+//         Ok(self.try_read_m_n(m, n).map_err(Tuple2Error::T2)?)
+//     }
+//     // Avoid constructing an enum value.
+//     fn read(&mut self) -> Mat<T> {
+//         let m = self.read();
+//         let n = self.read();
+//         self.read_m_n(m, n)
+//     }
+// }
 
 macro_rules! impl_read_into_for_tuple {
     ($e:ident $($t:ident)*) => {

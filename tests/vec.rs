@@ -2,7 +2,7 @@ use iof::*;
 use std::{collections::BTreeSet, io::Cursor};
 
 #[test]
-fn read_n_1() {
+fn read_n() {
     let reader = Cursor::new("1 2 3".as_bytes());
     let mut reader = InputStream::new(reader);
 

@@ -9,9 +9,15 @@ use std::{
     str::FromStr,
 };
 
-/// Parse a string into a type.
+/// Parse a string into a type. Similar to [std::str::FromStr], but we need this to avoid conflicting.
 ///
-/// Similar to [std::str::FromStr].
+/// # Example
+///
+/// ```rust
+/// use iof::Parse;
+/// let x: i32 = Parse::parse("42").unwrap();
+/// assert_eq!(x, 42);
+/// ```
 pub trait Parse: Sized {
     /// Error that comes from [Parse].
     type Err: std::error::Error;

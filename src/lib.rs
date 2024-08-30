@@ -8,12 +8,13 @@
     clippy::cargo
 )]
 #![forbid(clippy::should_panic_without_expect, clippy::incompatible_msrv)]
-//! A utility library for reading integers, floating numbers and strings from input/output.
+//! A utility library for reading data from input
+//! and writting data from output.
 
 pub use {
     formatted::SepBy,
     mat::Mat,
-    read_into::{ReadInto, ReadIntoError, ReadIntoSingle},
+    read_into::{parse::Parse, ReadInto, ReadIntoError, ReadIntoSingle},
     stdio::read_into::*,
     stream::InputStream,
 };
