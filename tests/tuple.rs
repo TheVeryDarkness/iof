@@ -17,9 +17,13 @@ fn try_read_tuple_3_from_str_err() {
     let reader = Cursor::new("1 2 -3".as_bytes());
     let mut reader = InputStream::new(reader);
 
-    let vec: Result<(u32, u32, u32), _> = reader.try_read();
+    let vec: Result<(i32, i8, u32), _> = reader.try_read();
     let err = vec.unwrap_err();
     assert_eq!(err.to_string(), "invalid digit found in string");
+    assert_eq!(
+        format!("{:?}", err),
+        "T3(ParseIntError { kind: InvalidDigit })"
+    );
 }
 
 #[test]

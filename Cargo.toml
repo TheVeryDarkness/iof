@@ -23,3 +23,4 @@ license = "MIT OR Apache-2.0"
 
 [dev-dependencies]
 anyhow = "1.0.86"
+rayon = "1.10.0"

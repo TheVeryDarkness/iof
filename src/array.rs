@@ -119,6 +119,8 @@ mod tracked {
 
 #[cfg(test)]
 mod tests {
+    use rayon::iter::{IntoParallelIterator, ParallelIterator};
+
     use super::{
         array_from_fn,
         tracked::{check, Tracked},
@@ -139,18 +141,20 @@ mod tests {
 
     #[test]
     fn array_tracked_caught_panic() {
-        let res = catch_unwind(|| {
-            let mut i = 0;
-            let array: [Tracked; 3] = array_from_fn(|| {
-                if i >= 2 {
-                    panic!("Sorry, something is wrong with the array.");
-                }
-                i += 1;
-                Tracked::new()
+        (0..16).into_par_iter().for_each(|_| {
+            let res = catch_unwind(|| {
+                let mut i = 0;
+                let array: [Tracked; 3] = array_from_fn(|| {
+                    if i >= 2 {
+                        panic!("Sorry, something is wrong with the array.");
+                    }
+                    i += 1;
+                    Tracked::new()
+                });
+                array
             });
-            array
+            assert!(res.is_err());
         });
-        assert!(res.is_err());
         check();
     }
 }

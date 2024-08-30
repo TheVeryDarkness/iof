@@ -252,9 +252,7 @@ macro_rules! impl_read_into_for_tuple {
         }
         impl<$($t: std::error::Error, )* > Display for $e<$($t, )* > {
             fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-                match self {
-                    $(Self::$t(err) => Display::fmt(err, f), )*
-                }
+                match self { $( Self::$t(err) => Display::fmt(err, f), )* }
             }
         }
         impl<$($t: std::error::Error, )* > std::error::Error for $e<$($t, )* > {}
