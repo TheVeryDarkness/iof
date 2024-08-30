@@ -1,4 +1,4 @@
-use iof::{InputStream, OutputStream, ReadInto, ReadIntoSingle, WriteInto};
+use iof::{InputStream, ReadInto, ReadIntoSingle, WriteInto};
 use std::io;
 
 struct IllBuffer;
@@ -46,7 +46,7 @@ fn try_read_remained_line_ill() {
 
 #[test]
 fn try_write_ill() {
-    let mut buf = OutputStream::new(IllBuffer);
+    let mut buf = IllBuffer;
     let res: Result<(), _> = [1, 2, 3].try_write_into(&mut buf);
     assert!(res.is_err());
     let res: Result<(), _> = ["", "", ""].try_write_into(&mut buf);
@@ -54,8 +54,7 @@ fn try_write_ill() {
 }
 
 #[test]
-#[should_panic = "an error occurred when formatting an argument"]
+#[should_panic = "ill buffer"]
 fn write_into_ill() {
-    let mut buf = OutputStream::new(IllBuffer);
-    [1, 2, 3].write_into(&mut buf);
+    [1, 2, 3].write_into(&mut IllBuffer);
 }

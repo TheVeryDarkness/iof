@@ -167,13 +167,19 @@
 //!   let s = format!("{}", v.sep_by(", "));
 //!   assert_eq!(s, "1, 2, 3");
 //!   ```
+//!
+//! Some higher-level functions are provided to write data sequence with default format to output:
+//!
+//! - [WriteInto::write()] (or [WriteInto::try_write()]) writes to [standard output](std::io::Stdout) with default format.
+//! - [WriteInto::write_into()] (or [WriteInto::try_write_into()]) writes to given buffer that implements [std::fmt::Write] with default format.
+//! - [WriteInto::write_into_string()] (or [WriteInto::try_write_into_string()]) writes to a new string with default format.
 
 pub use {
     formatted::SepBy,
     mat::Mat,
     read_into::{from_str::FromStr, ReadInto, ReadIntoError, ReadIntoSingle},
     stdio::read_into::*,
-    stream::{InputStream, OutputStream},
+    stream::InputStream,
     write_into::{display::Display, WriteInto},
 };
 

@@ -164,23 +164,3 @@ impl<S: ReadInto<T> + ?Sized, T> Iterator for RealAll<'_, S, T> {
         self.stream.try_read().ok()
     }
 }
-
-/// A wrapper that converts [std::io::Write] into [std::fmt::Write].
-pub struct OutputStream<W> {
-    buffer: W,
-}
-
-impl<W> OutputStream<W> {
-    /// Create an output stream from a buffer that implements [std::io::Write].
-    pub fn new(buffer: W) -> Self {
-        Self { buffer }
-    }
-}
-
-impl<W: std::io::Write> std::fmt::Write for OutputStream<W> {
-    fn write_str(&mut self, s: &str) -> std::fmt::Result {
-        self.buffer
-            .write_all(s.as_bytes())
-            .map_err(|_| std::fmt::Error)
-    }
-}

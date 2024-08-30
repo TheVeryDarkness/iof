@@ -1,6 +1,8 @@
 use super::Mat;
+use std::{fmt::Debug, iter::FusedIterator};
 
 /// Iterator over all rows.
+#[derive(Copy)]
 pub struct RowIter<'a, T> {
     mat: &'a Mat<T>,
     i: usize,
@@ -50,3 +52,26 @@ impl<'a, T> Iterator for RowIter<'a, T> {
         self.mat.last_row()
     }
 }
+
+impl<'a, T> Clone for RowIter<'a, T> {
+    fn clone(&self) -> Self {
+        Self {
+            mat: self.mat,
+            i: self.i,
+        }
+    }
+}
+
+impl<'a, T: Debug> Debug for RowIter<'a, T> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_list().entries(self.clone()).finish()
+    }
+}
+
+impl<'a, T> ExactSizeIterator for RowIter<'a, T> {
+    fn len(&self) -> usize {
+        self.mat.len_rows() - self.i
+    }
+}
+
+impl<'a, T> FusedIterator for RowIter<'a, T> {}

@@ -1,4 +1,9 @@
-use std::fmt::{self, Binary, Display, LowerExp, LowerHex, Octal, Pointer, UpperExp, UpperHex};
+use std::{
+    fmt::{self, Binary, Display, LowerExp, LowerHex, Octal, Pointer, UpperExp, UpperHex},
+    io::{self, Write},
+};
+
+use crate::WriteInto;
 
 /// Separate items with given separator in [fmt::Display].
 ///
@@ -50,3 +55,17 @@ impl_for_sep_by!(UpperHex);
 impl_for_sep_by!(Pointer);
 impl_for_sep_by!(LowerExp);
 impl_for_sep_by!(UpperExp);
+
+impl<I: Iterator<Item = T> + Clone, T: WriteInto> WriteInto for SepBy<'_, I> {
+    fn try_write_into<S: Write>(&self, s: &mut S) -> Result<(), io::Error> {
+        let mut iter = self.iter.clone();
+        if let Some(first) = iter.next() {
+            first.try_write_into(s)?;
+        }
+        for item in iter {
+            let _ = s.write(self.sep.as_bytes())?;
+            item.try_write_into(s)?
+        }
+        Ok(())
+    }
+}

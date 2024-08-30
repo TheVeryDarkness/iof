@@ -26,24 +26,23 @@ pub trait FromStr: Sized {
     fn from_str(s: &str) -> Result<Self, Self::Err>;
 }
 
-macro_rules! impl_parse {
-    ($ty:ty) => {
-        impl FromStr for $ty {
-            type Err = <$ty as str::FromStr>::Err;
-            fn from_str(s: &str) -> Result<Self, Self::Err> {
-                <$ty as str::FromStr>::from_str(s)
-            }
-        }
-    };
-}
-macro_rules! impl_parse_for {
+/// Implement [FromStr] for given types that already implement [str::FromStr].
+#[macro_export]
+macro_rules! impl_from_str {
     ($($tys:ty)*) => {
-        $(impl_parse!($tys);)*
+        $(
+            impl $crate::read_into::FromStr for $tys {
+                type Err = <$tys as ::std::str::FromStr>::Err;
+                fn from_str(s: &str) -> ::std::result::Result<Self, Self::Err> {
+                    <$tys as ::std::str::FromStr>::from_str(s)
+                }
+            }
+        )*
     };
 }
 
 // Implement `Parse` for all types that implement FromStr.
-impl_parse_for!(
+impl_from_str!(
     bool
 
     i8 u8

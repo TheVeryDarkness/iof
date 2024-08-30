@@ -1,4 +1,3 @@
-use crate::sep_by;
 use std::{fmt, fmt::Write};
 
 type Result = fmt::Result;
@@ -6,17 +5,20 @@ type Result = fmt::Result;
 /// Format trait with default formatting.
 ///
 /// This is similar to [fmt::Display], but we need this to avoid conflicting.
-pub trait Display {
+#[deprecated]
+pub trait Display: fmt::Display {
     /// Write into a [Write].
     fn fmt(&self, f: &mut impl Write) -> Result;
 }
 
+/// Implement [Display] for given types that already implements [fmt::Display].
+#[macro_export]
 macro_rules! impl_display {
     ($($ty:ty)*) => {
         $(
-            impl Display for $ty {
-                fn fmt(&self, f: &mut impl Write) -> Result {
-                    write!(f, "{}", self)
+            impl $crate::Display for $ty {
+                fn fmt(&self, f: &mut impl ::std::fmt::Write) -> ::std::fmt::Result {
+                    ::std::write!(f, "{}", self)
                 }
             }
         )*
@@ -33,15 +35,6 @@ impl_display!(
 
 impl<T: Display + ?Sized> Display for &T {
     fn fmt(&self, f: &mut impl Write) -> Result {
-        (*self).fmt(f)
-    }
-}
-
-impl<'a, I: Clone + Iterator> Display for sep_by::SepBy<'a, I>
-where
-    I::Item: fmt::Display,
-{
-    fn fmt(&self, f: &mut impl Write) -> Result {
-        write!(f, "{}", self)
+        Display::fmt(*self, f)
     }
 }
