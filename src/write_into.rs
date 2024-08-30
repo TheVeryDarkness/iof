@@ -28,7 +28,7 @@ pub trait WriteInto {
         let mut s = Vec::new();
         self.try_write_into(&mut s)?;
         // What if the string is not valid UTF-8?
-        Ok(String::from_utf8(s).map_err(|err| io::Error::new(io::ErrorKind::InvalidData, err))?)
+        String::from_utf8(s).map_err(|err| io::Error::new(io::ErrorKind::InvalidData, err))
     }
     /// Unwrapping version of [WriteInto::try_write_into_string].
     fn write_into_string(&self) -> String {
