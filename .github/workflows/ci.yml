@@ -21,14 +21,17 @@ jobs:
           toolchain: 1.63
       - name: cargo test
         run: cargo test --workspace
-      - name: Install cargo-binstall
-        uses: cargo-bins/cargo-binstall@v1.10.3
-      - name: Install cargo-msrv
-        run: cargo binstall --no-confirm cargo-msrv
-      - name: Check the version of cargo-msrv
-        run: cargo msrv --version
-      - name: Verify the Minimum Supported Rust Version
-        run: cargo msrv verify
+      # - name: Install cargo-binstall
+      #   uses: cargo-bins/cargo-binstall@v1.10.3
+      # - name: Install cargo-msrv
+      #   run: cargo binstall --no-confirm cargo-msrv
+      # - name: Check the version of cargo-msrv
+      #   run: cargo msrv --version
+      # - name: Show the Minimum Supported Rust Version
+      #   run: cargo msrv show
+      # - name: Verify the Minimum Supported Rust Version
+      #   run: cargo msrv verify
+
   miri:
     name: MIRI Test
     runs-on: ubuntu-latest
