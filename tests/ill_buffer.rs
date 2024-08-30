@@ -1,17 +1,26 @@
-use iof::{InputStream, ReadInto, ReadIntoSingle};
+use iof::{InputStream, OutputStream, ReadInto, ReadIntoSingle, WriteInto};
+use std::io;
 
 struct IllBuffer;
 
-impl std::io::Read for IllBuffer {
-    fn read(&mut self, _: &mut [u8]) -> std::io::Result<usize> {
-        Err(std::io::Error::new(std::io::ErrorKind::Other, "ill buffer"))
+impl io::Read for IllBuffer {
+    fn read(&mut self, _: &mut [u8]) -> io::Result<usize> {
+        Err(io::Error::new(io::ErrorKind::Other, "ill buffer"))
     }
 }
-impl std::io::BufRead for IllBuffer {
-    fn fill_buf(&mut self) -> std::io::Result<&[u8]> {
-        Err(std::io::Error::new(std::io::ErrorKind::Other, "ill buffer"))
+impl io::BufRead for IllBuffer {
+    fn fill_buf(&mut self) -> io::Result<&[u8]> {
+        Err(io::Error::new(io::ErrorKind::Other, "ill buffer"))
     }
     fn consume(&mut self, _: usize) {}
+}
+impl io::Write for IllBuffer {
+    fn write(&mut self, _: &[u8]) -> io::Result<usize> {
+        Err(io::Error::new(io::ErrorKind::Other, "ill buffer"))
+    }
+    fn flush(&mut self) -> io::Result<()> {
+        Err(io::Error::new(io::ErrorKind::Other, "ill buffer"))
+    }
 }
 
 #[test]
@@ -33,4 +42,20 @@ fn try_read_remained_line_ill() {
     let mut buf = InputStream::new(IllBuffer);
     let res: Result<u32, _> = buf.try_read_remained_line();
     assert!(res.is_err());
+}
+
+#[test]
+fn try_write_ill() {
+    let mut buf = OutputStream::new(IllBuffer);
+    let res: Result<(), _> = [1, 2, 3].try_write_into(&mut buf);
+    assert!(res.is_err());
+    let res: Result<(), _> = ["", "", ""].try_write_into(&mut buf);
+    assert!(res.is_err());
+}
+
+#[test]
+#[should_panic = "an error occurred when formatting an argument"]
+fn write_into_ill() {
+    let mut buf = OutputStream::new(IllBuffer);
+    [1, 2, 3].write_into(&mut buf);
 }

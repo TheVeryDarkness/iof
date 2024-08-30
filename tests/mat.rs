@@ -90,3 +90,13 @@ fn read_all_same() {
     assert_eq!(mat.iter().collect::<Mat<_>>(), mat);
     assert_eq!(mat, Mat::with_clone(2, 3, 2));
 }
+
+#[test]
+fn display() {
+    let s = Mat::from([[1, 2, 3], [4, 5, 6]]);
+    assert_eq!(s.try_write_into_string().unwrap(), "1 2 3\n4 5 6");
+    let s = Mat::from([[1, 2, 3]]);
+    assert_eq!(s.try_write_into_string().unwrap(), "1 2 3");
+    let s: Mat<i32> = Mat::new();
+    assert_eq!(s.try_write_into_string().unwrap(), "");
+}

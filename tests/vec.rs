@@ -34,3 +34,18 @@ fn read_all() -> anyhow::Result<()> {
 
     Ok(())
 }
+
+#[test]
+fn display() {
+    let s = Vec::from([1, 2, 3]);
+    assert_eq!(s.try_write_into_string().unwrap(), "1 2 3");
+    assert_eq!(s.write_into_string(), "1 2 3");
+
+    let s = Vec::from([1]);
+    assert_eq!(s.try_write_into_string().unwrap(), "1");
+    assert_eq!(s.write_into_string(), "1");
+
+    let s: Vec<i32> = Vec::from([]);
+    assert_eq!(s.try_write_into_string().unwrap(), "");
+    assert_eq!(s.write_into_string(), "");
+}

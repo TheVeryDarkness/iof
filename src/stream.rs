@@ -6,6 +6,18 @@ use std::{
 use crate::ReadInto;
 
 /// C++-like Stream.
+///
+/// This struct provides a way to read from a buffer that implements [BufRead].
+///
+/// It provides a way to read:
+///
+/// - A single non-ASCII-whitespace character ([InputStream::consume_char]),
+/// - A single ASCII-white-space-separated string ([InputStream::consume_string]),
+/// - A single non-empty line ([InputStream::consume_line]),
+/// - Just the remained line ([InputStream::consume_remained_line]),
+/// - Or all ASCII-white-space-separated strings ([InputStream::read_all]).
+///
+/// ASCII whitespace characters are `' '`, `'\t'`, `'\n'`, and `'\r'`.
 pub struct InputStream<B> {
     buffer: B,
     line_buf: String,
@@ -45,7 +57,10 @@ fn as_slice_to(s: &str, i: usize) -> &str {
     unsafe { s.get_unchecked(..i) }
 }
 
+const MSG_EOF: &str = "failed to read a non-whitespace character before EOF";
+
 impl<B: BufRead> InputStream<B> {
+    /// Fill the buffer with a new line.
     #[inline]
     fn fill_buf(&mut self, msg: &'static str) -> Result<(), Error> {
         self.line_buf.clear();
@@ -56,9 +71,10 @@ impl<B: BufRead> InputStream<B> {
         }
         Ok(())
     }
+    /// Remove leading white spaces, and return the remaining string.
     fn remove_white(&mut self) -> Result<&str, Error> {
         while self.cursor == self.line_buf.len() {
-            self.fill_buf("failed to read a non-whitespace character before EOF")?;
+            self.fill_buf(MSG_EOF)?;
         }
         let remaining = as_slice_from(&self.line_buf, self.cursor);
         let remaining = remaining.trim_start_matches(WHITE);
@@ -66,7 +82,7 @@ impl<B: BufRead> InputStream<B> {
         debug_assert!(self.line_buf.is_char_boundary(self.cursor));
         Ok(remaining)
     }
-    /// Consume a charater that is not ' ', '\t' or '\n'.
+    /// Consume a charater that is not ' ', '\t', '\r' or '\n'.
     pub fn consume_char(&mut self) -> Result<char, Error> {
         loop {
             let remaining = self.remove_white()?;
@@ -76,7 +92,7 @@ impl<B: BufRead> InputStream<B> {
             }
         }
     }
-    /// Consume some charaters until ' ', '\t' or '\n'.
+    /// Consume some charaters until ' ', '\t', '\r' or '\n'.
     pub fn consume_string<T>(&mut self, f: impl FnOnce(&str) -> T) -> Result<T, Error> {
         loop {
             let remaining = self.remove_white()?;
@@ -104,11 +120,13 @@ impl<B: BufRead> InputStream<B> {
             }
         }
     }
+    /// Try to fill the buffer.
+    /// Won't return EOF error.
     #[inline]
     fn read_buf(&mut self) -> Result<(), Error> {
         self.line_buf.clear();
         self.cursor = 0;
-        self.buffer.read_line(&mut self.line_buf)?;
+        let _ = self.buffer.read_line(&mut self.line_buf)?;
         Ok(())
     }
     /// Consume the remained line without trailing CR or LF.
@@ -144,5 +162,25 @@ impl<S: ReadInto<T> + ?Sized, T> Iterator for RealAll<'_, S, T> {
 
     fn next(&mut self) -> Option<Self::Item> {
         self.stream.try_read().ok()
+    }
+}
+
+/// A wrapper that converts [std::io::Write] into [std::fmt::Write].
+pub struct OutputStream<W> {
+    buffer: W,
+}
+
+impl<W> OutputStream<W> {
+    /// Create an output stream from a buffer that implements [std::io::Write].
+    pub fn new(buffer: W) -> Self {
+        Self { buffer }
+    }
+}
+
+impl<W: std::io::Write> std::fmt::Write for OutputStream<W> {
+    fn write_str(&mut self, s: &str) -> std::fmt::Result {
+        self.buffer
+            .write_all(s.as_bytes())
+            .map_err(|_| std::fmt::Error)
     }
 }

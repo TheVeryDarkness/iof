@@ -6,32 +6,32 @@ use std::{
         NonZeroU16, NonZeroU32, NonZeroU64, NonZeroU8, NonZeroUsize,
     },
     path::PathBuf,
-    str::FromStr,
+    str,
 };
 
-/// Parse a string into a type. Similar to [std::str::FromStr], but we need this to avoid conflicting.
+/// Parse a value from a string. Similar to [str::FromStr], but we need this to avoid conflicting.
 ///
 /// # Example
 ///
 /// ```rust
-/// use iof::Parse;
-/// let x: i32 = Parse::parse("42").unwrap();
+/// use iof::FromStr;
+/// let x: i32 = FromStr::from_str("42").unwrap();
 /// assert_eq!(x, 42);
 /// ```
-pub trait Parse: Sized {
+pub trait FromStr: Sized {
     /// Error that comes from [Parse].
     type Err: std::error::Error;
 
     /// Parse a string into a type.
-    fn parse(s: &str) -> Result<Self, Self::Err>;
+    fn from_str(s: &str) -> Result<Self, Self::Err>;
 }
 
 macro_rules! impl_parse {
     ($ty:ty) => {
-        impl Parse for $ty {
-            type Err = <$ty as FromStr>::Err;
-            fn parse(s: &str) -> Result<Self, Self::Err> {
-                <$ty as FromStr>::from_str(s)
+        impl FromStr for $ty {
+            type Err = <$ty as str::FromStr>::Err;
+            fn from_str(s: &str) -> Result<Self, Self::Err> {
+                <$ty as str::FromStr>::from_str(s)
             }
         }
     };

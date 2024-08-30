@@ -3,13 +3,13 @@ use crate::{
     mat::Mat,
     stream::{InputStream, RealAll},
 };
-use parse::Parse;
+use from_str::FromStr;
 use std::{
-    fmt::{Debug, Display},
+    fmt::{self, Debug, Display},
     io::BufRead,
 };
 
-pub(super) mod parse;
+pub(super) mod from_str;
 
 /// Error during using [ReadInto] or [ReadIntoSingle].
 ///
@@ -25,7 +25,7 @@ impl<E> Debug for ReadIntoError<E>
 where
     E: std::error::Error,
 {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Self::IOError(error) => Debug::fmt(error, f),
             Self::FromStrError(error) => Debug::fmt(error, f),
@@ -37,7 +37,7 @@ impl<E> Display for ReadIntoError<E>
 where
     E: std::error::Error,
 {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Self::IOError(error) => Display::fmt(error, f),
             Self::FromStrError(error) => Display::fmt(error, f),
@@ -93,32 +93,32 @@ pub trait ReadIntoSingle<T> {
     }
 }
 
-impl<T: Parse, B: BufRead> ReadIntoSingle<T> for InputStream<B> {
+impl<T: FromStr, B: BufRead> ReadIntoSingle<T> for InputStream<B> {
     type Error = ReadIntoError<T::Err>;
     fn try_read_single(&mut self) -> Result<T, Self::Error> {
         let res = self
-            .consume_string(|s| T::parse(s))
+            .consume_string(|s| T::from_str(s))
             .map_err(ReadIntoError::IOError)?
             .map_err(ReadIntoError::FromStrError)?;
         Ok(res)
     }
     fn try_read_remained_line(&mut self) -> Result<T, Self::Error> {
         let res = self
-            .consume_remained_line(|s| T::parse(s))
+            .consume_remained_line(|s| T::from_str(s))
             .map_err(ReadIntoError::IOError)?
             .map_err(ReadIntoError::FromStrError)?;
         Ok(res)
     }
     fn try_read_line(&mut self) -> Result<T, Self::Error> {
         let res = self
-            .consume_line(|s| T::parse(s))
+            .consume_line(|s| T::from_str(s))
             .map_err(ReadIntoError::IOError)?
             .map_err(ReadIntoError::FromStrError)?;
         Ok(res)
     }
     fn try_read_char(&mut self) -> Result<T, Self::Error> {
         let c = self.consume_char().map_err(ReadIntoError::IOError)?;
-        let res = T::parse(&c.to_string()).map_err(ReadIntoError::FromStrError)?;
+        let res = T::from_str(&c.to_string()).map_err(ReadIntoError::FromStrError)?;
         Ok(res)
     }
 }
@@ -174,7 +174,7 @@ pub trait ReadInto<T> {
     }
 }
 
-impl<T: Parse, B: BufRead> ReadInto<T> for InputStream<B> {
+impl<T: FromStr, B: BufRead> ReadInto<T> for InputStream<B> {
     type Error = ReadIntoError<T::Err>;
     fn try_read(&mut self) -> Result<T, Self::Error> {
         self.try_read_single()
@@ -250,15 +250,15 @@ macro_rules! impl_read_into_for_tuple {
         pub enum $e<$($t, )* > {
             $($t($t), )*
         }
-        impl<$($t: std::error::Error, )* > std::fmt::Display for $e<$($t, )* > {
-            fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        impl<$($t: std::error::Error, )* > Display for $e<$($t, )* > {
+            fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
                 match self {
-                    $(Self::$t(err) => std::fmt::Display::fmt(err, f), )*
+                    $(Self::$t(err) => Display::fmt(err, f), )*
                 }
             }
         }
         impl<$($t: std::error::Error, )* > std::error::Error for $e<$($t, )* > {}
-        impl<$($t: Parse, )* S: $(ReadInto<$t> +)* ?Sized> ReadInto<($($t, )*)> for S {
+        impl<$($t: FromStr, )* S: $(ReadInto<$t> +)* ?Sized> ReadInto<($($t, )*)> for S {
             type Error = $e<$(<S as ReadInto<$t>>::Error, )*>;
             fn try_read(&mut self) -> Result<($($t, )*), Self::Error> {
                 Ok(( $(ReadInto::<$t>::try_read(self).map_err($e::$t)?, )* ))

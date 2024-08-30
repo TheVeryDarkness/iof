@@ -1,6 +1,6 @@
 use crate::{
     mat::Mat,
-    read_into::{parse::Parse, ReadInto, ReadIntoSingle},
+    read_into::{from_str::FromStr, ReadInto, ReadIntoSingle},
     stdio::STDIN,
     stream::InputStream,
 };
@@ -70,17 +70,22 @@ expose_stdin!(
     [T] (m: usize, n: usize) -> Mat<T> | <InputStream<StdinLock<'static>> as ReadInto<T>>::Error
 );
 expose_stdin!(
+    try_read_single "ReadIntoSingle::try_read_single"
+    read_single "ReadIntoSingle::read_single"
+    [T: FromStr] () -> T | <InputStream<StdinLock<'static>> as ReadIntoSingle<T>>::Error
+);
+expose_stdin!(
     try_read_remained_line "ReadIntoSingle::try_read_remained_line"
     read_remained_line "ReadIntoSingle::read_remained_line"
-    [T: Parse] () -> T | <InputStream<StdinLock<'static>> as ReadIntoSingle<T>>::Error
+    [T: FromStr] () -> T | <InputStream<StdinLock<'static>> as ReadIntoSingle<T>>::Error
 );
 expose_stdin!(
     try_read_line "ReadIntoSingle::try_read_line"
     read_line "ReadIntoSingle::read_line"
-    [T: Parse] () -> T | <InputStream<StdinLock<'static>> as ReadIntoSingle<T>>::Error
+    [T: FromStr] () -> T | <InputStream<StdinLock<'static>> as ReadIntoSingle<T>>::Error
 );
 expose_stdin!(
     try_read_char "ReadIntoSingle::try_read_char"
     read_char "ReadIntoSingle::read_char"
-    [T: Parse] () -> T | <InputStream<StdinLock<'static>> as ReadIntoSingle<T>>::Error
+    [T: FromStr] () -> T | <InputStream<StdinLock<'static>> as ReadIntoSingle<T>>::Error
 );

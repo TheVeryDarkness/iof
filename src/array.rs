@@ -39,7 +39,7 @@ impl<'a, T, const N: usize> ArrayGuard<'a, T, N> {
 
     /// Use [usize::unchecked_add] if it's stablized.
     pub(crate) unsafe fn push_unchecked(&mut self, value: T) {
-        self.array.get_unchecked_mut(self.len).write(value);
+        let _ = self.array.get_unchecked_mut(self.len).write(value);
         // Safety: We just wrote to the array.
         self.len = self.len.wrapping_add(1);
     }

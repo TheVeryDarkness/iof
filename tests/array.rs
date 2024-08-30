@@ -114,3 +114,9 @@ fn read_boxed_array_insuffcient() {
 
     let _: Box<[i32; 4]> = reader.read();
 }
+
+#[test]
+fn display() {
+    let s = [1, 2, 3];
+    assert_eq!(s.try_write_into_string().unwrap(), "1 2 3");
+}

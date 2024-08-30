@@ -20,6 +20,6 @@ where
     I::IntoIter: Clone,
 {
     fn sep_by(self, sep: &'_ str) -> sep_by::SepBy<'_, Self::IntoIter> {
-        super::sep_by::SepBy::new(self.into_iter(), sep)
+        sep_by::SepBy::new(self.into_iter(), sep)
     }
 }
