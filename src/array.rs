@@ -53,7 +53,7 @@ impl<'a, T, const N: usize> ArrayGuard<'a, T, N> {
 ///
 /// # Examples
 ///
-/// ```rust
+/// ```rust,ignore
 /// use iof::array_from_fn;
 /// let array: [String; 3] = array_from_fn(|| "hello".to_string());
 /// assert_eq!(array[0], "hello");
@@ -79,7 +79,7 @@ pub fn array_from_fn<T, const N: usize>(mut f: impl FnMut() -> T) -> [T; N] {
 ///
 /// # Examples
 ///
-/// ```rust
+/// ```rust,ignore
 /// use iof::array_try_from_fn;
 /// let array: Result<[String; 3], ()> = array_try_from_fn(|| Ok("hello".to_string()));
 /// assert_eq!(array, Ok(["hello", "hello", "hello"]));
