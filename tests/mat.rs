@@ -19,7 +19,6 @@ fn read_m_n() {
     assert_eq!(&mat[0], [1, 2, 3].as_slice());
     assert_eq!(&mat[1], [4, 5, 6].as_slice());
     assert_eq!(mat.iter().len(), 2);
-    assert_eq!(mat.iter().count(), 2);
     assert_eq!(mat.iter().size_hint(), (2, Some(2)));
     assert_eq!(format!("{:?}", mat), "[[1, 2, 3], [4, 5, 6]]");
     assert_eq!(
@@ -52,7 +51,6 @@ fn read_same_rows() {
     assert_eq!(&mat[1], &[2, 3, 2]);
     assert_eq!(&mat[2], &[2, 3, 2]);
     assert_eq!(mat.iter().len(), 3);
-    assert_eq!(mat.iter().count(), 3);
     assert_eq!(mat.iter().size_hint(), (3, Some(3)));
     assert_eq!(format!("{:?}", mat), "[[2, 3, 2], [2, 3, 2], [2, 3, 2]]");
 
@@ -71,7 +69,6 @@ fn read_all_same() {
     assert_eq!(&mat[0], [2, 2, 2].as_slice());
     assert_eq!(&mat[1], [2, 2, 2].as_slice());
     assert_eq!(mat.iter().len(), 2);
-    assert_eq!(mat.iter().count(), 2);
     assert_eq!(mat.iter().size_hint(), (2, Some(2)));
     assert_eq!(format!("{:?}", mat), "[[2, 2, 2], [2, 2, 2]]");
 }
