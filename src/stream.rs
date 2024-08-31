@@ -129,18 +129,18 @@ impl<B: BufRead> InputStream<B> {
         }
     }
     /// Return an [Iterator] that consumes all ASCII-white-space-separated strings in current line.
-    pub fn consume_strings_in_line(&mut self) -> RealAllIn<'_> {
+    pub fn consume_strings_in_line(&mut self) -> impl Iterator<Item = &str> {
         // You may wonder why we use `transmute` here, and whether it is safe.
         // Notice that `RealAllIn` is a struct with a lifetime parameter `'s` and a reference field `buffer`.
         // The lifetime parameter `'s` is the lifetime of the buffer, and the reference field `buffer` is a reference to the buffer.
         // So you won't be able to create a `RealAllIn` instance without a valid buffer,
         // or modify the buffer while the `RealAllIn` instance is alive.
-        self.consume_line(|s| unsafe { transmute(RealAllIn::new(s)) })
+        self.consume_line(|s| -> RealAllIn<'_> { unsafe { transmute(RealAllIn::new(s)) } })
             .unwrap_or_default()
     }
     /// Return an [Iterator] that consumes all ASCII-white-space-separated strings in current line.
-    pub fn consume_strings_in_remained_line(&mut self) -> RealAllIn<'_> {
-        self.consume_remained_line(|s| unsafe { transmute(RealAllIn::new(s)) })
+    pub fn consume_strings_in_remained_line(&mut self) -> impl Iterator<Item = &str> {
+        self.consume_remained_line(|s| -> RealAllIn<'_> { unsafe { transmute(RealAllIn::new(s)) } })
             .unwrap_or_default()
     }
     /// Return an [Iterator] that consumes all ASCII-white-space-separated strings in this buffer.
@@ -166,7 +166,7 @@ impl<B: BufRead> InputStream<B> {
         let line = &self.line_buf[self.cursor..];
         let result = f(line.trim_end_matches(EOL));
         self.cursor = self.line_buf.len();
-        self.read_buf()?;
+        // self.read_buf()?;
         Ok(result)
     }
 }
@@ -193,7 +193,7 @@ impl<'s, B: BufRead, T, F: FnMut(&str) -> T> Iterator for RealAll<'s, InputStrea
 
 /// Iterator for all elements in a string.
 #[derive(Default)]
-pub struct RealAllIn<'s> {
+pub(crate) struct RealAllIn<'s> {
     buffer: &'s str,
 }
 

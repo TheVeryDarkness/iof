@@ -1,4 +1,4 @@
-use crate::{mat::Mat, stdio::STDOUT, SepBy};
+use crate::{stdio::STDOUT, SepBy};
 use std::{
     io::{self, Write},
     num::{
@@ -61,6 +61,34 @@ macro_rules! impl_write_into {
                     ::std::write!(s, "{}", self)
                 }
             }
+
+            impl $crate::WriteInto for ::std::vec::Vec<$ty> {
+                fn try_write_into<S: ::std::io::Write>(&self, s: &mut S) -> ::std::io::Result<()> {
+                    self.as_slice().try_write_into(s)
+                }
+            }
+
+            impl<const N: usize> $crate::WriteInto for [$ty; N] {
+                fn try_write_into<S: ::std::io::Write>(&self, s: &mut S) -> ::std::io::Result<()> {
+                    self.as_slice().try_write_into(s)
+                }
+            }
+
+            impl $crate::WriteInto for [$ty] {
+                fn try_write_into<S: ::std::io::Write>(&self, s: &mut S) -> ::std::io::Result<()> {
+                    WriteInto::try_write_into(&self.sep_by(" "), s)
+                }
+            }
+
+            impl $crate::WriteInto for $crate::Mat<$ty> {
+                fn try_write_into<S: ::std::io::Write>(&self, s: &mut S) -> ::std::io::Result<()> {
+                    self.iter()
+                        .map(|row| row.iter().sep_by(" "))
+                        .sep_by("\n")
+                        .try_write_into(s)
+                }
+            }
+
         )*
     };
 }
@@ -68,7 +96,7 @@ macro_rules! impl_write_into {
 impl_write_into!(
     f32 f64
     bool
-    char str String
+    char &str String
 
     i8 i16 i32 i64 i128 isize
     u8 u16 u32 u64 u128 usize
@@ -84,37 +112,5 @@ impl_write_into!(
 impl<T: WriteInto + ?Sized> WriteInto for &T {
     fn try_write_into<S: Write>(&self, s: &mut S) -> Result {
         WriteInto::try_write_into(*self, s)
-    }
-}
-
-impl<T: WriteInto> WriteInto for Vec<T> {
-    fn try_write_into<S: Write>(&self, s: &mut S) -> Result {
-        self.as_slice().try_write_into(s)
-    }
-}
-
-impl<T: WriteInto, const N: usize> WriteInto for [T; N] {
-    fn try_write_into<S: Write>(&self, s: &mut S) -> Result {
-        self.as_slice().try_write_into(s)
-    }
-}
-
-impl<T> WriteInto for [T]
-where
-    T: WriteInto,
-{
-    fn try_write_into<S: Write>(&self, s: &mut S) -> Result {
-        WriteInto::try_write_into(&self.sep_by(" "), s)
-    }
-}
-
-impl<T: WriteInto> WriteInto for Mat<T> {
-    fn try_write_into<S: Write>(&self, s: &mut S) -> Result {
-        fn row_sep_by<T: WriteInto>(
-            row: &[T],
-        ) -> crate::sep_by::SepBy<'_, std::slice::Iter<'_, T>> {
-            row.iter().sep_by(" ")
-        }
-        self.iter().map(row_sep_by).sep_by("\n").try_write_into(s)
     }
 }

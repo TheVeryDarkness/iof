@@ -13,7 +13,8 @@ fn read_m_n_0_0() {
     let s1: Mat<usize> = read_m_n(0, 1);
     let s2: Mat<char> = try_read_m_n(1, 0).unwrap();
     assert!(s1.is_empty());
-    assert!(s2.is_empty());
+    assert_eq!(s2.len(), 1);
+    assert!(s2[0].is_empty());
 }
 
 #[test]

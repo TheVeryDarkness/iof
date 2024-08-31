@@ -13,22 +13,22 @@ fn read_n() {
     assert!(ReadInto::<u32>::try_read_n(&mut reader, 1).is_err());
 }
 
-// #[test]
-// fn read() {
-//     let reader = Cursor::new("1 2 3\n 4 5 6\n 7   8".as_bytes());
-//     let mut reader = InputStream::new(reader);
+#[test]
+fn read() {
+    let reader = Cursor::new("1 2 3\n 4 5 6\n 7   8".as_bytes());
+    let mut reader = InputStream::new(reader);
 
-//     let a: Vec<u32> = reader.read();
-//     assert_eq!(a, [1, 2, 3]);
+    let a: Vec<u32> = reader.read();
+    assert_eq!(a, [1, 2, 3]);
 
-//     let b: Vec<u32> = reader.read();
-//     assert_eq!(b, [4, 5, 6]);
+    let b: Vec<u32> = reader.read();
+    assert_eq!(b, [4, 5, 6]);
 
-//     let c: Vec<u32> = reader.read();
-//     assert_eq!(c, [7, 8]);
+    let c: Vec<u32> = reader.read();
+    assert_eq!(c, [7, 8]);
 
-//     assert_eq!(ReadInto::<Vec<u32>>::try_read(&mut reader).unwrap(), [],);
-// }
+    assert_eq!(ReadInto::<Vec<u32>>::try_read(&mut reader).unwrap(), [],);
+}
 
 #[test]
 #[should_panic = "invalid digit found in string"]

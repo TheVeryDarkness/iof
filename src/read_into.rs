@@ -197,13 +197,11 @@ pub trait ReadInto<T> {
     }
     /// Read `m * n` elements from `self`, parse into `T` and aggregate them into a single [Mat].
     fn try_read_m_n(&mut self, m: usize, n: usize) -> Result<Mat<T>, Self::Error> {
-        let mut res = Vec::with_capacity(m * n);
+        let mut res = Mat::with_capacity(m);
         for _ in 0..m {
-            for _ in 0..n {
-                res.push(self.try_read()?);
-            }
+            res.push(self.try_read_n(n)?);
         }
-        Ok(Mat::from_vec(m, n, res))
+        Ok(res)
     }
     /// Unwrapping version of [ReadInto::try_read_n].
     fn read_m_n(&mut self, m: usize, n: usize) -> Mat<T> {
@@ -257,12 +255,12 @@ where
     type Error = <Self as ReadIntoSingle<T>>::Error;
     fn try_read(&mut self) -> Result<Vec<T>, Self::Error> {
         // let len = self.try_read().map_err(Tuple2Error::T1)?;
-        self.try_read_all_in_line().collect()
+        self.try_read_all_in_remained_line().collect()
     }
     // Avoid constructing an enum value.
     fn read(&mut self) -> Vec<T> {
         // let len = self.read();
-        self.read_all_in_line().collect()
+        self.read_all_in_remained_line().collect()
     }
 }
 
