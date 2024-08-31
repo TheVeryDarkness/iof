@@ -1,13 +1,17 @@
 use crate::{
     mat::Mat,
-    read_into::{from_str::FromStr, ReadInto, ReadIntoSingle},
+    read_into::{ReadInto, ReadIntoSingle},
     stdio::STDIN,
     stream::InputStream,
 };
-use std::{io::StdinLock, ops::DerefMut};
+use std::io::StdinLock;
+pub use {
+    read_m_n as read_mat, read_n as read_vec, try_read_m_n as try_read_mat,
+    try_read_n as try_read_vec,
+};
 
 macro_rules! expose_stdin {
-    ($try_fn:ident $str_try_fn:literal $fn:ident $str_fn:literal [$($ty_arg:tt)*] ($($arg:ident: $arg_ty:ty), *) -> $ret:ty | $err:ty) => {
+    ($try_fn:ident $str_try_fn:literal $fn:ident $str_fn:literal [$ty_arg:ident] [$trait:ident] ($($arg:ident: $arg_ty:ty), *) -> $ret:ty | $err:ty) => {
         /// Call [`
         #[doc = $str_try_fn]
         /// `] on [std::io::StdinLock].
@@ -25,11 +29,11 @@ macro_rules! expose_stdin {
         /// If [`
         #[doc = $str_try_fn]
         /// `] returns an error.
-        pub fn $try_fn<$($ty_arg)*>($($arg: $arg_ty),*) -> Result<$ret, $err>
+        pub fn $try_fn<$ty_arg>($($arg: $arg_ty),*) -> Result<$ret, $err>
         where
-            InputStream<StdinLock<'static>>: ReadInto<T>,
+            InputStream<StdinLock<'static>>: $trait<$ty_arg>,
         {
-            STDIN.with(|lock| lock.borrow_mut().deref_mut().$try_fn($($arg),*))
+            STDIN.with(|lock| <InputStream<StdinLock<'static>> as $trait<$ty_arg>>::$try_fn(&mut *lock.borrow_mut(), $($arg),* ))
         }
 
         /// Call [`
@@ -45,11 +49,11 @@ macro_rules! expose_stdin {
         /// # Errors
         ///
         /// If this function is called in multiple threads, the behavior is undefined, possibly causing a deadlock.
-        pub fn $fn<$($ty_arg)*>($($arg: $arg_ty),*) -> $ret
+        pub fn $fn<$ty_arg>($($arg: $arg_ty),*) -> $ret
         where
-            InputStream<StdinLock<'static>>: ReadInto<T>,
+            InputStream<StdinLock<'static>>: $trait<$ty_arg>,
         {
-            STDIN.with(|lock| lock.borrow_mut().deref_mut().$fn($($arg),*))
+            STDIN.with(|lock| <InputStream<StdinLock<'static>> as $trait<$ty_arg>>::$fn(&mut *lock.borrow_mut(), $($arg),* ))
         }
     };
 }
@@ -57,35 +61,35 @@ macro_rules! expose_stdin {
 expose_stdin!(
     try_read "ReadInto::try_read"
     read "ReadInto::read"
-    [T] () -> T | <InputStream<StdinLock<'static>> as ReadInto<T>>::Error
+    [T] [ReadInto] () -> T | <InputStream<StdinLock<'static>> as ReadInto<T>>::Error
 );
 expose_stdin!(
     try_read_n "ReadInto::try_read_n"
     read_n "ReadInto::read_n"
-    [T] (n: usize) -> Vec<T> | <InputStream<StdinLock<'static>> as ReadInto<T>>::Error
+    [T] [ReadInto] (n: usize) -> Vec<T> | <InputStream<StdinLock<'static>> as ReadInto<T>>::Error
 );
 expose_stdin!(
     try_read_m_n "ReadInto::try_read_m_n"
     read_m_n "ReadInto::read_m_n"
-    [T] (m: usize, n: usize) -> Mat<T> | <InputStream<StdinLock<'static>> as ReadInto<T>>::Error
+    [T] [ReadInto] (m: usize, n: usize) -> Mat<T> | <InputStream<StdinLock<'static>> as ReadInto<T>>::Error
 );
 expose_stdin!(
-    try_read_single "ReadIntoSingle::try_read_single"
-    read_single "ReadIntoSingle::read_single"
-    [T: FromStr] () -> T | <InputStream<StdinLock<'static>> as ReadIntoSingle<T>>::Error
+    try_read_one "ReadIntoSingle::try_read_one"
+    read_one "ReadIntoSingle::read_one"
+    [T] [ReadIntoSingle] () -> T | <InputStream<StdinLock<'static>> as ReadIntoSingle<T>>::Error
 );
 expose_stdin!(
     try_read_remained_line "ReadIntoSingle::try_read_remained_line"
     read_remained_line "ReadIntoSingle::read_remained_line"
-    [T: FromStr] () -> T | <InputStream<StdinLock<'static>> as ReadIntoSingle<T>>::Error
+    [T] [ReadIntoSingle] () -> T | <InputStream<StdinLock<'static>> as ReadIntoSingle<T>>::Error
 );
 expose_stdin!(
     try_read_line "ReadIntoSingle::try_read_line"
     read_line "ReadIntoSingle::read_line"
-    [T: FromStr] () -> T | <InputStream<StdinLock<'static>> as ReadIntoSingle<T>>::Error
+    [T] [ReadIntoSingle] () -> T | <InputStream<StdinLock<'static>> as ReadIntoSingle<T>>::Error
 );
 expose_stdin!(
     try_read_char "ReadIntoSingle::try_read_char"
     read_char "ReadIntoSingle::read_char"
-    [T: FromStr] () -> T | <InputStream<StdinLock<'static>> as ReadIntoSingle<T>>::Error
+    [T] [ReadIntoSingle] () -> T | <InputStream<StdinLock<'static>> as ReadIntoSingle<T>>::Error
 );

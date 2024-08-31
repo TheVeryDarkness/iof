@@ -28,7 +28,7 @@ fn read_all_strings() {
     let reader = Cursor::new("There are 4 strings.".as_bytes());
     let mut reader = InputStream::new(reader);
 
-    let strings: Vec<String> = reader.read_all().collect();
+    let strings: Vec<String> = reader.consume_all(|s| String::from(s)).collect();
     assert_eq!(strings, vec!["There", "are", "4", "strings."]);
     assert!(iof::ReadInto::<String>::try_read(&mut reader).is_err());
 }

@@ -1,7 +1,7 @@
 use crate::{
     array::{array_from_fn, array_try_from_fn},
     mat::Mat,
-    stream::{InputStream, RealAll},
+    stream::InputStream,
 };
 use from_str::FromStr;
 use std::{
@@ -10,6 +10,7 @@ use std::{
 };
 
 pub(super) mod from_str;
+pub(super) mod macros;
 
 /// Error during using [ReadInto] or [ReadIntoSingle].
 ///
@@ -68,12 +69,20 @@ pub trait ReadIntoSingle<T> {
     type Error: std::error::Error;
 
     /// Read from `self` and parse into `T`.
-    fn try_read_single(&mut self) -> Result<T, Self::Error>;
+    ///
+    /// ```txt
+    /// 1 2 3
+    /// ```
+    fn try_read_one(&mut self) -> Result<T, Self::Error>;
     /// Unwrapping version of [ReadInto::try_read].
-    fn read_single(&mut self) -> T {
-        unwrap!(self.try_read_single())
+    fn read_one(&mut self) -> T {
+        unwrap!(self.try_read_one())
     }
     /// Read an element in the remained line from `self`, parse into `T`.
+    ///
+    /// ```txt
+    /// 1 2 3
+    /// ```
     fn try_read_remained_line(&mut self) -> Result<T, Self::Error>;
     /// Unwrapping version of [ReadIntoSingle::try_read_remained_line].
     fn read_remained_line(&mut self) -> T {
@@ -91,11 +100,29 @@ pub trait ReadIntoSingle<T> {
     fn read_char(&mut self) -> T {
         unwrap!(self.try_read_char())
     }
+    /// Read all remaining elements from `self`.
+    fn try_read_all(&mut self) -> impl Iterator<Item = Result<T, Self::Error>>;
+    /// Unwrapping version of [ReadIntoSingle::try_read_all].
+    fn read_all(&mut self) -> impl Iterator<Item = T> {
+        self.try_read_all().map(|res| unwrap!(res))
+    }
+    /// Read all elements in current line from `self`.
+    fn try_read_all_in_line(&mut self) -> impl Iterator<Item = Result<T, Self::Error>>;
+    /// Unwrapping version of [ReadIntoSingle::try_read_all_in_line].
+    fn read_all_in_line(&mut self) -> impl Iterator<Item = T> {
+        self.try_read_all_in_line().map(|res| unwrap!(res))
+    }
+    /// Read all elements in the remained line from `self`.
+    fn try_read_all_in_remained_line(&mut self) -> impl Iterator<Item = Result<T, Self::Error>>;
+    /// Unwrapping version of [ReadIntoSingle::try_read_all_in_remained_line].
+    fn read_all_in_remained_line(&mut self) -> impl Iterator<Item = T> {
+        self.try_read_all_in_remained_line().map(|res| unwrap!(res))
+    }
 }
 
 impl<T: FromStr, B: BufRead> ReadIntoSingle<T> for InputStream<B> {
     type Error = ReadIntoError<T::Err>;
-    fn try_read_single(&mut self) -> Result<T, Self::Error> {
+    fn try_read_one(&mut self) -> Result<T, Self::Error> {
         let res = self
             .consume_string(|s| T::from_str(s))
             .map_err(ReadIntoError::IOError)?
@@ -120,6 +147,20 @@ impl<T: FromStr, B: BufRead> ReadIntoSingle<T> for InputStream<B> {
         let c = self.consume_char().map_err(ReadIntoError::IOError)?;
         let res = T::from_str(&c.to_string()).map_err(ReadIntoError::FromStrError)?;
         Ok(res)
+    }
+    fn try_read_all(&mut self) -> impl Iterator<Item = Result<T, Self::Error>> {
+        self.consume_all(T::from_str)
+            .map(|res| res.map_err(ReadIntoError::FromStrError))
+    }
+    fn try_read_all_in_line(&mut self) -> impl Iterator<Item = Result<T, Self::Error>> {
+        self.consume_strings_in_line()
+            .map(T::from_str)
+            .map(|res| res.map_err(ReadIntoError::FromStrError))
+    }
+    fn try_read_all_in_remained_line(&mut self) -> impl Iterator<Item = Result<T, Self::Error>> {
+        self.consume_strings_in_remained_line()
+            .map(T::from_str)
+            .map(|res| res.map_err(ReadIntoError::FromStrError))
     }
 }
 
@@ -168,16 +209,12 @@ pub trait ReadInto<T> {
     fn read_m_n(&mut self, m: usize, n: usize) -> Mat<T> {
         unwrap!(self.try_read_m_n(m, n))
     }
-    /// Read all remaining elements from `self`.
-    fn read_all(&mut self) -> RealAll<'_, Self, T> {
-        RealAll::new(self)
-    }
 }
 
 impl<T: FromStr, B: BufRead> ReadInto<T> for InputStream<B> {
     type Error = ReadIntoError<T::Err>;
     fn try_read(&mut self) -> Result<T, Self::Error> {
-        self.try_read_single()
+        self.try_read_one()
     }
 }
 
@@ -206,34 +243,38 @@ where
     }
 }
 
-// *These two implementations are not necessary*.
-//
+// /// Read several data items in a line from input stream.
+// ///
+// /// Such as:
+// ///
+// /// ```txt
+// /// 1 2 3
+// /// ```
 // impl<T, B: BufRead> ReadInto<Vec<T>> for InputStream<B>
 // where
-//     Self: ReadInto<T> + ReadInto<usize>,
+//     Self: ReadIntoSingle<T>,
 // {
-//     type Error = Tuple2Error<<Self as ReadInto<usize>>::Error, <Self as ReadInto<T>>::Error>;
+//     type Error = <Self as ReadIntoSingle<T>>::Error;
 //     fn try_read(&mut self) -> Result<Vec<T>, Self::Error> {
-//         let len = self.try_read().map_err(Tuple2Error::T1)?;
-//         Ok(self.try_read_n(len).map_err(Tuple2Error::T2)?)
+//         // let len = self.try_read().map_err(Tuple2Error::T1)?;
+//         self.try_read_all_in_line().collect()
 //     }
 //     // Avoid constructing an enum value.
 //     fn read(&mut self) -> Vec<T> {
-//         let len = self.read();
-//         self.read_n(len)
+//         // let len = self.read();
+//         self.read_all_in_line().collect()
 //     }
 // }
-//
+
 // impl<T, B: BufRead> ReadInto<Mat<T>> for InputStream<B>
 // where
 //     Self: ReadInto<T> + ReadInto<usize>,
 // {
-//     // This is a bit tricky, as `m` and `n` are both `usize`.
-//     // We need to read `m` and `n` first, then read `m * n` elements.
 //     type Error = Tuple2Error<<Self as ReadInto<usize>>::Error, <Self as ReadInto<T>>::Error>;
 //     fn try_read(&mut self) -> Result<Mat<T>, Self::Error> {
-//         let m = self.try_read().map_err(Tuple2Error::T1)?;
-//         let n = self.try_read().map_err(Tuple2Error::T1)?;
+//         // let m = self.try_read().map_err(Tuple2Error::T1)?;
+//         // let n = self.try_read().map_err(Tuple2Error::T1)?;
+//         self.try_read_line_all().collect()
 //         Ok(self.try_read_m_n(m, n).map_err(Tuple2Error::T2)?)
 //     }
 //     // Avoid constructing an enum value.

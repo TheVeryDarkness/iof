@@ -19,7 +19,7 @@ use std::{
 /// assert_eq!(x, 42);
 /// ```
 pub trait FromStr: Sized {
-    /// Error that comes from [Parse].
+    /// Error that comes from [FromStr::from_str].
     type Err: std::error::Error;
 
     /// Parse a string into a type.

@@ -6,16 +6,16 @@ fn try_read_single_3() {
     let reader = Cursor::new("1 2 3".as_bytes());
     let mut reader = InputStream::new(reader);
 
-    let a: u32 = reader.try_read_single().unwrap();
+    let a: u32 = reader.try_read_one().unwrap();
     assert_eq!(a, 1);
 
-    let b: u32 = reader.try_read_single().unwrap();
+    let b: u32 = reader.try_read_one().unwrap();
     assert_eq!(b, 2);
 
-    let c: u32 = reader.try_read_single().unwrap();
+    let c: u32 = reader.try_read_one().unwrap();
     assert_eq!(c, 3);
 
-    assert!(iof::ReadIntoSingle::<u32>::try_read_single(&mut reader).is_err());
+    assert!(iof::ReadIntoSingle::<u32>::try_read_one(&mut reader).is_err());
 }
 
 #[test]
@@ -23,13 +23,13 @@ fn read_single_3() {
     let reader = Cursor::new("1 2 3".as_bytes());
     let mut reader = InputStream::new(reader);
 
-    let a: u32 = reader.read_single();
+    let a: u32 = reader.read_one();
     assert_eq!(a, 1);
 
-    let b: u32 = reader.read_single();
+    let b: u32 = reader.read_one();
     assert_eq!(b, 2);
 
-    let c: u32 = reader.read_single();
+    let c: u32 = reader.read_one();
     assert_eq!(c, 3);
 
     assert!(iof::ReadInto::<u32>::try_read(&mut reader).is_err());
@@ -84,6 +84,53 @@ fn read_char_in_3_lines() {
     assert_eq!(c, 3);
 
     assert!(iof::ReadIntoSingle::<u32>::try_read_char(&mut reader).is_err());
+}
+
+#[test]
+fn read_one_then_all_in_line() {
+    let reader = Cursor::new("1\n2 3 4\n 5 6 7".as_bytes());
+    let mut reader = InputStream::new(reader);
+
+    let a: u32 = reader.read_one();
+    assert_eq!(a, 1);
+
+    let b: Vec<u32> = reader.read_all_in_line().collect();
+    assert_eq!(b, [2, 3, 4]);
+
+    let c: Vec<u32> = reader.read_all_in_line().collect();
+    assert_eq!(c, [5, 6, 7]);
+
+    assert!(iof::ReadIntoSingle::<u32>::try_read_one(&mut reader).is_err());
+}
+
+#[test]
+fn read_one_then_all_in_remained_line() {
+    let reader = Cursor::new("1\n2 3 4\n 5 6 7".as_bytes());
+    let mut reader = InputStream::new(reader);
+
+    let a: u32 = reader.read_one();
+    assert_eq!(a, 1);
+
+    let b: Vec<u32> = reader.read_all_in_remained_line().collect();
+    assert_eq!(b, []);
+
+    let c: Vec<u32> = reader.read_all_in_line().collect();
+    assert_eq!(c, [2, 3, 4]);
+
+    let d: Vec<u32> = reader.read_all_in_line().collect();
+    assert_eq!(d, [5, 6, 7]);
+
+    assert!(iof::ReadIntoSingle::<u32>::try_read_one(&mut reader).is_err());
+}
+#[test]
+fn read_all() {
+    let reader = Cursor::new("1 2\n 3 4\n 5 6 \n7".as_bytes());
+    let mut reader = InputStream::new(reader);
+
+    let a: Vec<u32> = reader.read_all().collect();
+    assert_eq!(a, [1, 2, 3, 4, 5, 6, 7]);
+
+    assert!(iof::ReadIntoSingle::<u32>::try_read_one(&mut reader).is_err());
 }
 
 #[test]

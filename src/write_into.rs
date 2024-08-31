@@ -1,5 +1,12 @@
 use crate::{mat::Mat, stdio::STDOUT, SepBy};
-use std::{io, io::Write, ops::DerefMut};
+use std::{
+    io::{self, Write},
+    num::{
+        NonZeroI128, NonZeroI16, NonZeroI32, NonZeroI64, NonZeroI8, NonZeroIsize, NonZeroU128,
+        NonZeroU16, NonZeroU32, NonZeroU64, NonZeroU8, NonZeroUsize,
+    },
+    ops::DerefMut,
+};
 
 macro_rules! unwrap {
     ($result:expr) => {
@@ -11,10 +18,10 @@ type Result<T = ()> = io::Result<T>;
 
 /// Write into a stream.
 ///
-/// - All types that implement [display::Display] also implement this.
-/// - [Vec<T>] and `[T]` where `T` implements [display::Display] also implements this.
+/// - Most types that implement [std::fmt::Display] also implement this.
+/// - [Vec] and `[T]` where `T` implements [std::fmt::Display] also implements this.
 ///   They write each item separated by a space.
-/// - [Mat<T>] where `T` implements [display::Display] also implements this.
+/// - [Mat] where `T` implements [std::fmt::Display] also implements this.
 ///   They write each row separated by a newline, and each item in a row separated by a space.
 pub trait WriteInto {
     /// Write into a stream.
@@ -50,7 +57,7 @@ macro_rules! impl_write_into {
     ($($ty:ty)*) => {
         $(
             impl $crate::WriteInto for $ty {
-                fn try_write_into<S: Write>(&self, s: &mut S) -> ::std::io::Result<()> {
+                fn try_write_into<S: ::std::io::Write>(&self, s: &mut S) -> ::std::io::Result<()> {
                     ::std::write!(s, "{}", self)
                 }
             }
@@ -59,11 +66,19 @@ macro_rules! impl_write_into {
 }
 
 impl_write_into!(
-    i8 i16 i32 i64 i128 isize
-    u8 u16 u32 u64 u128 usize
     f32 f64
     bool
     char str String
+
+    i8 i16 i32 i64 i128 isize
+    u8 u16 u32 u64 u128 usize
+
+    NonZeroI8 NonZeroU8
+    NonZeroI16 NonZeroU16
+    NonZeroI32 NonZeroU32
+    NonZeroI64 NonZeroU64
+    NonZeroI128 NonZeroU128
+    NonZeroIsize NonZeroUsize
 );
 
 impl<T: WriteInto + ?Sized> WriteInto for &T {

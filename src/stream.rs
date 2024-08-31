@@ -1,9 +1,7 @@
 use std::{
     io::{BufRead, Error, ErrorKind},
-    marker::PhantomData,
+    mem::transmute,
 };
-
-use crate::ReadInto;
 
 /// C++-like Stream.
 ///
@@ -61,6 +59,10 @@ const MSG_EOF: &str = "failed to read a non-whitespace character before EOF";
 
 impl<B: BufRead> InputStream<B> {
     /// Fill the buffer with a new line.
+    ///
+    /// # Errors
+    ///
+    /// If [BufRead::read_line] returns an error.
     #[inline]
     fn fill_buf(&mut self, msg: &'static str) -> Result<(), Error> {
         self.line_buf.clear();
@@ -72,6 +74,12 @@ impl<B: BufRead> InputStream<B> {
         Ok(())
     }
     /// Remove leading white spaces, and return the remaining string.
+    ///
+    /// If the line is empty or all whitespaces, it will read a new line.
+    ///
+    /// # Errors
+    ///
+    /// See [Self::fill_buf].
     fn remove_white(&mut self) -> Result<&str, Error> {
         while self.cursor == self.line_buf.len() {
             self.fill_buf(MSG_EOF)?;
@@ -120,6 +128,25 @@ impl<B: BufRead> InputStream<B> {
             }
         }
     }
+    /// Return an [Iterator] that consumes all ASCII-white-space-separated strings in current line.
+    pub fn consume_strings_in_line(&mut self) -> RealAllIn<'_> {
+        // You may wonder why we use `transmute` here, and whether it is safe.
+        // Notice that `RealAllIn` is a struct with a lifetime parameter `'s` and a reference field `buffer`.
+        // The lifetime parameter `'s` is the lifetime of the buffer, and the reference field `buffer` is a reference to the buffer.
+        // So you won't be able to create a `RealAllIn` instance without a valid buffer,
+        // or modify the buffer while the `RealAllIn` instance is alive.
+        self.consume_line(|s| unsafe { transmute(RealAllIn::new(s)) })
+            .unwrap_or_default()
+    }
+    /// Return an [Iterator] that consumes all ASCII-white-space-separated strings in current line.
+    pub fn consume_strings_in_remained_line(&mut self) -> RealAllIn<'_> {
+        self.consume_remained_line(|s| unsafe { transmute(RealAllIn::new(s)) })
+            .unwrap_or_default()
+    }
+    /// Return an [Iterator] that consumes all ASCII-white-space-separated strings in this buffer.
+    pub fn consume_all<T, F: FnMut(&str) -> T>(&mut self, f: F) -> RealAll<'_, Self, T, F> {
+        RealAll::new(self, f)
+    }
     /// Try to fill the buffer.
     /// Won't return EOF error.
     #[inline]
@@ -145,22 +172,48 @@ impl<B: BufRead> InputStream<B> {
 }
 
 /// Iterator for all elements.
-pub struct RealAll<'s, S: ?Sized, T> {
+pub struct RealAll<'s, S: ?Sized, T, F: FnMut(&str) -> T> {
     stream: &'s mut S,
-    phantom: PhantomData<T>,
+    f: F,
 }
 
-impl<'s, S: ?Sized, T> RealAll<'s, S, T> {
-    pub(crate) fn new(stream: &'s mut S) -> Self {
-        let phantom = PhantomData;
-        Self { stream, phantom }
+impl<'s, S, T, F: FnMut(&str) -> T> RealAll<'s, S, T, F> {
+    pub(crate) fn new(stream: &'s mut S, f: F) -> Self {
+        Self { stream, f }
     }
 }
 
-impl<S: ReadInto<T> + ?Sized, T> Iterator for RealAll<'_, S, T> {
+impl<'s, B: BufRead, T, F: FnMut(&str) -> T> Iterator for RealAll<'s, InputStream<B>, T, F> {
     type Item = T;
 
     fn next(&mut self) -> Option<Self::Item> {
-        self.stream.try_read().ok()
+        self.stream.consume_string(&mut self.f).ok()
+    }
+}
+
+/// Iterator for all elements in a string.
+#[derive(Default)]
+pub struct RealAllIn<'s> {
+    buffer: &'s str,
+}
+
+impl<'s> RealAllIn<'s> {
+    pub(crate) fn new(buffer: &'s str) -> Self {
+        Self { buffer }
+    }
+}
+
+impl<'s> Iterator for RealAllIn<'s> {
+    type Item = &'s str;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        let remaining = self.buffer.trim_start_matches(WHITE);
+        if remaining.is_empty() {
+            return None;
+        }
+        let i = remaining.find(WHITE).unwrap_or(remaining.len());
+        let frag = as_slice_to(remaining, i);
+        self.buffer = as_slice_from(remaining, i);
+        Some(frag)
     }
 }
