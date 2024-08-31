@@ -31,6 +31,48 @@ fn read() {
 }
 
 #[test]
+fn read_one_then_read_2() {
+    let reader = Cursor::new("1 2 3".as_bytes());
+    let mut reader = InputStream::new(reader);
+
+    let a: u32 = reader.read_one();
+    assert_eq!(a, 1);
+
+    let b: Vec<u32> = reader.read();
+    assert_eq!(b, [2, 3]);
+
+    assert!(ReadInto::<u32>::try_read(&mut reader).is_err());
+}
+
+#[test]
+fn read_one_then_read_0() {
+    let reader = Cursor::new("1\n2 \n3".as_bytes());
+    let mut reader = InputStream::new(reader);
+
+    let a: u32 = reader.read_one();
+    assert_eq!(a, 1);
+
+    let b: Vec<u32> = reader.read();
+    assert_eq!(b, []);
+
+    let a: u32 = reader.read_one();
+    assert_eq!(a, 2);
+
+    let b: Vec<u32> = reader.read();
+    assert_eq!(b, []);
+
+    let a: u32 = reader.read_one();
+    assert_eq!(a, 3);
+
+    let b: Vec<u32> = reader.read();
+    assert_eq!(b, []);
+
+    assert!(ReadInto::<u32>::try_read(&mut reader).is_err());
+    assert_eq!(ReadInto::<Vec<u32>>::try_read(&mut reader).unwrap(), []);
+    assert_eq!(ReadInto::<Vec<u32>>::try_read(&mut reader).unwrap(), []);
+}
+
+#[test]
 #[should_panic = "invalid digit found in string"]
 fn read_n_from_str_err() {
     let reader = Cursor::new("1 -2 -3".as_bytes());
