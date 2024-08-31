@@ -117,7 +117,7 @@ impl<T> Mat<T> {
         self.m
     }
     /// Columns count.
-    pub fn len_columns(&self) -> usize {
+    pub fn len_cols(&self) -> usize {
         self.n
     }
     /// First row.
@@ -125,13 +125,13 @@ impl<T> Mat<T> {
         if self.len_rows() == 0 {
             None
         } else {
-            let n = self.len_columns();
+            let n = self.len_cols();
             self.inner.get(0..n)
         }
     }
     /// Last row.
     pub fn last_row(&self) -> Option<&[T]> {
-        let n = self.len_columns();
+        let n = self.len_cols();
         let m = self.len_rows();
         if let Some(m_1) = m.checked_sub(1) {
             Some(&self.inner[m_1 * n..m * n])
@@ -165,7 +165,7 @@ impl<T: Clone> Mat<T> {
     /// Transpose.
     pub fn transpose(&self) -> Self {
         let mut inner = Vec::with_capacity(self.inner.capacity());
-        let n = self.len_columns();
+        let n = self.len_cols();
         let m = self.len_rows();
         for j in 0..n {
             for i in 0..m {
@@ -173,7 +173,7 @@ impl<T: Clone> Mat<T> {
             }
         }
         let n = self.len_rows();
-        let m = self.len_columns();
+        let m = self.len_cols();
         Self { inner, n, m }
     }
 }

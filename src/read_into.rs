@@ -243,47 +243,28 @@ where
     }
 }
 
-// /// Read several data items in a line from input stream.
-// ///
-// /// Such as:
-// ///
-// /// ```txt
-// /// 1 2 3
-// /// ```
-// impl<T, B: BufRead> ReadInto<Vec<T>> for InputStream<B>
-// where
-//     Self: ReadIntoSingle<T>,
-// {
-//     type Error = <Self as ReadIntoSingle<T>>::Error;
-//     fn try_read(&mut self) -> Result<Vec<T>, Self::Error> {
-//         // let len = self.try_read().map_err(Tuple2Error::T1)?;
-//         self.try_read_all_in_line().collect()
-//     }
-//     // Avoid constructing an enum value.
-//     fn read(&mut self) -> Vec<T> {
-//         // let len = self.read();
-//         self.read_all_in_line().collect()
-//     }
-// }
-
-// impl<T, B: BufRead> ReadInto<Mat<T>> for InputStream<B>
-// where
-//     Self: ReadInto<T> + ReadInto<usize>,
-// {
-//     type Error = Tuple2Error<<Self as ReadInto<usize>>::Error, <Self as ReadInto<T>>::Error>;
-//     fn try_read(&mut self) -> Result<Mat<T>, Self::Error> {
-//         // let m = self.try_read().map_err(Tuple2Error::T1)?;
-//         // let n = self.try_read().map_err(Tuple2Error::T1)?;
-//         self.try_read_line_all().collect()
-//         Ok(self.try_read_m_n(m, n).map_err(Tuple2Error::T2)?)
-//     }
-//     // Avoid constructing an enum value.
-//     fn read(&mut self) -> Mat<T> {
-//         let m = self.read();
-//         let n = self.read();
-//         self.read_m_n(m, n)
-//     }
-// }
+/// Read several data items in a line from input stream.
+///
+/// Such as:
+///
+/// ```txt
+/// 1 2 3
+/// ```
+impl<T, B: BufRead> ReadInto<Vec<T>> for InputStream<B>
+where
+    Self: ReadIntoSingle<T>,
+{
+    type Error = <Self as ReadIntoSingle<T>>::Error;
+    fn try_read(&mut self) -> Result<Vec<T>, Self::Error> {
+        // let len = self.try_read().map_err(Tuple2Error::T1)?;
+        self.try_read_all_in_line().collect()
+    }
+    // Avoid constructing an enum value.
+    fn read(&mut self) -> Vec<T> {
+        // let len = self.read();
+        self.read_all_in_line().collect()
+    }
+}
 
 macro_rules! impl_read_into_for_tuple {
     ($e:ident $($t:ident)*) => {

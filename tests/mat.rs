@@ -21,7 +21,7 @@ fn read_m_n() {
     assert_eq!(&mat[0], [1, 2, 3].as_slice());
     assert_eq!(&mat[1], [4, 5, 6].as_slice());
     assert_eq!(mat.len_rows(), 2);
-    assert_eq!(mat.len_columns(), 3);
+    assert_eq!(mat.len_cols(), 3);
     assert_eq!(mat.iter().len(), 2);
     assert_eq!(mat.iter().count(), 2);
     assert_eq!(mat.iter().size_hint(), (2, Some(2)));
@@ -63,7 +63,7 @@ fn read_same_rows() {
     assert_eq!(&mat[1], &[2, 3, 2]);
     assert_eq!(&mat[2], &[2, 3, 2]);
     assert_eq!(mat.len_rows(), 3);
-    assert_eq!(mat.len_columns(), 3);
+    assert_eq!(mat.len_cols(), 3);
     assert_eq!(mat.iter().len(), 3);
     assert_eq!(mat.iter().count(), 3);
     assert_eq!(mat.iter().size_hint(), (3, Some(3)));
@@ -101,7 +101,7 @@ fn read_all_same() {
     assert_eq!(&mat[0], [2, 2, 2].as_slice());
     assert_eq!(&mat[1], [2, 2, 2].as_slice());
     assert_eq!(mat.len_rows(), 2);
-    assert_eq!(mat.len_columns(), 3);
+    assert_eq!(mat.len_cols(), 3);
     assert_eq!(mat.iter().len(), 2);
     assert_eq!(mat.iter().count(), 2);
     assert_eq!(mat.iter().size_hint(), (2, Some(2)));
@@ -119,4 +119,42 @@ fn display() {
     assert_eq!(s.try_write_into_string().unwrap(), "1 2 3");
     let s: Mat<i32> = Mat::new();
     assert_eq!(s.try_write_into_string().unwrap(), "");
+}
+
+#[test]
+fn complex() {
+    let reader = Cursor::new(
+        b"
+2
+4 4
+1 0 0 0
+0 1 0 0
+0 0 1 0
+0 0 0 1
+3 3
+0 0 1
+0 1 0
+1 0 0
+",
+    );
+    let mut reader = InputStream::new(reader);
+
+    // Read the number of matrices.
+    let c: usize = reader.read();
+    assert_eq!(c, 2);
+
+    let (m1, n1): (usize, usize) = reader.read();
+    let mat1 = reader.read_m_n(m1, n1);
+
+    assert_eq!((m1, n1), (4, 4));
+    assert_eq!(
+        mat1,
+        Mat::from([[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, 1]]),
+    );
+
+    let (m2, n2): (usize, usize) = reader.read();
+    let mat2 = reader.read_m_n(m2, n2);
+
+    assert_eq!((m2, n2), (3, 3));
+    assert_eq!(mat2, Mat::from([[0, 0, 1], [0, 1, 0], [1, 0, 0]]));
 }

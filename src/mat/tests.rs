@@ -8,7 +8,7 @@ fn empty() {
     assert_eq!(mat.first_row(), None);
     assert_eq!(mat.last_row(), None);
     assert_eq!(mat.len_rows(), 0);
-    assert_eq!(mat.len_columns(), 0);
+    assert_eq!(mat.len_cols(), 0);
     assert_eq!(mat.iter().count(), 0);
     assert_eq!(mat.iter().size_hint(), (0, Some(0)));
     assert_eq!(mat.iter().last(), None);
@@ -26,7 +26,7 @@ fn zeros() {
     assert_eq!(mat.first_row(), Some([0, 0].as_slice()));
     assert_eq!(mat.last_row(), Some([0, 0].as_slice()));
     assert_eq!(mat.len_rows(), 3);
-    assert_eq!(mat.len_columns(), 2);
+    assert_eq!(mat.len_cols(), 2);
     assert_eq!(mat.iter().count(), 3);
     assert_eq!(mat.iter().size_hint(), (3, Some(3)));
     assert_eq!(mat.iter().last(), Some([0, 0].as_slice()));
@@ -42,7 +42,7 @@ fn ones() {
     assert_eq!(mat.first_row(), Some([1, 1].as_slice()));
     assert_eq!(mat.last_row(), Some([1, 1].as_slice()));
     assert_eq!(mat.len_rows(), 3);
-    assert_eq!(mat.len_columns(), 2);
+    assert_eq!(mat.len_cols(), 2);
     assert_eq!(mat.iter().count(), 3);
     assert_eq!(mat.iter().size_hint(), (3, Some(3)));
     assert_eq!(mat.iter().last(), Some([1, 1].as_slice()));
@@ -58,7 +58,7 @@ fn repeating_rows() {
     assert_eq!(mat.first_row(), Some([1, 2].as_slice()));
     assert_eq!(mat.last_row(), Some([1, 2].as_slice()));
     assert_eq!(mat.len_rows(), 3);
-    assert_eq!(mat.len_columns(), 2);
+    assert_eq!(mat.len_cols(), 2);
     assert_eq!(mat.iter().count(), 3);
     assert_eq!(mat.iter().size_hint(), (3, Some(3)));
     assert_eq!(mat.iter().last(), Some([1, 2].as_slice()));
