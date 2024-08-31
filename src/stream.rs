@@ -135,12 +135,12 @@ impl<B: BufRead> InputStream<B> {
         // The lifetime parameter `'s` is the lifetime of the buffer, and the reference field `buffer` is a reference to the buffer.
         // So you won't be able to create a `RealAllIn` instance without a valid buffer,
         // or modify the buffer while the `RealAllIn` instance is alive.
-        self.consume_line(|s| -> RealAllIn<'_> { unsafe { transmute(RealAllIn::new(s)) } })
+        self.consume_line(|s| -> ReadAllIn<'_> { unsafe { transmute(ReadAllIn::new(s)) } })
             .unwrap_or_default()
     }
     /// Return an [Iterator] that consumes all ASCII-white-space-separated strings in current line.
     pub fn consume_strings_in_remained_line(&mut self) -> impl Iterator<Item = &str> {
-        self.consume_remained_line(|s| -> RealAllIn<'_> { unsafe { transmute(RealAllIn::new(s)) } })
+        self.consume_remained_line(|s| -> ReadAllIn<'_> { unsafe { transmute(ReadAllIn::new(s)) } })
             .unwrap_or_default()
     }
     /// Return an [Iterator] that consumes all ASCII-white-space-separated strings in this buffer.
@@ -193,17 +193,17 @@ impl<'s, B: BufRead, T, F: FnMut(&str) -> T> Iterator for RealAll<'s, InputStrea
 
 /// Iterator for all elements in a string.
 #[derive(Default)]
-pub(crate) struct RealAllIn<'s> {
+struct ReadAllIn<'s> {
     buffer: &'s str,
 }
 
-impl<'s> RealAllIn<'s> {
+impl<'s> ReadAllIn<'s> {
     pub(crate) fn new(buffer: &'s str) -> Self {
         Self { buffer }
     }
 }
 
-impl<'s> Iterator for RealAllIn<'s> {
+impl<'s> Iterator for ReadAllIn<'s> {
     type Item = &'s str;
 
     fn next(&mut self) -> Option<Self::Item> {
