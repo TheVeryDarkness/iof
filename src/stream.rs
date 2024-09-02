@@ -89,7 +89,7 @@ pub trait BufReadExt {
         let s: &str = s.trim_end_matches(WHITE);
         debug_assert!(!s.is_empty());
         let s: &str = unsafe { transmute(s) };
-        return Ok(s);
+        Ok(s)
     }
 
     /// Get a single line. The trailing newline will be trimmed.
