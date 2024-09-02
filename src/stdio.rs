@@ -18,5 +18,3 @@ thread_local! {
     };
     pub(crate) static STDOUT: RefCell<StdoutLock<'static>> = RefCell::new(std::io::stdout().lock());
 }
-
-
