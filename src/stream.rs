@@ -8,6 +8,10 @@ const WHITE: [char; 4] = [' ', '\t', '\n', '\r'];
 /// End of line characters.
 const EOL: [char; 2] = ['\n', '\r'];
 
+const fn is_eol(c: char) -> bool {
+    matches!(c, '\n' | '\r')
+}
+
 /// Extension trait for [BufRead].
 ///
 /// It provides a way to read:
@@ -60,6 +64,9 @@ pub trait BufReadExt {
     fn try_skip(&mut self, skipped: &[char]) -> Result<bool, Error> {
         self.try_get_if(skipped).map(|x| x.is_some())
     }
+
+    /// Go to the next line if the remaining part are end of line characters.
+    fn try_skip_eol(&mut self) -> Result<(), Error>;
 
     /// Skip all characters in `skipped`.
     fn try_skip_all(&mut self, skipped: &[char]) -> Result<usize, Error>;
@@ -286,6 +293,18 @@ impl<B: BufRead> BufReadExt for InputStream<B> {
                 self.fill_buf(MSG_EOF)?;
             }
         }
+    }
+
+    fn try_skip_eol(&mut self) -> Result<(), Error> {
+        let remaining = as_slice_from(&self.line_buf, self.cursor);
+        for c in remaining.chars() {
+            if is_eol(c) {
+                self.cursor += c.len_utf8();
+            } else {
+                break;
+            }
+        }
+        Ok(())
     }
 
     fn try_skip_all(&mut self, skipped: &[char]) -> Result<usize, Error> {

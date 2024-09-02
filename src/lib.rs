@@ -51,7 +51,7 @@
 //! let n: String = read!();
 //! assert_eq!(n, "abc");
 //!
-//! /// Read a tuple from input.
+//! // Read a tuple from input.
 //! let (l, m, n): (u32, f64, String) = read!();
 //! assert_eq!(l, 0);
 //! assert_eq!(m, 0.3);
@@ -74,25 +74,57 @@
 //! assert_eq!(m, [['.', '@', '/', '#', '$'], ['!', '@', '#', '!', '@'], ['*', '&', '@', ':', ',']]);
 //! ```
 //!
-//! ## [get_line]
+//! ## [get_line] and [get_line_some]
 //!
-//! You can use [get_line] function to read a line of string from input.
+//! You can use [get_line] functions to read a line of string from current position of cursor in [standard input](std::io::Stdin) to the end of the line.
 //!
 //! Given the input below:
 //!
 //! ```txt
-//! 42 abc def
+//! 42
+//! abc
 //! ```
 //!
 //! ```rust,no_run
-//! use iof::get_line;
+//! use iof::{get_line, read};
+//!
+//! // Read a single string from input.
+//! let s: String = read!();
+//! assert_eq!(s, "42");
 //!
 //! // Read a line of string from input.
 //! let s: String = get_line();
-//! assert_eq!(s, "42 abc def");
+//! assert_eq!(s, "");
+//!
+//! // Read a line of string from input.
+//! let s: String = get_line();
+//! assert_eq!(s, "abc");
 //! ```
 //!
-//! *You may have noticed that the `get_line` function is similar to the [`input`](https://docs.python.org/zh-cn/3/library/functions.html#input) function in Python and [`std::get_line`](https://zh.cppreference.com/w/cpp/string/basic_string/getline).*
+//! *You may have noticed that the [get_line] function is similar to the [`input`](https://docs.python.org/zh-cn/3/library/functions.html#input) function in Python and [`std::get_line`](https://zh.cppreference.com/w/cpp/string/basic_string/getline) in cpp.*
+//!
+//! Sometimes you may want to ensure that the line is not empty. You can use [get_line_some] functions to read a non-empty line of string from the position of next non-whitespace character to the end of the line.
+//!
+//! Given the input below:
+//!
+//! ```txt
+//! 42
+//! abc
+//! ```
+//!
+//! ```rust,no_run
+//! use iof::{read, get_line_some};
+//!
+//! // Read a single string from input.
+//! let s: String = read();
+//! assert_eq!(s, "42");
+//!
+//! // Read a non-empty line of string from input.
+//! let s: String = get_line_some();
+//! assert_eq!(s, "abc");
+//! ```
+//!
+//! See [Cursor](#cursor) for more details.
 //!
 //! ## [show!]
 //!
@@ -142,7 +174,7 @@
 //!   3 4;sa
 //!   ```
 //!
-//!   If you call [`read_one<T>()`] for 4 times, it will read 4 string fragments `1`, `2,3`, `3`, and `4;sa`.
+//!   If you call [`read_one<String>()`] for 4 times, it will read 4 string fragments `1`, `2,3`, `3`, and `4;sa`.
 //!
 //! - [`read_in_line_some_trimmed<T>()`] (or [`try_read_in_line_some_trimmed<T>()`]) reads a non-empty line of string from input,
 //!   trims the trailing newline, and converts it to a value of `T`.
@@ -240,7 +272,7 @@
 //! ```rust,no_run
 //! use iof::read;
 //!
-//! // Read a single integer from input, whose type is inferred from the context.
+//! // Read a single integer from input.
 //! let n: u32 = read();
 //! assert_eq!(n, 42);
 //!
@@ -315,13 +347,34 @@
 //! [NonZeroI64]: std::num::NonZeroI64
 //! [NonZeroI128]: std::num::NonZeroI128
 //! [NonZeroIsize]: std::num::NonZeroIsize
-
+//!
+//! # Warning
+//!
+//! ## Concurrency
+//!
+//! Take care when using this library in a multi-threaded environment, as the standard input/output streams are shared among all threads. See [Stdin] and [Stdout] for more details.
+//!
+//! [Stdin]: std::io::Stdin
+//! [Stdout]: std::io::Stdout
+//!
+//! ## Cursor
+//!
+//! For character streams, it's sometimes a little tricky to determine the position of the cursor. For example, given the input below:
+//!
+//! ```txt
+//! 1 2 3
+//! 4 5 6
+//! ```
+//!
+//! If you call [`read_one<String>`] for 3 times and [`read_in_line_trimmed<String>`] for 1 time, they will read `1`, `2`, `3`, and an empty string respectively. Therefore it's generally unrecommended to use [`read_in_line_trimmed<String>()`] and similar functions that read a possibly empty line of string without specifying the number of data items to read.
+//!
+//! In general, every call to a read function that consume a data item will consume the input up to the next whitespace character (but whitespaces after the data item will not be consumed), and every call to a read function that reads a line will consume the input up to the next newline character (and then the cursor will be at the beginning of the next line).
 pub use {
     crate as iof,
     formatted::SepBy,
     mat::Mat,
     read_into::{error::ReadIntoError, ReadInto, ReadIntoOne},
-    stdio::{read_into::*, stream::*},
+    stdio::{read_into::*, stdin, stdout, stream::*},
     stream::{BufReadExt, InputStream},
     write_into::{WriteInto, WriteOneInto},
 };

@@ -13,9 +13,11 @@ pub(super) mod error;
 mod impls;
 mod macros;
 
+/// Unwrap a result or panic with the error message.
+#[macro_export(local_inner_macros)]
 macro_rules! unwrap {
     ($result:expr) => {
-        $result.unwrap_or_else(|err| panic!("{err}"))
+        $result.unwrap_or_else(|err| ::std::panic!("{err}"))
     };
 }
 

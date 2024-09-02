@@ -1,14 +1,8 @@
-use crate::{Mat, SepBy};
+use crate::{stdout, unwrap, Mat, SepBy};
 use std::io::{self, Write};
 
 mod impls;
 mod macros;
-
-macro_rules! unwrap {
-    ($result:expr) => {
-        $result.unwrap_or_else(|err| panic!("{err}"))
-    };
-}
 
 type Result<T = ()> = io::Result<T>;
 
@@ -65,7 +59,7 @@ pub trait WriteInto {
     }
     /// Write into [std::io::Stdout].
     fn try_write(&self) -> Result {
-        self.try_write_into(&mut io::stdout())
+        self.try_write_into(&mut stdout())
     }
     /// Unwrapping version of [WriteInto::try_write].
     fn write(&self) {
