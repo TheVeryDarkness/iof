@@ -61,8 +61,8 @@ macro_rules! show {
 macro_rules! impl_write_into {
     ($($ty:ty)*) => {
         $(
-            impl $crate::WriteSingleInto for $ty {
-                fn try_write_single_into<S: ::std::io::Write>(&self, s: &mut S) -> ::std::io::Result<()> {
+            impl $crate::WriteOneInto for $ty {
+                fn try_write_one_into<S: ::std::io::Write>(&self, s: &mut S) -> ::std::io::Result<()> {
                     ::std::write!(s, "{}", self)
                 }
             }

@@ -1,6 +1,6 @@
 use crate::{
     mat::Mat,
-    read_into::{ReadInto, ReadIntoSingle},
+    read_into::{ReadInto, ReadIntoOne},
     stdio::STDIN,
     stream::InputStream,
 };
@@ -85,37 +85,37 @@ expose_stdin!(
 );
 
 expose_stdin!(
-    try_read_one "ReadIntoSingle::try_read_one"
-    read_one "ReadIntoSingle::read_one"
-    [T] [ReadIntoSingle] () -> T
+    try_read_one "ReadIntoOne::try_read_one"
+    read_one "ReadIntoOne::read_one"
+    [T] [ReadIntoOne] () -> T
 );
 expose_stdin!(
-    try_read_in_line_trimmed "ReadIntoSingle::try_read_in_line_trimmed"
-    read_in_line_trimmed "ReadIntoSingle::read_in_line_trimmed"
-    [T] [ReadIntoSingle] () -> T
+    try_read_in_line_trimmed "ReadIntoOne::try_read_in_line_trimmed"
+    read_in_line_trimmed "ReadIntoOne::read_in_line_trimmed"
+    [T] [ReadIntoOne] () -> T
 );
 expose_stdin!(
-    try_read_in_line_some_trimmed "ReadIntoSingle::try_read_in_line_some_trimmed"
-    read_in_line_some_trimmed "ReadIntoSingle::read_in_line_some_trimmed"
-    [T] [ReadIntoSingle] () -> T
+    try_read_in_line_some_trimmed "ReadIntoOne::try_read_in_line_some_trimmed"
+    read_in_line_some_trimmed "ReadIntoOne::read_in_line_some_trimmed"
+    [T] [ReadIntoOne] () -> T
 );
 expose_stdin!(
-    try_read_all "ReadIntoSingle::try_read_all"
-    read_all "ReadIntoSingle::read_all"
-    [T] [ReadIntoSingle] () -> Vec<T>
+    try_read_all "ReadIntoOne::try_read_all"
+    read_all "ReadIntoOne::read_all"
+    [T] [ReadIntoOne] () -> Vec<T>
 );
 expose_stdin!(
-    try_read_all_in_line "ReadIntoSingle::try_read_all_in_line"
-    read_all_in_line "ReadIntoSingle::read_all_in_line"
-    [T] [ReadIntoSingle] () -> Vec<T>
+    try_read_all_in_line "ReadIntoOne::try_read_all_in_line"
+    read_all_in_line "ReadIntoOne::read_all_in_line"
+    [T] [ReadIntoOne] () -> Vec<T>
 );
 expose_stdin!(
-    try_read_all_in_line_some "ReadIntoSingle::try_read_all_in_line_some"
-    read_all_in_line_some "ReadIntoSingle::read_all_in_line_some"
-    [T] [ReadIntoSingle] () -> Vec<T>
+    try_read_all_in_line_some "ReadIntoOne::try_read_all_in_line_some"
+    read_all_in_line_some "ReadIntoOne::read_all_in_line_some"
+    [T] [ReadIntoOne] () -> Vec<T>
 );
 expose_stdin!(
-    try_read_in_char "ReadIntoSingle::try_read_in_char"
-    read_in_char "ReadIntoSingle::read_in_char"
-    [T] [ReadIntoSingle] () -> T
+    try_read_in_char "ReadIntoOne::try_read_in_char"
+    read_in_char "ReadIntoOne::read_in_char"
+    [T] [ReadIntoOne] () -> T
 );

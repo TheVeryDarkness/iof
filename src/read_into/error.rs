@@ -1,11 +1,11 @@
 use std::fmt::{self, Debug, Display};
 
-/// Error during using [ReadInto] or [ReadIntoSingle].
+/// Error during using [ReadInto] or [ReadIntoOne].
 ///
 /// This error is usually caused by [std::io::Error] or [std::str::FromStr::Err].
 ///
 /// [ReadInto]: crate::ReadInto
-/// [ReadIntoSingle]: crate::ReadIntoSingle
+/// [ReadIntoOne]: crate::ReadIntoOne
 pub enum ReadIntoError<E> {
     /// Error during reading from input.
     IOError(std::io::Error),

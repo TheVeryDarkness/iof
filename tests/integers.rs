@@ -15,7 +15,7 @@ fn try_read_single_3() {
     let c: u32 = reader.try_read_one().unwrap();
     assert_eq!(c, 3);
 
-    assert!(iof::ReadIntoSingle::<u32>::try_read_one(&mut reader).is_err());
+    assert!(iof::ReadIntoOne::<u32>::try_read_one(&mut reader).is_err());
 }
 
 #[test]
@@ -66,7 +66,7 @@ fn read_char_3() {
     let c: u32 = reader.read_in_char();
     assert_eq!(c, 3);
 
-    assert!(iof::ReadIntoSingle::<u32>::try_read_in_char(&mut reader).is_err());
+    assert!(iof::ReadIntoOne::<u32>::try_read_in_char(&mut reader).is_err());
 }
 
 #[test]
@@ -83,7 +83,7 @@ fn read_char_in_3_lines() {
     let c: u32 = reader.read_in_char();
     assert_eq!(c, 3);
 
-    assert!(iof::ReadIntoSingle::<u32>::try_read_in_char(&mut reader).is_err());
+    assert!(iof::ReadIntoOne::<u32>::try_read_in_char(&mut reader).is_err());
 }
 
 #[test]
@@ -103,7 +103,7 @@ fn read_one_then_all_in_line() {
     let d: Vec<u32> = reader.read_all_in_line();
     assert_eq!(d, [5, 6, 7]);
 
-    assert!(iof::ReadIntoSingle::<u32>::try_read_all_in_line(&mut reader).is_err());
+    assert!(iof::ReadIntoOne::<u32>::try_read_all_in_line(&mut reader).is_err());
 }
 
 #[test]
@@ -120,7 +120,7 @@ fn read_one_then_all_in_line_some() {
     let c: Vec<u32> = reader.read_all_in_line_some();
     assert_eq!(c, [5, 6, 7]);
 
-    assert!(iof::ReadIntoSingle::<u32>::try_read_all_in_line_some(&mut reader).is_err());
+    assert!(iof::ReadIntoOne::<u32>::try_read_all_in_line_some(&mut reader).is_err());
 }
 #[test]
 fn read_all() {
@@ -130,7 +130,7 @@ fn read_all() {
     let a: Vec<u32> = reader.read_all();
     assert_eq!(a, [1, 2, 3, 4, 5, 6, 7]);
 
-    assert!(iof::ReadIntoSingle::<u32>::try_read_one(&mut reader).is_err());
+    assert!(iof::ReadIntoOne::<u32>::try_read_one(&mut reader).is_err());
 }
 
 #[test]

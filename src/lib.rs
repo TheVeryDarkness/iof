@@ -20,6 +20,8 @@
 //!
 //! # In Short
 //!
+//! ## [read!]
+//!
 //! You can use [read!] macro to read a single data item, a [Vec] or a [Mat] from input.
 //!
 //! - `read!()` reads a single data item from input.
@@ -29,7 +31,7 @@
 //! Given the input below:
 //!
 //! ```txt
-//! 42
+//! 42 abc def
 //! 1 2 3
 //! 1 2 3
 //! 4 5 6
@@ -38,23 +40,47 @@
 //! ```rust,no_run
 //! use iof::{read, Mat};
 //!
+//! // Read a single integer from input.
 //! let n: u32 = read!();  
 //! assert_eq!(n, 42);
+//!
+//! // Read a single string from input.
+//! let n: String = read!();
+//! assert_eq!(n, "abc");
+//!
+//! // Read a vector of charcters from input.
+//! let v: Vec<char> = read!();
+//! assert_eq!(v, ['d', 'e', 'f']);
 //!  
+//! // Read a vector of integers from input.
 //! let v: Vec<u32> = read!(3);
 //! assert_eq!(v, [1, 2, 3]);
 //!
+//! // Read a matrix of integers from input.
 //! let m: Mat<u32> = read!(2, 3);
 //! assert_eq!(m, [[1, 2, 3], [4, 5, 6]]);
 //! ```
 //!
+//! ## [show!]
+//!
 //! You can use [show!] macro to write a single data item, a [Vec] or a [Mat] to output.
+//!
+//! - `show!(e)` writes a single data item `e` to output.
+//! - `show!(e1, e2, ...)` writes several data items `e1, e2, ...` to output. They are separated by a space.
+//! - `show!(e1, e2, ...; sep=", ")` writes several data items `e1, e2, ...` to output. They are separated by a comma and a space, as specified in the `sep` parameter.
+//! - `show!(e1, e2, ...; sep=", ", end="!")` writes several data items `e1, e2, ...` to output. They are separated by a comma and a space, as specified in the `sep` parameter, and ended with an exclamation mark, as specified in the `end` parameter.
+//!
+//! Note that all parameter are optional and placed after a semicolon, and the order of parameters does not matter. The default value of `sep` is a space (`' '`), and the default value of `end` is a newline (`'\n'`).
+//!
+//! *You may have noticed that the `show!` macro is similar to the [`print`](https://docs.python.org/zh-cn/3/library/functions.html#print) function in Python.*
 //!
 //! # Input
 //!
+//! ## [ReadIntoOne]
+//!
 //! Some lower-level functions are provided to read a single data item from input:
 //!
-//! - [`read_one<T>()`] (or [`try_read_one<T>()`]) reads a ASCII-whitespace-separated fragment of string,
+//! - [`read_one<T>()`] (or [`try_read_one<T>()`]) reads a ASCII-whitespace-separated fragment of string (for [char], it reads a single non-ASCII-whitespace character instead),
 //!   and converts it to a value of `T`.
 //!
 //!   The fragment is a string that does not contain any ASCII whitespace characters, and
@@ -126,10 +152,14 @@
 //!
 //!   If you call [`read_in_char`] for 3 times, it will read `1`, `2`, and `3` as three characters.
 //!
-//! These functions are implemented for types that implement [ReadIntoSingle] trait. Currently, the following types in [std] (or [core]) implement [ReadIntoSingle] trait:
+//! - [`read_all<T>()`] (or [`try_read_all<T>()`]) reads all remaining data items from input and converts them to a value of [Vec].
+//! - [`read_all_in_line<T>()`] (or [`try_read_all_in_line<T>()`]) reads all data items in current line from input and converts them to a value of [Vec].
+//! - [`read_all_in_line_some<T>()`] (or [`try_read_all_in_line_some<T>()`]) reads all data items in the next non-empty line from input and converts them to a value of [Vec].
+//!
+//! These functions are implemented for types that implement [ReadIntoOne] trait. Currently, the following types in [std] (or [core]) implement [ReadIntoOne] trait:
 //!
 //! - [String];
-//! - [char];
+//! - [char] (but it has different behavior from other types);
 //! - [u8], [u16], [u32], [u64], [u128], [usize];
 //! - [i8], [i16], [i32], [i64], [i128], [isize];
 //! - [f32], [f64];
@@ -137,6 +167,12 @@
 //! - [NonZeroU8], [NonZeroU16], [NonZeroU32], [NonZeroU64], [NonZeroU128], [NonZeroUsize];
 //! - [NonZeroI8], [NonZeroI16], [NonZeroI32], [NonZeroI64], [NonZeroI128], [NonZeroIsize];
 //! - ...
+//!
+//! And you can implement [ReadIntoOne] trait for your own types by implementing [ReadIntoOne::parse] method. For [FromStr] types, you can use the macro [impl_read_into_single!].
+//!
+//! [FromStr]: std::str::FromStr
+//!
+//! ## [ReadInto]
 //!
 //! Some higher-level functions are provided to read data sequence (a single item is also a sequnce) from input:
 //!
@@ -146,7 +182,7 @@
 //!
 //! These functions are implemented for types that implement [ReadInto] trait. Currently, the following types implement [ReadInto] trait:
 //!
-//! - All types that implement [ReadIntoSingle] trait;
+//! - All types that implement [ReadIntoOne] trait;
 //! - `[T; N]` where `T` implements [ReadInto] trait;
 //! - `Box<[T; N]>` where `T` implements [ReadInto] trait.
 //! - Tuple types, e.g., `(T1, T2, ..., Tn)`, where `Ti` implements [ReadInto] trait and `n` is neither 0 nor more than 12.
@@ -190,13 +226,15 @@
 //!
 //! # Output
 //!
+//! ## [SepBy]
+//!
 //! Some lower-level functions are provided to write a data sequence with customizing format to output:
 //!
 //! - [SepBy::sep_by()] writes a sequence of data items, which implements [IntoIterator], to output with a separator.
 //!
 //!   There won't be any separator before the first item or after the last item.
 //!
-//!   For example, given the code below:
+//!   For example:
 //!
 //!   ```rust
 //!   use iof::SepBy;
@@ -204,6 +242,14 @@
 //!   let s = format!("{}", v.sep_by(", "));
 //!   assert_eq!(s, "1, 2, 3");
 //!   ```
+//!
+//! ## [WriteOneInto]
+//!
+//! Some lower-level functions are provided to write a single data item to output:
+//!
+//! - [WriteOneInto::write_one_into()] (or [WriteOneInto::try_write_one_into()]) writes to given buffer that implements [std::io::Write].
+//!
+//! ## [WriteInto]
 //!
 //! Some higher-level functions are provided to write data sequence with default format to output:
 //!
@@ -216,7 +262,7 @@
 //! - For types that implement [Display] trait (but we only implement [WriteInto] for a part of types that implement [Display]), it uses [Display::fmt] method;
 //!    - For [String], it writes the string as is;
 //!    - For [char], it writes the character as is;
-//!    - For [u8], [u16], [u32], [u64], [u128], [usize], [i8], [i16], [i32], [i64], [i128], [isize], [f32], [f64], [bool], [NonZeroU8], [NonZeroU16], [NonZeroU32], [NonZeroU64], [NonZeroU128], [NonZeroUsize], [NonZeroI8], [NonZeroI16], [NonZeroI32], [NonZeroI64], [NonZeroI128], [NonZeroIsize], it writes the value as is;
+//!    - For [u8], [u16], [u32], [u64], [u128], [usize], [i8], [i16], [i32], [i64], [i128], [isize], [f32], [f64], [bool], [NonZeroU8], [NonZeroU16], [NonZeroU32], [NonZeroU64], [NonZeroU128], [NonZeroUsize], [NonZeroI8], [NonZeroI16], [NonZeroI32], [NonZeroI64], [NonZeroI128], [NonZeroIsize], it writes the value as is in decimal format;
 //! - For `[T]`, `[T; N]` and [Vec] where `T` implements [WriteInto] trait, it writes each item in the vector with a space as separator;
 //! - For [Mat] where `T` implements [WriteInto] trait, it writes each row in the matrix with a newline as separator, and writes each item in a row with a space as separator;
 //! - For all `&T` where `T` implements [WriteInto] trait, it writes the value as is.
@@ -238,12 +284,13 @@
 //! [NonZeroIsize]: std::num::NonZeroIsize
 
 pub use {
+    crate as iof,
     formatted::SepBy,
     mat::Mat,
-    read_into::{error::ReadIntoError, ReadInto, ReadIntoSingle},
+    read_into::{error::ReadIntoError, ReadInto, ReadIntoOne},
     stdio::read_into::*,
     stream::{BufReadExt, InputStream},
-    write_into::{WriteInto, WriteSingleInto},
+    write_into::{WriteInto, WriteOneInto},
 };
 
 mod array;

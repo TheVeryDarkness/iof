@@ -1,8 +1,8 @@
-use crate::impl_read_into;
+use crate::impl_read_into_single;
 use std::{ffi::OsString, net::*, num::*, path::PathBuf};
 
 // Implement `Parse` for all types that implement FromStr.
-impl_read_into!(
+impl_read_into_single!(
     bool
 
     i8 u8

@@ -25,13 +25,16 @@ macro_rules! read {
     }};
 }
 
-/// Implement [ReadInto] for given types that already implement [std::str::FromStr].
+/// Implement [ReadIntoOne] for given types that already implement [std::str::FromStr].
 ///
+/// Note that all types that are [ReadIntoOne] will also implement [ReadInto] automatically.
+///
+/// [ReadIntoOne]: crate::ReadIntoOne
 /// [ReadInto]: crate::ReadInto
 #[macro_export]
-macro_rules! impl_read_into {
+macro_rules! impl_read_into_single {
     (char $($tys:ident)*) => {
-        impl<B: ::std::io::BufRead> $crate::ReadIntoSingle<char> for $crate::InputStream<B> {
+        impl<B: ::std::io::BufRead> $crate::ReadIntoOne<char> for $crate::InputStream<B> {
             type Error = $crate::ReadIntoError<<char as ::std::str::FromStr>::Err>;
 
             fn parse(s: &str) -> Result<char, Self::Error> {
@@ -39,20 +42,20 @@ macro_rules! impl_read_into {
             }
 
             fn try_read_one(&mut self) -> Result<char, Self::Error> {
-                <Self as $crate::ReadIntoSingle<char>>::try_read_in_char(self)
+                <Self as $crate::ReadIntoOne<char>>::try_read_in_char(self)
             }
         }
-        $crate::impl_read_into!($($tys)*);
+        $crate::impl_read_into_single!($($tys)*);
     };
     ($ty:ident $($tys:ident)*) => {
-        impl<B: ::std::io::BufRead> $crate::ReadIntoSingle<$ty> for $crate::InputStream<B> {
+        impl<B: ::std::io::BufRead> $crate::ReadIntoOne<$ty> for $crate::InputStream<B> {
             type Error = $crate::ReadIntoError<<$ty as ::std::str::FromStr>::Err>;
 
             fn parse(s: &str) -> Result<$ty, Self::Error> {
                 s.parse().map_err($crate::ReadIntoError::FromStrError)
             }
         }
-        $crate::impl_read_into!($($tys)*);
+        $crate::impl_read_into_single!($($tys)*);
     };
     () => {};
 }

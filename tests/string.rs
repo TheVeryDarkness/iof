@@ -1,4 +1,4 @@
-use iof::{BufReadExt, InputStream, ReadInto, ReadIntoSingle};
+use iof::{BufReadExt, InputStream, ReadInto, ReadIntoOne};
 use std::io::Cursor;
 
 #[test]
@@ -54,7 +54,7 @@ fn read_in_line() {
     let b: String = reader.read_in_line_trimmed();
     assert_eq!(b, "There are 3 lines.");
 
-    assert!(ReadIntoSingle::<String>::try_read_in_line_some_trimmed(&mut reader).is_err());
+    assert!(ReadIntoOne::<String>::try_read_in_line_some_trimmed(&mut reader).is_err());
 }
 
 #[test]
@@ -64,7 +64,7 @@ fn read_in_line_some_trimmed_spaces() {
 
     let s: String = reader.read_in_line_some_trimmed();
     assert_eq!(s, "s");
-    assert!(ReadIntoSingle::<String>::try_read_in_line_some_trimmed(&mut reader).is_err());
+    assert!(ReadIntoOne::<String>::try_read_in_line_some_trimmed(&mut reader).is_err());
 }
 
 #[test]
@@ -122,7 +122,7 @@ fn read_in_line_trimmed_unicode() {
     let s: String = reader.read_in_line_trimmed();
     assert_eq!(s, "καλημέρα");
 
-    assert!(ReadIntoSingle::<String>::try_read_in_line_trimmed(&mut reader).is_err());
+    assert!(ReadIntoOne::<String>::try_read_in_line_trimmed(&mut reader).is_err());
 }
 
 #[test]
@@ -142,5 +142,5 @@ fn read_in_line_some_unicode() {
     let s: String = reader.read_in_line_some_trimmed();
     assert_eq!(s, "καλημέρα");
 
-    assert!(ReadIntoSingle::<String>::try_read_in_line_some_trimmed(&mut reader).is_err());
+    assert!(ReadIntoOne::<String>::try_read_in_line_some_trimmed(&mut reader).is_err());
 }

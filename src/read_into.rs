@@ -31,7 +31,7 @@ macro_rules! unwrap {
 /// [ReadIntoError]: crate::ReadIntoError
 /// [ReadIntoError::FromStrError]: crate::ReadIntoError::FromStrError
 /// [ReadIntoError::IOError]: crate::ReadIntoError::IOError
-pub trait ReadIntoSingle<T>: BufReadExt {
+pub trait ReadIntoOne<T>: BufReadExt {
     /// Errors that come from [ReadInto].
     ///
     /// This is usually [ReadIntoError].
@@ -64,7 +64,7 @@ pub trait ReadIntoSingle<T>: BufReadExt {
         let s = self.try_get_line_trimmed()?.trim_start();
         Self::parse(s)
     }
-    /// Unwrapping version of [ReadIntoSingle::try_read_in_line_trimmed].
+    /// Unwrapping version of [ReadIntoOne::try_read_in_line_trimmed].
     fn read_in_line_trimmed(&mut self) -> T {
         unwrap!(self.try_read_in_line_trimmed())
     }
@@ -73,7 +73,7 @@ pub trait ReadIntoSingle<T>: BufReadExt {
         let s = self.try_get_line_some_trimmed()?.trim_start();
         Self::parse(s)
     }
-    /// Unwrapping version of [ReadIntoSingle::try_read_in_line_some_trimmed].
+    /// Unwrapping version of [ReadIntoOne::try_read_in_line_some_trimmed].
     fn read_in_line_some_trimmed(&mut self) -> T {
         unwrap!(self.try_read_in_line_some_trimmed())
     }
@@ -82,7 +82,7 @@ pub trait ReadIntoSingle<T>: BufReadExt {
         let s = self.try_get_non_ws()?;
         Self::parse(s.encode_utf8(&mut [0; 4]))
     }
-    /// Unwrapping version of [ReadIntoSingle::try_read_in_char].
+    /// Unwrapping version of [ReadIntoOne::try_read_in_char].
     fn read_in_char(&mut self) -> T {
         unwrap!(self.try_read_in_char())
     }
@@ -90,7 +90,7 @@ pub trait ReadIntoSingle<T>: BufReadExt {
     fn try_read_all(&mut self) -> Result<Vec<T>, Self::Error> {
         self.try_get_all().map(Self::parse).collect()
     }
-    /// Unwrapping version of [ReadIntoSingle::try_read_all].
+    /// Unwrapping version of [ReadIntoOne::try_read_all].
     fn read_all(&mut self) -> Vec<T> {
         unwrap!(self.try_read_all())
     }
@@ -98,7 +98,7 @@ pub trait ReadIntoSingle<T>: BufReadExt {
     fn try_read_all_in_line(&mut self) -> Result<Vec<T>, Self::Error> {
         self.try_get_all_in_line()?.map(Self::parse).collect()
     }
-    /// Unwrapping version of [ReadIntoSingle::try_read_all_in_line].
+    /// Unwrapping version of [ReadIntoOne::try_read_all_in_line].
     fn read_all_in_line(&mut self) -> Vec<T> {
         unwrap!(self.try_read_all_in_line())
     }
@@ -106,7 +106,7 @@ pub trait ReadIntoSingle<T>: BufReadExt {
     fn try_read_all_in_line_some(&mut self) -> Result<Vec<T>, Self::Error> {
         self.try_get_all_in_line_some()?.map(Self::parse).collect()
     }
-    /// Unwrapping version of [ReadIntoSingle::try_read_all_in_line_some].
+    /// Unwrapping version of [ReadIntoOne::try_read_all_in_line_some].
     fn read_all_in_line_some(&mut self) -> Vec<T> {
         unwrap!(self.try_read_all_in_line_some())
     }
@@ -165,9 +165,9 @@ pub trait ReadInto<T>: BufReadExt {
 
 impl<T, B: BufRead> ReadInto<T> for InputStream<B>
 where
-    Self: ReadIntoSingle<T>,
+    Self: ReadIntoOne<T>,
 {
-    type Error = <Self as ReadIntoSingle<T>>::Error;
+    type Error = <Self as ReadIntoOne<T>>::Error;
     fn try_read(&mut self) -> Result<T, Self::Error> {
         self.try_read_one()
     }
@@ -207,9 +207,9 @@ where
 /// ```
 impl<T, B: BufRead> ReadInto<Vec<T>> for InputStream<B>
 where
-    Self: ReadIntoSingle<T>,
+    Self: ReadIntoOne<T>,
 {
-    type Error = <Self as ReadIntoSingle<T>>::Error;
+    type Error = <Self as ReadIntoOne<T>>::Error;
     fn try_read(&mut self) -> Result<Vec<T>, Self::Error> {
         self.try_read_all_in_line()
     }

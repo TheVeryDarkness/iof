@@ -82,6 +82,17 @@ fn read_n_from_str_err() {
 }
 
 #[test]
+fn read_char_3() {
+    let reader = Cursor::new("1 2 3".as_bytes());
+    let mut reader = InputStream::new(reader);
+
+    let a: Vec<char> = reader.read();
+    assert_eq!(a, vec!['1', '2', '3']);
+
+    assert!(ReadInto::<char>::try_read(&mut reader).is_err());
+}
+
+#[test]
 fn read_all() -> anyhow::Result<()> {
     let reader = Cursor::new("3 2 1".as_bytes());
     let mut reader = InputStream::new(reader);

@@ -1,4 +1,4 @@
-use super::WriteSingleInto;
+use super::WriteOneInto;
 use crate::impl_write_into;
 use std::{io, num::*};
 
@@ -18,10 +18,10 @@ impl_write_into!(
     NonZeroIsize NonZeroUsize
 );
 
-impl WriteSingleInto for char {
+impl WriteOneInto for char {
     const SEP_ITEM: &'static str = "";
 
-    fn try_write_single_into<S: io::Write>(&self, s: &mut S) -> io::Result<()> {
+    fn try_write_one_into<S: io::Write>(&self, s: &mut S) -> io::Result<()> {
         s.write_all(&[*self as u8])
     }
 }
