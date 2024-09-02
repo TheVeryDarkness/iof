@@ -8,6 +8,13 @@
 /// [Mat]: crate::Mat
 ///
 /// # Example
+///
+/// ```rust,no_run
+/// use iof::read;
+/// let a: usize = read!();
+/// let b: Vec<usize> = read!(3);
+/// let c: Vec<Vec<usize>> = read!(2, 3);
+/// ```
 macro_rules! read {
     () => {
         $crate::read()
@@ -18,4 +25,36 @@ macro_rules! read {
     ($m:expr, $n:expr) => {
         $crate::read_m_n($m, $n)
     };
+}
+
+/// Implement [ReadInto] for given types that already implement [std::str::FromStr].
+///
+/// [ReadInto]: crate::ReadInto
+#[macro_export]
+macro_rules! impl_read_into {
+    (char $($tys:ident)*) => {
+        impl<B: ::std::io::BufRead> $crate::ReadIntoSingle<char> for $crate::InputStream<B> {
+            type Error = $crate::ReadIntoError<<char as ::std::str::FromStr>::Err>;
+
+            fn parse(s: &str) -> Result<char, Self::Error> {
+                s.parse().map_err($crate::ReadIntoError::FromStrError)
+            }
+
+            fn try_read_one(&mut self) -> Result<char, Self::Error> {
+                <Self as $crate::ReadIntoSingle<char>>::try_read_in_char(self)
+            }
+        }
+        $crate::impl_read_into!($($tys)*);
+    };
+    ($ty:ident $($tys:ident)*) => {
+        impl<B: ::std::io::BufRead> $crate::ReadIntoSingle<$ty> for $crate::InputStream<B> {
+            type Error = $crate::ReadIntoError<<$ty as ::std::str::FromStr>::Err>;
+
+            fn parse(s: &str) -> Result<$ty, Self::Error> {
+                s.parse().map_err($crate::ReadIntoError::FromStrError)
+            }
+        }
+        $crate::impl_read_into!($($tys)*);
+    };
+    () => {};
 }

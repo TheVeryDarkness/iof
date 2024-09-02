@@ -98,7 +98,7 @@ fn try_read_boxed_array_4() {
 }
 
 #[test]
-#[should_panic = "failed to read a non-whitespace character before EOF"]
+#[should_panic = "failed to read one more character before EOF"]
 fn read_array_insuffcient() {
     let reader = Cursor::new("-1 -2".as_bytes());
     let mut reader = InputStream::new(reader);
@@ -107,7 +107,7 @@ fn read_array_insuffcient() {
 }
 
 #[test]
-#[should_panic = "failed to read a non-whitespace character before EOF"]
+#[should_panic = "failed to read one more character before EOF"]
 fn read_boxed_array_insuffcient() {
     let reader = Cursor::new("-1 -2".as_bytes());
     let mut reader = InputStream::new(reader);

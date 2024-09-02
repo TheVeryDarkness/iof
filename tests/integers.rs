@@ -57,16 +57,16 @@ fn read_char_3() {
     let reader = Cursor::new("123".as_bytes());
     let mut reader = InputStream::new(reader);
 
-    let a: u32 = reader.read_char();
+    let a: u32 = reader.read_in_char();
     assert_eq!(a, 1);
 
-    let b: u32 = reader.read_char();
+    let b: u32 = reader.read_in_char();
     assert_eq!(b, 2);
 
-    let c: u32 = reader.read_char();
+    let c: u32 = reader.read_in_char();
     assert_eq!(c, 3);
 
-    assert!(iof::ReadIntoSingle::<u32>::try_read_char(&mut reader).is_err());
+    assert!(iof::ReadIntoSingle::<u32>::try_read_in_char(&mut reader).is_err());
 }
 
 #[test]
@@ -74,16 +74,16 @@ fn read_char_in_3_lines() {
     let reader = Cursor::new("\n1\n2\n3".as_bytes());
     let mut reader = InputStream::new(reader);
 
-    let a: u32 = reader.read_char();
+    let a: u32 = reader.read_in_char();
     assert_eq!(a, 1);
 
-    let b: u32 = reader.read_char();
+    let b: u32 = reader.read_in_char();
     assert_eq!(b, 2);
 
-    let c: u32 = reader.read_char();
+    let c: u32 = reader.read_in_char();
     assert_eq!(c, 3);
 
-    assert!(iof::ReadIntoSingle::<u32>::try_read_char(&mut reader).is_err());
+    assert!(iof::ReadIntoSingle::<u32>::try_read_in_char(&mut reader).is_err());
 }
 
 #[test]
@@ -94,52 +94,52 @@ fn read_one_then_all_in_line() {
     let a: u32 = reader.read_one();
     assert_eq!(a, 1);
 
-    let b: Vec<u32> = reader.read_all_in_line().collect();
-    assert_eq!(b, [2, 3, 4]);
+    let b: Vec<u32> = reader.read_all_in_line();
+    assert_eq!(b, []);
 
-    let c: Vec<u32> = reader.read_all_in_line().collect();
-    assert_eq!(c, [5, 6, 7]);
+    let c: Vec<u32> = reader.read_all_in_line();
+    assert_eq!(c, [2, 3, 4]);
 
-    assert!(iof::ReadIntoSingle::<u32>::try_read_one(&mut reader).is_err());
+    let d: Vec<u32> = reader.read_all_in_line();
+    assert_eq!(d, [5, 6, 7]);
+
+    assert!(iof::ReadIntoSingle::<u32>::try_read_all_in_line(&mut reader).is_err());
 }
 
 #[test]
-fn read_one_then_all_in_remained_line() {
+fn read_one_then_all_in_line_some() {
     let reader = Cursor::new("1\n2 3 4\n 5 6 7".as_bytes());
     let mut reader = InputStream::new(reader);
 
     let a: u32 = reader.read_one();
     assert_eq!(a, 1);
 
-    let b: Vec<u32> = reader.read_all_in_remained_line().collect();
-    assert_eq!(b, []);
+    let b: Vec<u32> = reader.read_all_in_line_some();
+    assert_eq!(b, [2, 3, 4]);
 
-    let c: Vec<u32> = reader.read_all_in_line().collect();
-    assert_eq!(c, [2, 3, 4]);
+    let c: Vec<u32> = reader.read_all_in_line_some();
+    assert_eq!(c, [5, 6, 7]);
 
-    let d: Vec<u32> = reader.read_all_in_line().collect();
-    assert_eq!(d, [5, 6, 7]);
-
-    assert!(iof::ReadIntoSingle::<u32>::try_read_one(&mut reader).is_err());
+    assert!(iof::ReadIntoSingle::<u32>::try_read_all_in_line_some(&mut reader).is_err());
 }
 #[test]
 fn read_all() {
     let reader = Cursor::new("1 2\n 3 4\n 5 6 \n7".as_bytes());
     let mut reader = InputStream::new(reader);
 
-    let a: Vec<u32> = reader.read_all().collect();
+    let a: Vec<u32> = reader.read_all();
     assert_eq!(a, [1, 2, 3, 4, 5, 6, 7]);
 
     assert!(iof::ReadIntoSingle::<u32>::try_read_one(&mut reader).is_err());
 }
 
 #[test]
-#[should_panic = "failed to read a non-whitespace character before EOF"]
+#[should_panic = "failed to read one more character before EOF"]
 fn read_char_empty() {
-    let reader = Cursor::new("".as_bytes());
+    let reader = Cursor::new(" \n\n \n  \n ".as_bytes());
     let mut reader = InputStream::new(reader);
 
-    let _: u32 = reader.read_char();
+    let _: u32 = reader.read_in_char();
 }
 
 #[test]
@@ -161,7 +161,7 @@ fn try_read_sign_error() {
 }
 
 #[test]
-#[should_panic = "failed to read a non-whitespace character before EOF"]
+#[should_panic = "failed to read one more character before EOF"]
 fn read_empty() {
     let reader = Cursor::new("".as_bytes());
     let mut reader = InputStream::new(reader);
@@ -170,7 +170,7 @@ fn read_empty() {
 }
 
 #[test]
-#[should_panic = "failed to read a non-whitespace character before EOF"]
+#[should_panic = "failed to read one more character before EOF"]
 fn try_read_empty() {
     let reader = Cursor::new("".as_bytes());
     let mut reader = InputStream::new(reader);
@@ -184,7 +184,7 @@ fn try_read_line_too_much() {
     let reader = Cursor::new("1 2 3".as_bytes());
     let mut reader = InputStream::new(reader);
 
-    let _: u32 = reader.try_read_line().unwrap();
+    let _: u32 = reader.try_read_in_line_some_trimmed().unwrap();
 }
 
 #[test]
@@ -193,5 +193,5 @@ fn try_read_char_only_sign() {
     let reader = Cursor::new("-1".as_bytes());
     let mut reader = InputStream::new(reader);
 
-    let _: i32 = reader.try_read_char().unwrap();
+    let _: i32 = reader.try_read_in_char().unwrap();
 }

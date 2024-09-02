@@ -27,7 +27,7 @@ fn read() {
     let c: Vec<u32> = reader.read();
     assert_eq!(c, [7, 8]);
 
-    assert_eq!(ReadInto::<Vec<u32>>::try_read(&mut reader).unwrap(), [],);
+    assert!(ReadInto::<Vec<u32>>::try_read(&mut reader).is_err());
 }
 
 #[test]
@@ -46,7 +46,7 @@ fn read_one_then_read_2() {
 
 #[test]
 fn read_one_then_read_0() {
-    let reader = Cursor::new("1\n2 \n3".as_bytes());
+    let reader = Cursor::new("1\n2 \n3\n".as_bytes());
     let mut reader = InputStream::new(reader);
 
     let a: u32 = reader.read_one();
@@ -68,8 +68,8 @@ fn read_one_then_read_0() {
     assert_eq!(b, []);
 
     assert!(ReadInto::<u32>::try_read(&mut reader).is_err());
-    assert_eq!(ReadInto::<Vec<u32>>::try_read(&mut reader).unwrap(), []);
-    assert_eq!(ReadInto::<Vec<u32>>::try_read(&mut reader).unwrap(), []);
+    assert!(ReadInto::<Vec<u32>>::try_read(&mut reader).is_err());
+    assert!(ReadInto::<Vec<u32>>::try_read(&mut reader).is_err());
 }
 
 #[test]
@@ -86,7 +86,8 @@ fn read_all() -> anyhow::Result<()> {
     let reader = Cursor::new("3 2 1".as_bytes());
     let mut reader = InputStream::new(reader);
 
-    let set: BTreeSet<u32> = reader.consume_all(|s| s.parse().unwrap()).collect();
+    let set: Result<BTreeSet<u32>, _> = reader.try_get_all().map(str::parse).collect();
+    let set = set?;
 
     assert_eq!(set, BTreeSet::from([1, 2, 3]));
     assert_eq!(set.iter().sep_by(" ").to_string(), "1 2 3");

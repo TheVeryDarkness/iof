@@ -79,17 +79,17 @@ expose_stdin!(
     [T] [ReadIntoSingle] () -> T | <InputStream<StdinLock<'static>> as ReadIntoSingle<T>>::Error
 );
 expose_stdin!(
-    try_read_remained_line "ReadIntoSingle::try_read_remained_line"
-    read_remained_line "ReadIntoSingle::read_remained_line"
+    try_read_in_line_trimmed "ReadIntoSingle::try_read_in_line_trimmed"
+    read_in_line_trimmed "ReadIntoSingle::read_in_line_trimmed"
     [T] [ReadIntoSingle] () -> T | <InputStream<StdinLock<'static>> as ReadIntoSingle<T>>::Error
 );
 expose_stdin!(
-    try_read_line "ReadIntoSingle::try_read_line"
-    read_line "ReadIntoSingle::read_line"
+    try_read_in_line_some_trimmed "ReadIntoSingle::try_read_in_line_some_trimmed"
+    read_in_line_some_trimmed "ReadIntoSingle::read_in_line_some_trimmed"
     [T] [ReadIntoSingle] () -> T | <InputStream<StdinLock<'static>> as ReadIntoSingle<T>>::Error
 );
 expose_stdin!(
-    try_read_char "ReadIntoSingle::try_read_char"
-    read_char "ReadIntoSingle::read_char"
+    try_read_in_char "ReadIntoSingle::try_read_in_char"
+    read_in_char "ReadIntoSingle::read_in_char"
     [T] [ReadIntoSingle] () -> T | <InputStream<StdinLock<'static>> as ReadIntoSingle<T>>::Error
 );

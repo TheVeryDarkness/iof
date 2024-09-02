@@ -18,6 +18,16 @@
 //! A utility library for reading data from input
 //! and writting data from output.
 //!
+//! # In Short
+//!
+//! You can use [read!] macro to read a single data item, a [Vec] or a [Mat] from input.
+//!
+//! - `read!()` reads a single data item from input.
+//! - `read!(n)` reads `n` data items from input and stores them in a [Vec].
+//! - `read!(m, n)` reads `m * n` data items from input and stores them in a [Mat].
+//!
+//! You can use [show!] macro to write a single data item, a [Vec] or a [Mat] to output.
+//!
 //! # Input
 //!
 //! Some lower-level functions are provided to read a single data item from input:
@@ -37,7 +47,7 @@
 //!
 //!   If you call [`read_one<T>()`] for 4 times, it will read 4 string fragments `1`, `2,3`, `3`, and `4;sa`.
 //!
-//! - [`read_line<T>()`] (or [`try_read_line<T>()`]) reads a non-empty line of string from input,
+//! - [`read_in_line_some_trimmed<T>()`] (or [`try_read_in_line_some_trimmed<T>()`]) reads a non-empty line of string from input,
 //!   trims the trailing newline, and converts it to a value of `T`.
 //!
 //!   If all characters in remained part of current line are ASCII whitespace characters,
@@ -50,7 +60,7 @@
 //!   4 5 6
 //!   ```
 //!
-//!   If you call [`read_line<T>()`] for 2 times, it will read `1 2 3` and `4 5 6` as two lines of string.
+//!   If you call [`read_in_line_some_trimmed<T>()`] for 2 times, it will read `1 2 3` and `4 5 6` as two lines of string.
 //!
 //!   And given the input below:
 //!
@@ -58,9 +68,9 @@
 //!   1 2 3
 //!   ```
 //!
-//!   If you call [`read_one<T>()`] once and [`read_line<T>()`] once, they will read `1` and `2 3` respectively.
+//!   If you call [`read_one<T>()`] once and [`read_in_line_some_trimmed<T>()`] once, they will read `1` and `2 3` respectively.
 //!
-//!   If you call [`read_line<T>()`] once more, it will panic because there is no non-empty line remained.
+//!   If you call [`read_in_line_some_trimmed<T>()`] once more, it will panic because there is no non-empty line remained.
 //!
 //!   Again, given the input below:
 //!
@@ -69,8 +79,8 @@
 //!   4 5 6
 //!   ```
 //!
-//!   If you call [`read_one<T>()`] for 3 times and [`read_line<T>()`] for 1 time, they will read `1`, `2`, `3`, and `4 5 6` respectively.
-//! - [`read_remained_line<T>()`] (or [`try_read_remained_line<T>()`]) reads the remained line from input regardless of whether it is empty or not,
+//!   If you call [`read_one<T>()`] for 3 times and [`read_in_line_some_trimmed<T>()`] for 1 time, they will read `1`, `2`, `3`, and `4 5 6` respectively.
+//! - [`read_in_line_trimmed<T>()`] (or [`read_in_line_trimmed<T>()`]) reads the remained line from input regardless of whether it is empty or not,
 //!   trims the trailing newline, and converts it to a value of `T`.
 //!
 //!   For example, given the input below:
@@ -80,11 +90,11 @@
 //!   4 5 6
 //!   ```
 //!
-//!   If you call [`read_one<T>`] for 3 times and [`read_remained_line<T>`] for 1 time, they will read `1`, `2`, `3`, and an empty string respectively.
+//!   If you call [`read_one<T>`] for 3 times and [`read_in_line_trimmed<T>`] for 1 time, they will read `1`, `2`, `3`, and an empty string respectively.
 //!
-//!   If you call [`read_remained_line<T>`] once more, it will still read an empty string.
+//!   If you call [`read_in_line_trimmed<T>`] once more, it will still read an empty string.
 //!
-//! - [`read_char<T>`] (or [`try_read_char<T>`]) reads a single non-ASCII-whitespace character from input and converts it to a value of `T`.
+//! - [`read_in_char<T>`] (or [`try_read_in_char<T>`]) reads a single non-ASCII-whitespace character from input and converts it to a value of `T`.
 //!
 //!   For example, given the input below:
 //!
@@ -92,7 +102,7 @@
 //!   1 2 3
 //!   ```
 //!
-//!   If you call [`read_char`] for 3 times, it will read `1`, `2`, and `3` as three characters.
+//!   If you call [`read_in_char`] for 3 times, it will read `1`, `2`, and `3` as three characters.
 //!
 //! These functions are implemented for types that implement [ReadIntoSingle] trait. Currently, the following types in [std] (or [core]) implement [ReadIntoSingle] trait:
 //!
@@ -208,9 +218,9 @@
 pub use {
     formatted::SepBy,
     mat::Mat,
-    read_into::{from_str::FromStr, ReadInto, ReadIntoError, ReadIntoSingle},
+    read_into::{error::ReadIntoError, ReadInto, ReadIntoSingle},
     stdio::read_into::*,
-    stream::InputStream,
+    stream::{BufReadExt, InputStream},
     write_into::WriteInto,
 };
 

@@ -33,14 +33,14 @@ fn try_read_ill() {
 #[test]
 fn try_read_line_ill() {
     let mut buf = InputStream::new(IllBuffer);
-    let res: Result<u32, _> = buf.try_read_line();
+    let res: Result<u32, _> = buf.try_read_in_line_some_trimmed();
     assert!(res.is_err());
 }
 
 #[test]
 fn try_read_remained_line_ill() {
     let mut buf = InputStream::new(IllBuffer);
-    let res: Result<u32, _> = buf.try_read_remained_line();
+    let res: Result<u32, _> = buf.try_read_in_line_trimmed();
     assert!(res.is_err());
 }
 

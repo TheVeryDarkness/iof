@@ -2,7 +2,7 @@ use iof::*;
 use std::{io::Cursor, vec};
 
 #[test]
-#[should_panic = "failed to read a non-whitespace character before EOF"]
+#[should_panic = "failed to read one more character before EOF"]
 fn read_m_n_insufficient() {
     let reader = Cursor::new("1 2\n3".as_bytes());
     let mut reader = InputStream::new(reader);
@@ -71,6 +71,19 @@ fn read_all_same() {
     assert_eq!(mat.iter().len(), 2);
     assert_eq!(mat.iter().size_hint(), (2, Some(2)));
     assert_eq!(format!("{:?}", mat), "[[2, 2, 2], [2, 2, 2]]");
+}
+
+#[test]
+fn read_char_mat() {
+    let reader = Cursor::new("123\n456".as_bytes());
+    let mut reader = InputStream::new(reader);
+
+    let mat: Mat<char> = reader.read_m_n(2, 3);
+    assert_eq!(&mat[0], ['1', '2', '3'].as_slice());
+    assert_eq!(&mat[1], ['4', '5', '6'].as_slice());
+    assert_eq!(mat.iter().len(), 2);
+    assert_eq!(mat.iter().size_hint(), (2, Some(2)));
+    assert_eq!(format!("{:?}", mat), "[['1', '2', '3'], ['4', '5', '6']]");
 }
 
 #[test]
