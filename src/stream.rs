@@ -28,15 +28,7 @@ pub trait BufReadExt {
     fn try_peek(&mut self) -> Result<char, Error>;
 
     /// Get a single character if it is in `pattern`.
-    fn try_get_if(&mut self, pattern: &[char]) -> Result<Option<char>, Error> {
-        let c = self.try_peek()?;
-        if pattern.contains(&c) {
-            self.try_skip_any()?;
-            Ok(Some(c))
-        } else {
-            Ok(None)
-        }
-    }
+    fn try_get_if(&mut self, pattern: &[char]) -> Result<Option<char>, Error>;
 
     /// Get a single non-`skipped` character.
     #[inline]
@@ -92,15 +84,12 @@ pub trait BufReadExt {
     /// If current line is empty or all ASCII-whitespaces, it will read a new line.
     #[inline]
     fn try_get_string(&mut self) -> Result<&str, Error> {
-        loop {
-            let _len = self.try_skip_all(&WHITE)?;
-            let s = self.try_get_until_in_line(&WHITE)?;
-            let s: &str = s.trim_end_matches(WHITE);
-            let s: &str = unsafe { transmute(s) };
-            if !s.is_empty() {
-                return Ok(s);
-            }
-        }
+        let _len = self.try_skip_all(&WHITE)?;
+        let s = self.try_get_until_in_line(&WHITE)?;
+        let s: &str = s.trim_end_matches(WHITE);
+        debug_assert!(!s.is_empty());
+        let s: &str = unsafe { transmute(s) };
+        return Ok(s);
     }
 
     /// Get a single line. The trailing newline will be trimmed.
@@ -283,12 +272,16 @@ impl<B: BufRead> BufReadExt for InputStream<B> {
         }
     }
 
-    fn try_get_non_ws(&mut self) -> Result<char, Error> {
+    fn try_get_if(&mut self, pattern: &[char]) -> Result<Option<char>, Error> {
         loop {
-            let (remaining, _len) = self.remove_leading(&WHITE)?;
-            if let Some(c) = remaining.chars().next() {
-                self.cursor += c.len_utf8();
-                return Ok(c);
+            if let Some(c) = as_slice_from(&self.line_buf, self.cursor).chars().next() {
+                if pattern.contains(&c) {
+                    self.cursor += c.len_utf8();
+                    debug_assert!(self.line_buf.is_char_boundary(self.cursor));
+                    return Ok(Some(c));
+                } else {
+                    return Ok(None);
+                }
             } else {
                 self.fill_buf(MSG_EOF)?;
             }

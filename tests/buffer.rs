@@ -55,6 +55,37 @@ fn skip_all() {
 }
 
 #[test]
+fn try_skip_any() {
+    let buf: Vec<u8> = (0..100).flat_map(|_| b"\r".to_owned()).collect();
+    let reader = Cursor::new(buf);
+    let mut reader = InputStream::new(reader);
+
+    for _ in 0..100 {
+        reader.try_skip_any().unwrap();
+    }
+
+    let c = reader.try_skip_any();
+    assert!(c.is_err());
+}
+
+#[test]
+fn skip_ws() {
+    let buf: Vec<u8> = (0..100).flat_map(|_| b"\r\n".to_owned()).collect();
+    let reader = Cursor::new(buf);
+    let mut reader = InputStream::new(reader);
+
+    for _ in 0..100 {
+        let c = reader.try_skip_ws().unwrap();
+        assert_eq!(c, true);
+        let c = reader.try_skip_ws().unwrap();
+        assert_eq!(c, true);
+    }
+
+    let c = reader.try_skip_ws();
+    assert!(c.is_err());
+}
+
+#[test]
 fn skip_all_ws() {
     let buf: Vec<u8> = (0..100).flat_map(|_| b"\r\n".to_owned()).collect();
     let reader = Cursor::new(buf);
@@ -106,6 +137,16 @@ fn empty_lines() {
     }
 
     assert!(reader.try_get_line().is_err());
+}
+
+#[test]
+fn read_string() {
+    let buf: Vec<u8> = (0..100).flat_map(|_| b"\r\n".to_owned()).collect();
+    // println!("{:?}", std::str::from_utf8(&buf));
+    let reader = Cursor::new(buf);
+    let mut reader = InputStream::new(reader);
+
+    assert!(reader.try_get_string().is_err());
 }
 
 #[test]

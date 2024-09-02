@@ -4,17 +4,17 @@
 //!
 //! Calling functions in this module will lock the standard input/output streams, so it is not
 //! recommended to use this module in a multi-threaded environment.
-use crate::stream::InputStream;
+use crate::InputStream;
 use std::{
-    cell::RefCell,
-    io::{StdinLock, StdoutLock},
+    io::{self, stdin, BufReader, Stdin},
+    sync::{LazyLock, Mutex},
 };
 
 pub(crate) mod read_into;
 
-thread_local! {
-    pub(crate) static STDIN: RefCell<InputStream<StdinLock<'static>>> = {
-        RefCell::new(InputStream::new(std::io::stdin().lock()))
-    };
-    pub(crate) static STDOUT: RefCell<StdoutLock<'static>> = RefCell::new(std::io::stdout().lock());
-}
+/// Standard input stream.
+pub static STDIN: LazyLock<Mutex<InputStream<BufReader<Stdin>>>> =
+    LazyLock::new(|| Mutex::new(InputStream::new(BufReader::new(stdin()))));
+
+/// Standard output stream.
+pub static STDOUT: LazyLock<Mutex<io::Stdout>> = LazyLock::new(|| Mutex::new(io::stdout()));

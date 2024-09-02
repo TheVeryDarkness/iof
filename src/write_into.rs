@@ -1,8 +1,11 @@
-use crate::stdio::STDOUT;
 use std::{
+    borrow::Borrow,
     io::{self, Write},
     ops::DerefMut,
+    sync::Mutex,
 };
+
+use crate::stdio::STDOUT;
 
 mod impls;
 mod macros;
@@ -44,7 +47,9 @@ pub trait WriteInto {
     }
     /// Write into [std::io::Stdout].
     fn try_write(&self) -> Result {
-        STDOUT.with(|lock| self.try_write_into(lock.borrow_mut().deref_mut()))
+        let lock: &Mutex<io::Stdout> = Mutex::borrow(&STDOUT);
+        let mut lock = lock.lock().unwrap();
+        self.try_write_into(lock.deref_mut())
     }
     /// Unwrapping version of [WriteInto::try_write].
     fn write(&self) {
