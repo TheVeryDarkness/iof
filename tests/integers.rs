@@ -195,3 +195,19 @@ fn try_read_char_only_sign() {
 
     let _: i32 = reader.try_read_in_char().unwrap();
 }
+
+#[test]
+fn try_write_one_into() {
+    let mut s = Vec::new();
+    42.try_write_one_into(&mut s).unwrap();
+    let s = String::from_utf8(s).unwrap();
+    assert_eq!(s, "42");
+}
+
+#[test]
+fn write_one_into() {
+    let mut s = Vec::new();
+    42.write_one_into(&mut s);
+    let s = String::from_utf8(s).unwrap();
+    assert_eq!(s, "42");
+}
