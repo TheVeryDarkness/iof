@@ -11,6 +11,7 @@ use std::{
 };
 
 pub(crate) mod read_into;
+pub(crate) mod stream;
 
 /// Standard input stream.
 pub static STDIN: LazyLock<Mutex<InputStream<BufReader<Stdin>>>> =

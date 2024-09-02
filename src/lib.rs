@@ -15,8 +15,7 @@
     clippy::cargo
 )]
 #![forbid(clippy::should_panic_without_expect, clippy::incompatible_msrv)]
-//! A utility library for reading data from input
-//! and writting data from output.
+//! A utility library for reading data from input and writting data to output.
 //!
 //! # In Short
 //!
@@ -32,9 +31,13 @@
 //!
 //! ```txt
 //! 42 abc def
+//! 0 0.3 lmn
 //! 1 2 3
 //! 1 2 3
 //! 4 5 6
+//! .@/#$
+//! !@#!@
+//! *&@:,
 //! ```
 //!
 //! ```rust,no_run
@@ -48,6 +51,12 @@
 //! let n: String = read!();
 //! assert_eq!(n, "abc");
 //!
+//! /// Read a tuple from input.
+//! let (l, m, n): (u32, f64, String) = read!();
+//! assert_eq!(l, 0);
+//! assert_eq!(m, 0.3);
+//! assert_eq!(n, "lmn");
+//!
 //! // Read a vector of charcters from input.
 //! let v: Vec<char> = read!();
 //! assert_eq!(v, ['d', 'e', 'f']);
@@ -59,7 +68,31 @@
 //! // Read a matrix of integers from input.
 //! let m: Mat<u32> = read!(2, 3);
 //! assert_eq!(m, [[1, 2, 3], [4, 5, 6]]);
+//!
+//! // Read a matrix of characters from input.
+//! let m: Mat<char> = read!(3, 5);
+//! assert_eq!(m, [['.', '@', '/', '#', '$'], ['!', '@', '#', '!', '@'], ['*', '&', '@', ':', ',']]);
 //! ```
+//!
+//! ## [get_line]
+//!
+//! You can use [get_line] function to read a line of string from input.
+//!
+//! Given the input below:
+//!
+//! ```txt
+//! 42 abc def
+//! ```
+//!
+//! ```rust,no_run
+//! use iof::get_line;
+//!
+//! // Read a line of string from input.
+//! let s: String = get_line();
+//! assert_eq!(s, "42 abc def");
+//! ```
+//!
+//! *You may have noticed that the `get_line` function is similar to the [`input`](https://docs.python.org/zh-cn/3/library/functions.html#input) function in Python and [`std::get_line`](https://zh.cppreference.com/w/cpp/string/basic_string/getline).*
 //!
 //! ## [show!]
 //!
@@ -75,6 +108,22 @@
 //! *You may have noticed that the `show!` macro is similar to the [`print`](https://docs.python.org/zh-cn/3/library/functions.html#print) function in Python.*
 //!
 //! # Input
+//!
+//! ## [ReadInto]
+//!
+//! Some higher-level functions are provided to read data sequence (a single item is also a sequnce) from input:
+//!
+//! - [`read<T>()`] (or [`try_read<T>()`]) reads a single sequence from input and converts it to a value of `T`.
+//! - [`read_n<T>(n)`] (or [`try_read_n<T>(n)`]) reads `n`` sequences from input and converts them to a value of [Vec].
+//! - [`read_m_n<T>(m, n)`] (or [`try_read_m_n<T>(m, n)`]) reads `m * n` sequences from input and converts them to a value of [`Mat<T>`].
+//!
+//! These functions are implemented for types that implement [ReadInto] trait. Currently, the following types implement [ReadInto] trait:
+//!
+//! - All types that implement [ReadIntoOne] trait;
+//! - `[T; N]` where `T` implements [ReadInto] trait;
+//! - `Box<[T; N]>` where `T` implements [ReadInto] trait.
+//! - Tuple types, e.g., `(T1, T2, ..., Tn)`, where `Ti` implements [ReadInto] trait and `n` is neither 0 nor more than 12.
+//! - ...
 //!
 //! ## [ReadIntoOne]
 //!
@@ -172,22 +221,6 @@
 //!
 //! [FromStr]: std::str::FromStr
 //!
-//! ## [ReadInto]
-//!
-//! Some higher-level functions are provided to read data sequence (a single item is also a sequnce) from input:
-//!
-//! - [`read<T>()`] (or [`try_read<T>()`]) reads a single sequence from input and converts it to a value of `T`.
-//! - [`read_n<T>(n)`] (or [`try_read_n<T>(n)`]) reads `n`` sequences from input and converts them to a value of [Vec].
-//! - [`read_m_n<T>(m, n)`] (or [`try_read_m_n<T>(m, n)`]) reads `m * n` sequences from input and converts them to a value of [`Mat<T>`].
-//!
-//! These functions are implemented for types that implement [ReadInto] trait. Currently, the following types implement [ReadInto] trait:
-//!
-//! - All types that implement [ReadIntoOne] trait;
-//! - `[T; N]` where `T` implements [ReadInto] trait;
-//! - `Box<[T; N]>` where `T` implements [ReadInto] trait.
-//! - Tuple types, e.g., `(T1, T2, ..., Tn)`, where `Ti` implements [ReadInto] trait and `n` is neither 0 nor more than 12.
-//! - ...
-//!
 //! ## Complex Examples for Input
 //!
 //! Function [read()] is the simplest way to read data from [standard input](std::io::Stdin).
@@ -243,12 +276,6 @@
 //!   assert_eq!(s, "1, 2, 3");
 //!   ```
 //!
-//! ## [WriteOneInto]
-//!
-//! Some lower-level functions are provided to write a single data item to output:
-//!
-//! - [WriteOneInto::write_one_into()] (or [WriteOneInto::try_write_one_into()]) writes to given buffer that implements [std::io::Write].
-//!
 //! ## [WriteInto]
 //!
 //! Some higher-level functions are provided to write data sequence with default format to output:
@@ -270,6 +297,12 @@
 //! [Display]: std::fmt::Display
 //! [Display::fmt]: std::fmt::Display::fmt
 //!
+//! ## [WriteOneInto]
+//!
+//! Some lower-level functions are provided to write a single data item to output:
+//!
+//! - [WriteOneInto::write_one_into()] (or [WriteOneInto::try_write_one_into()]) writes to given buffer that implements [std::io::Write].
+//!
 //! [NonZeroU8]: std::num::NonZeroU8
 //! [NonZeroU16]: std::num::NonZeroU16
 //! [NonZeroU32]: std::num::NonZeroU32
@@ -288,7 +321,7 @@ pub use {
     formatted::SepBy,
     mat::Mat,
     read_into::{error::ReadIntoError, ReadInto, ReadIntoOne},
-    stdio::read_into::*,
+    stdio::{read_into::*, stream::*},
     stream::{BufReadExt, InputStream},
     write_into::{WriteInto, WriteOneInto},
 };
