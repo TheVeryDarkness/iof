@@ -1,90 +1,42 @@
-#[cfg(test)]
-mod tracked {
-    use std::sync::atomic::{AtomicUsize, Ordering};
+use std::mem::MaybeUninit;
 
-    static COUNT: AtomicUsize = AtomicUsize::new(0);
-    pub struct Tracked(Box<usize>);
-    impl Tracked {
-        pub(super) fn new() -> Self {
-            loop {
-                let n = COUNT.load(Ordering::Relaxed);
-                if COUNT
-                    .compare_exchange(n, n + 1, Ordering::Relaxed, Ordering::Relaxed)
-                    .is_ok()
-                {
-                    // Well, we shouldn't use println! without a lock in real code.
-                    println!("Creating Tracked({})", n);
-                    return Tracked(Box::new(n));
-                }
+/// Helper for initializing an array of `MaybeUninit<T>` elements.
+///
+/// Once dopped, initialized elements in the array are also dropped.
+/// Call [std::mem::forget] to drop the array without dropping the elements.
+///
+/// Borrow from the underlying implementation of [std::array::from_fn].
+///
+/// # Safety
+///
+/// The caller must ensure that the array is not read from until it is fully initialized,
+/// the array is not used after it is dropped without calling [std::mem::forget],
+/// and the length should not exceed the capacity.
+pub(super) struct ArrayGuard<'a, T, const N: usize> {
+    array: &'a mut [MaybeUninit<T>; N],
+    len: usize,
+}
+
+impl<T, const N: usize> Drop for ArrayGuard<'_, T, N> {
+    fn drop(&mut self) {
+        for i in 0..self.len {
+            unsafe {
+                self.array[i].as_mut_ptr().drop_in_place();
             }
         }
-    }
-    impl Drop for Tracked {
-        fn drop(&mut self) {
-            loop {
-                let n = COUNT.load(Ordering::Relaxed);
-                assert!(n > 0);
-                if COUNT
-                    .compare_exchange(n, n - 1, Ordering::Relaxed, Ordering::Relaxed)
-                    .is_ok()
-                {
-                    break;
-                }
-            }
-            // Well, we shouldn't use println! without a lock in real code.
-            println!("Dropping Tracked({})", self.0);
-        }
-    }
-
-    /// Ensure all elements are dropped.
-    pub(super) fn check() {
-        assert_eq!(COUNT.load(Ordering::Relaxed), 0);
     }
 }
 
-#[cfg(test)]
-mod tests {
-    use super::super::array_from_fn;
-    use super::tracked::{check, Tracked};
-    use std::{panic::catch_unwind, thread::spawn};
-
-    #[test]
-    fn array_string() {
-        let mut i = 0;
-        let array: [String; 3] = array_from_fn(|| {
-            i += 1;
-            i.to_string()
-        });
-        assert_eq!(array[0], "1");
-        assert_eq!(array[1], "2");
-        assert_eq!(array[2], "3");
+impl<'a, T, const N: usize> ArrayGuard<'a, T, N> {
+    /// Create a new `InitializingArray` from a mutable reference to an array of `MaybeUninit<T>`.
+    pub(crate) fn new(array: &'a mut [MaybeUninit<T>; N]) -> Self {
+        Self { array, len: 0 }
     }
 
-    #[test]
-    fn array_tracked_caught_panic() {
-        let threads: Vec<_> = (0..16)
-            .map(|_| {
-                spawn(|| {
-                    let res = catch_unwind(|| {
-                        let mut i = 0;
-                        let array: [Tracked; 64] = array_from_fn(|| {
-                            if i >= 63 {
-                                panic!("Sorry, something is wrong with the array.");
-                            }
-                            i += 1;
-                            Tracked::new()
-                        });
-                        array
-                    });
-                    assert!(res.is_err());
-                })
-            })
-            .collect();
-
-        for t in threads {
-            t.join().unwrap();
-        }
-
-        check();
+    /// Use [usize::unchecked_add] if it's stablized.
+    pub(crate) unsafe fn push_unchecked(&mut self, value: T) {
+        let _ = self.array.get_unchecked_mut(self.len).write(value);
+        // Safety: We just wrote to the array.
+        self.len = self.len.wrapping_add(1);
     }
 }
