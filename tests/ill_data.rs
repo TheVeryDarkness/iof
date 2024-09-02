@@ -10,10 +10,9 @@ impl WriteInto for IllData {
     }
 }
 
-// Standard output won't return error.
 #[test]
-fn write_ill() {
-    IllData(b"\xab\xcd\xef").write();
+fn write_unicode() {
+    IllData("🦀🦀🦀".as_bytes()).write();
 }
 
 #[test]

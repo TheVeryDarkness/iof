@@ -1,11 +1,5 @@
-use std::{
-    borrow::Borrow,
-    io::{self, Write},
-    ops::DerefMut,
-    sync::Mutex,
-};
-
-use crate::stdio::STDOUT;
+use crate::{Mat, SepBy};
+use std::io::{self, Write};
 
 mod impls;
 mod macros;
@@ -17,6 +11,30 @@ macro_rules! unwrap {
 }
 
 type Result<T = ()> = io::Result<T>;
+
+/// Write an element into a stream.
+///
+/// Most types that implement [Display] also implement this.
+///
+/// [Display]: std::fmt::Display
+pub trait WriteSingleInto {
+    /// Separator between items.
+    const SEP_ITEM: &'static str = " ";
+    /// Separator between lines.
+    const SEP_LINE: &'static str = "\n";
+    /// Write into a stream.
+    fn try_write_single_into<S: Write>(&self, s: &mut S) -> Result;
+    /// Unwrapping version of [WriteSingleInto::try_write_single_into].
+    fn write_single_into<S: Write>(&self, s: &mut S) {
+        unwrap!(self.try_write_single_into(s))
+    }
+}
+
+impl<T: WriteSingleInto + ?Sized> WriteSingleInto for &T {
+    fn try_write_single_into<S: Write>(&self, s: &mut S) -> Result {
+        (*self).try_write_single_into(s)
+    }
+}
 
 /// Write into a stream.
 ///
@@ -47,12 +65,51 @@ pub trait WriteInto {
     }
     /// Write into [std::io::Stdout].
     fn try_write(&self) -> Result {
-        let lock: &Mutex<io::Stdout> = Mutex::borrow(&STDOUT);
-        let mut lock = lock.lock().unwrap();
-        self.try_write_into(lock.deref_mut())
+        self.try_write_into(&mut io::stdout())
     }
     /// Unwrapping version of [WriteInto::try_write].
     fn write(&self) {
         unwrap!(self.try_write())
+    }
+}
+
+impl<T: WriteSingleInto> WriteInto for T {
+    fn try_write_into<S: Write>(&self, s: &mut S) -> Result<()> {
+        self.try_write_single_into(s)
+    }
+}
+
+impl<T: WriteSingleInto> WriteInto for Vec<T> {
+    fn try_write_into<S: Write>(&self, s: &mut S) -> Result<()> {
+        self.as_slice().try_write_into(s)
+    }
+}
+
+impl<T: WriteSingleInto, const N: usize> WriteInto for [T; N] {
+    fn try_write_into<S: Write>(&self, s: &mut S) -> Result<()> {
+        self.as_slice().try_write_into(s)
+    }
+}
+impl<T: WriteSingleInto> WriteInto for [T] {
+    fn try_write_into<S: Write>(&self, s: &mut S) -> Result<()> {
+        WriteInto::try_write_into(&self.sep_by(T::SEP_ITEM), s)
+    }
+}
+
+impl<T: WriteSingleInto> WriteInto for Mat<T> {
+    fn try_write_into<S: Write>(&self, s: &mut S) -> Result<()> {
+        self.iter()
+            .map(|row| row.iter().sep_by(T::SEP_ITEM))
+            .sep_by(T::SEP_LINE)
+            .try_write_into(s)
+    }
+}
+
+impl<T: WriteSingleInto, const M: usize, const N: usize> WriteInto for [[T; N]; M] {
+    fn try_write_into<S: Write>(&self, s: &mut S) -> Result<()> {
+        self.iter()
+            .map(|row| row.iter().sep_by(T::SEP_ITEM))
+            .sep_by(T::SEP_LINE)
+            .try_write_into(s)
     }
 }

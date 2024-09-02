@@ -19,12 +19,10 @@ macro_rules! read {
     () => {
         $crate::read()
     };
-    ($n:expr) => {
-        $crate::read_n($n)
-    };
-    ($m:expr, $n:expr) => {
-        $crate::read_m_n($m, $n)
-    };
+    ($dim0:expr $(, $dims:expr)* $(,)?) => {{
+        let range = 0usize..$dim0;
+        ::std::vec::Vec::<_>::from_iter(range.map(|_| $crate::read!($($dims)*)))
+    }};
 }
 
 /// Implement [ReadInto] for given types that already implement [std::str::FromStr].

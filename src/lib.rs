@@ -26,6 +26,28 @@
 //! - `read!(n)` reads `n` data items from input and stores them in a [Vec].
 //! - `read!(m, n)` reads `m * n` data items from input and stores them in a [Mat].
 //!
+//! Given the input below:
+//!
+//! ```txt
+//! 42
+//! 1 2 3
+//! 1 2 3
+//! 4 5 6
+//! ```
+//!
+//! ```rust,no_run
+//! use iof::{read, Mat};
+//!
+//! let n: u32 = read!();  
+//! assert_eq!(n, 42);
+//!  
+//! let v: Vec<u32> = read!(3);
+//! assert_eq!(v, [1, 2, 3]);
+//!
+//! let m: Mat<u32> = read!(2, 3);
+//! assert_eq!(m, [[1, 2, 3], [4, 5, 6]]);
+//! ```
+//!
 //! You can use [show!] macro to write a single data item, a [Vec] or a [Mat] to output.
 //!
 //! # Input
@@ -221,7 +243,7 @@ pub use {
     read_into::{error::ReadIntoError, ReadInto, ReadIntoSingle},
     stdio::read_into::*,
     stream::{BufReadExt, InputStream},
-    write_into::WriteInto,
+    write_into::{WriteInto, WriteSingleInto},
 };
 
 mod array;

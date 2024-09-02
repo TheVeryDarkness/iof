@@ -6,7 +6,7 @@
 //! recommended to use this module in a multi-threaded environment.
 use crate::InputStream;
 use std::{
-    io::{self, stdin, BufReader, Stdin},
+    io::{stdin, BufReader, Stdin},
     sync::{LazyLock, Mutex},
 };
 
@@ -15,6 +15,3 @@ pub(crate) mod read_into;
 /// Standard input stream.
 pub static STDIN: LazyLock<Mutex<InputStream<BufReader<Stdin>>>> =
     LazyLock::new(|| Mutex::new(InputStream::new(BufReader::new(stdin()))));
-
-/// Standard output stream.
-pub static STDOUT: LazyLock<Mutex<io::Stdout>> = LazyLock::new(|| Mutex::new(io::stdout()));

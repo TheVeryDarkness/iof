@@ -1,14 +1,57 @@
 /// Write the given expression into [standard output](std::io::Stdout) using [WriteInto].
 ///
+/// ```rust
+/// use iof::show;
+///
+/// show!(42);
+/// show!(42, "Hello, World!");
+/// show!(42, "Hello, World!", [1, 2, 3, 4]);
+/// show!(42, "Hello, World!", [1, 2, 3, 4], [[1, 2], [3, 4]]);
+/// show!(42, "Hello, World!", [1, 2, 3, 4], [[1, 2], [3, 4]]; sep=", ");
+/// show!(42, "Hello, World!", [1, 2, 3, 4], [[1, 2], [3, 4]]; sep=", ", end="!");
+/// ```
+///
 /// [WriteInto]: crate::WriteInto
 #[macro_export]
 macro_rules! show {
-    ($expr:expr) => {
-        $crate::WriteInto::write(&$expr)
-    };
-    ($expr:expr, end=$end:expr) => {
-        $crate::WriteInto::write(&$expr);
+    (; end=$end:expr, sep=$sep:expr) => {
         $crate::WriteInto::write(&$end);
+    };
+    ($expr:expr $(, $res:expr)*; end=$end:expr, sep=$sep:expr) => {
+        $crate::WriteInto::write(&$expr);
+        $(
+            $crate::WriteInto::write(&$sep);
+            $crate::WriteInto::write(&$res);
+        )*
+        $crate::WriteInto::write(&$end);
+    };
+    ($expr:expr $(, $res:expr)*; sep=$sep:expr, end=$end:expr) => {
+        $crate::show!($expr $(, $res)*; end=$end, sep=$sep);
+    };
+    ($expr:expr $(, $res:expr)*; end=$end:expr) => {
+        $crate::show!($expr $(, $res)*; end=$end, sep=" ");
+    };
+    ($expr:expr $(, $res:expr)*; sep=$sep:expr) => {
+        $crate::show!($expr $(, $res)*; end="\n", sep=$sep);
+    };
+    ($expr:expr $(, $res:expr)* $(;)?) => {
+        $crate::show!($expr $(, $res)*; end="\n", sep="");
+    };
+
+    (; end=$end:expr) => {
+        $crate::WriteInto::write(&$end);
+    };
+    (; sep=$sep:expr, end=$end:expr) => {
+        $crate::show!(; end=$end, sep=$sep);
+    };
+    (; end=$end:expr) => {
+        $crate::show!(; end=$end, sep=" ");
+    };
+    (; sep=$sep:expr) => {
+        $crate::show!(; end="\n", sep=$sep);
+    };
+    ($(;)?) => {
+        $crate::show!(; end="\n", sep="");
     };
 }
 /// Implement [WriteInto] for given types that already implements [std::fmt::Display].
@@ -18,41 +61,11 @@ macro_rules! show {
 macro_rules! impl_write_into {
     ($($ty:ty)*) => {
         $(
-            impl $crate::WriteInto for $ty {
-                fn try_write_into<S: ::std::io::Write>(&self, s: &mut S) -> ::std::io::Result<()> {
+            impl $crate::WriteSingleInto for $ty {
+                fn try_write_single_into<S: ::std::io::Write>(&self, s: &mut S) -> ::std::io::Result<()> {
                     ::std::write!(s, "{}", self)
                 }
             }
-
-            impl $crate::WriteInto for ::std::vec::Vec<$ty> {
-                fn try_write_into<S: ::std::io::Write>(&self, s: &mut S) -> ::std::io::Result<()> {
-                    self.as_slice().try_write_into(s)
-                }
-            }
-
-            impl<const N: usize> $crate::WriteInto for [$ty; N] {
-                fn try_write_into<S: ::std::io::Write>(&self, s: &mut S) -> ::std::io::Result<()> {
-                    self.as_slice().try_write_into(s)
-                }
-            }
-
-            impl $crate::WriteInto for [$ty] {
-                fn try_write_into<S: ::std::io::Write>(&self, s: &mut S) -> ::std::io::Result<()> {
-                    use $crate::SepBy;
-                    WriteInto::try_write_into(&self.sep_by(" "), s)
-                }
-            }
-
-            impl $crate::WriteInto for $crate::Mat<$ty> {
-                fn try_write_into<S: ::std::io::Write>(&self, s: &mut S) -> ::std::io::Result<()> {
-                    use $crate::SepBy;
-                    self.iter()
-                        .map(|row| row.iter().sep_by(" "))
-                        .sep_by("\n")
-                        .try_write_into(s)
-                }
-            }
-
         )*
     };
 }
