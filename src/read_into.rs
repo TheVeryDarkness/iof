@@ -60,6 +60,8 @@ pub trait ReadIntoOne<T>: BufReadExt {
     /// ```txt
     /// 1 2 3
     /// ```
+    ///
+    /// The above example will read `1 2 3`.
     fn try_read_in_line_trimmed(&mut self) -> Result<T, Self::Error> {
         let s = self.try_get_line_trimmed()?.trim_start();
         Self::parse(s)
@@ -69,6 +71,17 @@ pub trait ReadIntoOne<T>: BufReadExt {
         unwrap!(self.try_read_in_line_trimmed())
     }
     /// Read an element in a single trimmed line that is not empty from `self`, parse into `T`.
+    ///
+    /// ```txt
+    /// 1 2 3
+    /// ```
+    ///
+    /// ```txt
+    ///
+    /// 1 2 3
+    /// ```
+    ///
+    /// Both examples will read `1 2 3`.
     fn try_read_in_line_some_trimmed(&mut self) -> Result<T, Self::Error> {
         let s = self.try_get_line_some_trimmed()?.trim_start();
         Self::parse(s)
