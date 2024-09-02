@@ -76,9 +76,9 @@ fn skip_ws() {
 
     for _ in 0..100 {
         let c = reader.try_skip_ws().unwrap();
-        assert_eq!(c, true);
+        assert!(c);
         let c = reader.try_skip_ws().unwrap();
-        assert_eq!(c, true);
+        assert!(c);
     }
 
     let c = reader.try_skip_ws();
