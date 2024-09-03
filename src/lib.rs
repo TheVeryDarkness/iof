@@ -319,8 +319,8 @@ pub use {
     formatted::SepBy,
     mat::Mat,
     read::{
-        error::ReadIntoError,
-        read_from::ReadFrom,
+        error::ReadError,
+        read_from::{ReadFrom, ReadFromError},
         read_into::ReadInto,
         read_one_from::{ReadOneFrom, ReadOneFromError},
         read_one_into::ReadOneInto,

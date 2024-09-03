@@ -17,12 +17,16 @@ pub(crate) mod stream;
 pub static STDIN: LazyLock<Mutex<InputStream<BufReader<Stdin>>>> =
     LazyLock::new(|| Mutex::new(InputStream::new(BufReader::new(io::stdin()))));
 
-/// Get a handle to the standard input stream.
+/// Get an exclusive handle to the standard input stream.
+///
+/// See [io::stdin] and [io::Stdin::lock] for more information.
 pub fn stdin() -> MutexGuard<'static, InputStream<BufReader<Stdin>>> {
     STDIN.lock().unwrap()
 }
 
-/// Get a handle to the standard output stream.
+/// Get an exclusive handle to the standard output stream.
+///
+/// See [io::stdout] and [io::Stdout::lock] for more information.
 pub fn stdout() -> io::StdoutLock<'static> {
     io::stdout().lock()
 }

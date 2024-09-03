@@ -15,11 +15,11 @@ const fn is_eol(c: char) -> bool {
 }
 
 fn err_eof() -> StreamError {
-    StreamError::EOF
+    StreamError::Eof
 }
 
 fn err_eol() -> StreamError {
-    StreamError::EOL
+    StreamError::Eol
 }
 
 #[inline]

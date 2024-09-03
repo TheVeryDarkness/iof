@@ -6,7 +6,7 @@ use std::mem::transmute;
 /// It provides a way to read:
 ///
 /// - A single non-ASCII-whitespace character ([BufReadExt::try_get_non_ws]),
-/// - A single ASCII-white-space-separated string ([BufReadExt::try_get_string]),
+/// - A single ASCII-white-space-separated string ([BufReadExt::try_get_string_some]),
 /// - A single non-empty line ([BufReadExt::try_get_line_some]),
 /// - Or just the remained line ([BufReadExt::try_get_line]).
 ///
@@ -95,7 +95,7 @@ pub trait BufReadExt {
 
     /// Get a single not-empty line. The trailing newline will be consumed and trimmed.
     ///
-    /// Repeat reading a new line if current line is empty.
+    /// Repeatedly read a new line if current line is empty.
     #[inline]
     fn try_get_line_some(&mut self) -> Result<&str, StreamError> {
         loop {
@@ -109,7 +109,7 @@ pub trait BufReadExt {
 
     /// Get a single not-empty line.  The trailing white spaces will be consumed and trimmed.
     ///
-    /// Repeat reading a new line if current line is empty.
+    /// Repeatedly read a new line if current line is empty.
     #[inline]
     fn try_get_line_some_trimmed(&mut self) -> Result<&str, StreamError> {
         loop {

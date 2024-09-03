@@ -6,10 +6,10 @@ use super::read_from::ReadFromError;
 pub trait ReadInto<T>: BufReadExt {
     /// Errors that come from [ReadOneFrom].
     ///
-    /// This is usually [ReadIntoError].
+    /// This is usually [ReadError].
     ///
     /// [ReadOneFrom]: crate::ReadOneFrom
-    /// [ReadIntoError]: crate::ReadIntoError
+    /// [ReadError]: crate::ReadError
     type Error: std::error::Error;
 
     /// Read from `self` and parse into `Self`.

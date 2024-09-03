@@ -1,21 +1,21 @@
 use super::read_one_from::ReadOneFrom;
-use crate::{array::array_try_from_fn, mat::Mat, BufReadExt, ReadIntoError};
+use crate::{array::array_try_from_fn, mat::Mat, BufReadExt, ReadError};
 use std::fmt::{self, Display};
 
 /// The error type for [ReadFrom].
-pub type ReadFromError<T> = ReadIntoError<<T as ReadFrom>::ParseError>;
+pub type ReadFromError<T> = ReadError<<T as ReadFrom>::ParseError>;
 
 /// Read data from input stream.
 ///
 /// # Errors
 ///
-/// - If the input cannot be parsed into `T`, [ReadIntoError::FromStrError] is returned.
-/// - If the input is not valid UTF-8, [ReadIntoError::IOError] is returned.
-/// - If an I/O error occurs, [ReadIntoError::IOError] is returned.
+/// - If the input cannot be parsed into `T`, [ReadError::FromStrError] is returned.
+/// - If the input is not valid UTF-8, [ReadError::IOError] is returned.
+/// - If an I/O error occurs, [ReadError::IOError] is returned.
 ///
-/// [ReadIntoError]: crate::ReadIntoError
-/// [ReadIntoError::FromStrError]: crate::ReadIntoError::FromStrError
-/// [ReadIntoError::IOError]: crate::ReadIntoError::IOError
+/// [ReadError]: crate::ReadError
+/// [ReadError::FromStrError]: crate::ReadError::FromStrError
+/// [ReadError::IOError]: crate::ReadError::IOError
 pub trait ReadFrom: Sized {
     /// Errors that come from [ReadOneFrom].
     type ParseError: std::error::Error;

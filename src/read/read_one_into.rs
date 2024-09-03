@@ -4,9 +4,9 @@ use crate::{stream, unwrap, BufReadExt, ReadOneFrom, ReadOneFromError};
 pub trait ReadOneInto<T> {
     /// Errors that come from [ReadOneFrom].
     ///
-    /// This is usually [ReadIntoError].
+    /// This is usually [ReadError].
     ///
-    /// [ReadIntoError]: crate::ReadIntoError
+    /// [ReadError]: crate::ReadError
     type Error: std::error::Error + From<stream::error::StreamError>;
 
     /// Read one from `self` and parse into `T`.

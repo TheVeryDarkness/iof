@@ -10,24 +10,18 @@ pub use {
 // type StdinReader = InputStream<BufReader<Stdin>>;
 
 macro_rules! expose_stdin {
-    ($try_fn:ident $str_try_fn:literal $fn:ident $str_fn:literal [$ty_arg:ident] [$trait:ident] [$($trait_arg:tt)*] ($($arg:ident: $arg_ty:ty), *) -> $ret:ty | $err:ty) => {
-        /// Call [`
-        #[doc = $str_try_fn]
-        /// `] on [std::io::StdinLock].
+    ($try_fn:ident $fn:ident $trait_into:ident [$ty_arg:ident] [$trait:ident] [$($trait_arg:tt)*] ($($arg:ident: $arg_ty:ty), *) -> $ret:ty | $err:ty) => {
+        #[doc = concat!("Call [`", stringify!($trait_into), "::", stringify!($try_fn), "`] on [stdin].")]
         ///
         /// # Panics
         ///
-        /// If [`
-        #[doc = $str_try_fn]
-        /// `] panics.
+        #[doc = concat!("If [`", stringify!($trait_into), "::", stringify!($try_fn), "`] panics.")]
         ///
         /// # Errors
         ///
         /// If this function is called in multiple threads, the behavior is undefined, possibly causing a deadlock.
         ///
-        /// If [`
-        #[doc = $str_try_fn]
-        /// `] returns an error.
+        #[doc = concat!("If [`", stringify!($trait_into), "::", stringify!($try_fn), "`] returns an error.")]
         pub fn $try_fn<$ty_arg>($($arg: $arg_ty),*) -> Result<$ret, $err>
         where
             $ty_arg: $trait,
@@ -35,10 +29,7 @@ macro_rules! expose_stdin {
             stdin().$try_fn($($arg),*)
         }
 
-        /// Unwrap the result of [`
-        #[doc = $str_try_fn]
-        /// `].
-        #[track_caller]
+        #[doc = concat!("Unwrap the result of [`", stringify!($try_fn), "`].")]
         pub fn $fn<$ty_arg>($($arg: $arg_ty),*) -> $ret
         where
             $ty_arg: $trait,
@@ -49,53 +40,43 @@ macro_rules! expose_stdin {
 }
 
 expose_stdin!(
-    try_read "ReadInto::try_read"
-    read "ReadInto::read"
+    try_read read ReadInto
     [T] [ReadFrom] [T] () -> T | ReadFromError<T>
 );
 expose_stdin!(
-    try_read_n "ReadInto::try_read_n"
-    read_n "ReadInto::read_n"
+    try_read_n read_n ReadInto
     [T] [ReadFrom] [T] (n: usize) -> Vec<T> | ReadFromError<T>
 );
 expose_stdin!(
-    try_read_m_n "ReadInto::try_read_m_n"
-    read_m_n "ReadInto::read_m_n"
+    try_read_m_n read_m_n ReadInto
     [T] [ReadFrom] [T] (m: usize, n: usize) -> Mat<T> | ReadFromError<T>
 );
 
 expose_stdin!(
-    try_read_one "ReadOneInto::try_read_one"
-    read_one "ReadOneInto::read_one"
+    try_read_one read_one ReadOneInto
     [T] [ReadOneFrom] [T] () -> T | ReadOneFromError<T>
 );
 expose_stdin!(
-    try_read_in_line_trimmed "ReadOneInto::try_read_in_line_trimmed"
-    read_in_line_trimmed "ReadOneInto::read_in_line_trimmed"
+    try_read_in_line_trimmed read_in_line_trimmed ReadOneInto
     [T] [ReadOneFrom] [T] () -> T | ReadOneFromError<T>
 );
 expose_stdin!(
-    try_read_in_line_some_trimmed "ReadOneInto::try_read_in_line_some_trimmed"
-    read_in_line_some_trimmed "ReadOneInto::read_in_line_some_trimmed"
+    try_read_in_line_some_trimmed read_in_line_some_trimmed ReadOneInto
     [T] [ReadOneFrom] [T] () -> T | ReadOneFromError<T>
 );
 expose_stdin!(
-    try_read_all "ReadOneInto::try_read_all"
-    read_all "ReadOneInto::read_all"
+    try_read_all read_all ReadOneInto
     [T] [ReadOneFrom] [T] () -> Vec<T> | ReadOneFromError<T>
 );
 expose_stdin!(
-    try_read_any_in_line "ReadOneInto::try_read_any_in_line"
-    read_any_in_line "ReadOneInto::read_any_in_line"
+    try_read_any_in_line read_any_in_line ReadOneInto
     [T] [ReadOneFrom] [T] () -> Vec<T> | ReadOneFromError<T>
 );
 expose_stdin!(
-    try_read_some_in_line "ReadOneInto::try_read_some_in_line"
-    read_some_in_line "ReadOneInto::read_all_in_line"
+    try_read_some_in_line read_some_in_line ReadOneInto
     [T] [ReadOneFrom] [T] () -> Vec<T> | ReadOneFromError<T>
 );
 expose_stdin!(
-    try_read_in_char "ReadOneInto::try_read_in_char"
-    read_in_char "ReadOneInto::read_in_char"
+    try_read_in_char read_in_char ReadOneInto
     [T] [ReadOneFrom] [T] () -> T | ReadOneFromError<T>
 );

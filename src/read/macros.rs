@@ -38,7 +38,7 @@ macro_rules! impl_read_into_single {
             type ParseError = <char as ::std::str::FromStr>::Err;
 
             fn parse(s: &str) -> Result<char, $crate::ReadOneFromError<Self>> {
-                s.parse().map_err(|err| $crate::ReadIntoError::FromStrError(err, s.to_owned(), ::std::any::type_name::<char>()))
+                s.parse().map_err(|err| $crate::ReadError::FromStrError(err, s.to_owned(), ::std::any::type_name::<char>()))
             }
 
             fn try_read_one_from<S: $crate::BufReadExt>(stream: &mut S) -> Result<char, $crate::ReadOneFromError<Self>> {
@@ -52,7 +52,7 @@ macro_rules! impl_read_into_single {
             type ParseError = <$ty as ::std::str::FromStr>::Err;
 
             fn parse(s: &str) -> Result<$ty, $crate::ReadOneFromError<Self>> {
-                s.parse().map_err(|err| $crate::ReadIntoError::FromStrError(err, s.to_owned(), ::std::any::type_name::<$ty>()))
+                s.parse().map_err(|err| $crate::ReadError::FromStrError(err, s.to_owned(), ::std::any::type_name::<$ty>()))
             }
         }
         $crate::impl_read_into_single!($($tys)*);

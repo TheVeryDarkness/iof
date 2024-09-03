@@ -125,7 +125,7 @@ mod tests {
         assert_eq!(stream.try_get().unwrap(), 'l');
         assert_eq!(stream.try_get().unwrap(), 'd');
         assert_eq!(stream.try_get().unwrap(), '!');
-        assert!(matches!(stream.try_get().unwrap_err(), StreamError::EOL));
+        assert!(matches!(stream.try_get().unwrap_err(), StreamError::Eol));
     }
 
     #[test]
@@ -135,7 +135,7 @@ mod tests {
         assert_eq!(stream.try_get_string_some().unwrap(), "Hello,");
         assert_eq!(stream.try_get_string_some().unwrap(), "world!");
         assert!(
-            matches!(stream.try_get_string_some().unwrap_err(), StreamError::EOL),
+            matches!(stream.try_get_string_some().unwrap_err(), StreamError::Eol),
             "{:?}",
             stream.try_get_string_some()
         );

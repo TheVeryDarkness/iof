@@ -92,7 +92,7 @@ impl<B: BufRead> InputStream<B> {
             if self.is_eol() {
                 continue;
             }
-            let remaining = unsafe { transmute(remaining_trimmed) };
+            let remaining: &str = unsafe { transmute(remaining_trimmed) };
             return Ok((remaining, len_skipped));
         }
     }
@@ -223,7 +223,7 @@ mod tests {
         assert_eq!(stream.try_get().unwrap(), 't');
         assert_eq!(stream.try_get().unwrap(), '!');
         assert!(
-            matches!(stream.try_get().unwrap_err(), StreamError::EOF),
+            matches!(stream.try_get().unwrap_err(), StreamError::Eof),
             "{:?}",
             stream.try_get_string_some(),
         );
@@ -238,7 +238,7 @@ mod tests {
         assert_eq!(stream.try_get_string_some().unwrap(), "Hello,");
         assert_eq!(stream.try_get_string_some().unwrap(), "Rust!");
         assert!(
-            matches!(stream.try_get_string_some().unwrap_err(), StreamError::EOF),
+            matches!(stream.try_get_string_some().unwrap_err(), StreamError::Eof),
             "{:?}",
             stream.try_get_string_some()
         );

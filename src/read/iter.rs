@@ -1,7 +1,7 @@
 use super::read_one_from::ReadOneFromError;
 use crate::{
     stream::{error::StreamError, line_buf::LineBuf},
-    BufReadExt, ReadIntoError, ReadOneFrom,
+    BufReadExt, ReadError, ReadOneFrom,
 };
 use std::marker::PhantomData;
 
@@ -24,7 +24,7 @@ impl<'s, S: BufReadExt + ?Sized, T: ReadOneFrom> Iterator for ReadAll<'s, S, T> 
     fn next(&mut self) -> Option<Self::Item> {
         match self.stream.try_get_string_some() {
             Ok(s) => Some(T::parse(s)),
-            Err(StreamError::EOF | StreamError::EOL) => None,
+            Err(StreamError::Eof | StreamError::Eol) => None,
             Err(e) => Some(Err(e.into())),
         }
     }
@@ -50,7 +50,7 @@ impl<'s, T: ReadOneFrom> Iterator for ReadAllIn<'s, T> {
     fn next(&mut self) -> Option<Self::Item> {
         match T::try_read_one_from(&mut self.stream) {
             Ok(t) => Some(Ok(t)),
-            Err(ReadIntoError::EOF | ReadIntoError::EOL) => None,
+            Err(ReadError::EOF | ReadError::EOL) => None,
             Err(e) => Some(Err(e)),
         }
     }

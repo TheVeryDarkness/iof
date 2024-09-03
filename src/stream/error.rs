@@ -6,16 +6,16 @@ use super::{MSG_EOF, MSG_EOL};
 #[derive(Debug)]
 pub enum StreamError {
     IOError(std::io::Error),
-    EOF,
-    EOL,
+    Eof,
+    Eol,
 }
 
 impl Display for StreamError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             Self::IOError(e) => Display::fmt(e, f),
-            Self::EOF => f.write_str(MSG_EOF),
-            Self::EOL => f.write_str(MSG_EOL),
+            Self::Eof => f.write_str(MSG_EOF),
+            Self::Eol => f.write_str(MSG_EOL),
         }
     }
 }

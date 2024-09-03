@@ -9,7 +9,7 @@ use crate::stream::{self, MSG_EOF, MSG_EOL};
 /// [ReadInto]: crate::ReadInto
 /// [ReadOneFrom]: crate::ReadOneFrom
 #[derive(Debug)]
-pub enum ReadIntoError<E> {
+pub enum ReadError<E> {
     /// Error during reading from input.
     IOError(std::io::Error),
     /// Unexpected end of file.
@@ -20,7 +20,7 @@ pub enum ReadIntoError<E> {
     FromStrError(E, String, &'static str),
 }
 
-impl<E> Display for ReadIntoError<E>
+impl<E> Display for ReadError<E>
 where
     E: std::error::Error,
 {
@@ -41,20 +41,20 @@ where
     }
 }
 
-impl<E> std::error::Error for ReadIntoError<E> where E: std::error::Error {}
+impl<E> std::error::Error for ReadError<E> where E: std::error::Error {}
 
-impl<E> From<std::io::Error> for ReadIntoError<E> {
+impl<E> From<std::io::Error> for ReadError<E> {
     fn from(error: std::io::Error) -> Self {
         Self::IOError(error)
     }
 }
 
-impl<E> From<stream::error::StreamError> for ReadIntoError<E> {
+impl<E> From<stream::error::StreamError> for ReadError<E> {
     fn from(error: stream::error::StreamError) -> Self {
         match error {
             stream::error::StreamError::IOError(e) => Self::IOError(e),
-            stream::error::StreamError::EOF => Self::EOF,
-            stream::error::StreamError::EOL => Self::EOL,
+            stream::error::StreamError::Eof => Self::EOF,
+            stream::error::StreamError::Eol => Self::EOL,
         }
     }
 }
