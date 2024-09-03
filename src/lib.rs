@@ -116,7 +116,7 @@
 //! use iof::{read, get_line_some};
 //!
 //! // Read a single string from input.
-//! let s: String = read();
+//! let s: String = read!();
 //! assert_eq!(s, "42");
 //!
 //! // Read a non-empty line of string from input.
@@ -359,7 +359,11 @@
 //!
 //! ## Cursor
 //!
-//! For character streams, it's sometimes a little tricky to determine the position of the cursor. For example, given the input below:
+//! For character streams, The cursor is the position of the next character to be read. It is at the beginning of the input stream initially, and it moves forward as data items are read.
+//!
+//! In general, every call to a read function that consume a data item will consume the input up to the next whitespace character (but whitespaces after the data item will not be consumed), and every call to a read function that reads a line will consume the input up to the next newline character (and then the cursor will be at the beginning of the next line).
+//!
+//! It's sometimes a little tricky to determine the position of the cursor. For example, given the input below:
 //!
 //! ```txt
 //! 1 2 3
@@ -367,8 +371,6 @@
 //! ```
 //!
 //! If you call [`read_one<String>`] for 3 times and [`read_in_line_trimmed<String>`] for 1 time, they will read `1`, `2`, `3`, and an empty string respectively. Therefore it's generally unrecommended to use [`read_in_line_trimmed<String>()`] and similar functions that read a possibly empty line of string without specifying the number of data items to read.
-//!
-//! In general, every call to a read function that consume a data item will consume the input up to the next whitespace character (but whitespaces after the data item will not be consumed), and every call to a read function that reads a line will consume the input up to the next newline character (and then the cursor will be at the beginning of the next line).
 pub use {
     crate as iof,
     formatted::SepBy,
