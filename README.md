@@ -9,7 +9,7 @@
 
 This library is mainly for some cases that need simple and fast I/O, such as online judge.
 
-This library has an interface for inputs that is a bit similar to input streams in C++, and some default format for output.
+This library has an interface for inputs that is a bit similar to input streams in C++ (thus is helpful if you're finding an I/O framework in Rust for online judge), and some default format for output.
 
 See the [documentation](https://docs.rs/iof) for more details.
 

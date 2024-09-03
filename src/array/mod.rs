@@ -9,32 +9,6 @@ mod guard;
 #[cfg(test)]
 mod tests;
 
-/// Create an array of `T` elements from a function that produces each element.
-///
-/// It's safe to pass a function that may panic, but the array will be dropped.
-///
-/// # Examples
-///
-/// ```rust,ignore
-/// use iof::array_from_fn;
-/// let array: [String; 3] = array_from_fn(|| "hello".to_string());
-/// assert_eq!(array[0], "hello");
-/// assert_eq!(array[1], "hello");
-/// assert_eq!(array[2], "hello");
-/// ```
-pub fn array_from_fn<T, const N: usize>(mut f: impl FnMut() -> T) -> [T; N] {
-    let mut array: [MaybeUninit<T>; N] = from_fn(|_| MaybeUninit::uninit());
-    let mut guard = ArrayGuard::new(&mut array);
-    for _ in 0..N {
-        unsafe {
-            guard.push_unchecked(f());
-        }
-    }
-    forget(guard);
-    // Hope this is optimized well.
-    array.map(|x| unsafe { x.assume_init() })
-}
-
 /// Create an array of `T` elements from a function that produces each element with a possible error.
 ///
 /// It's safe to pass a function that may panic, but the array will be dropped.

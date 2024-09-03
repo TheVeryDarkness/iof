@@ -2,7 +2,7 @@ use std::mem::MaybeUninit;
 
 /// Helper for initializing an array of `MaybeUninit<T>` elements.
 ///
-/// Once dopped, initialized elements in the array are also dropped.
+/// Once dropped, initialized elements in the array are also dropped.
 /// Call [std::mem::forget] to drop the array without dropping the elements.
 ///
 /// Borrow from the underlying implementation of [std::array::from_fn].
@@ -33,7 +33,7 @@ impl<'a, T, const N: usize> ArrayGuard<'a, T, N> {
         Self { array, len: 0 }
     }
 
-    /// Use [usize::unchecked_add] if it's stablized.
+    /// Use [usize::unchecked_add] if it's stabilized.
     pub(crate) unsafe fn push_unchecked(&mut self, value: T) {
         let _ = self.array.get_unchecked_mut(self.len).write(value);
         // Safety: We just wrote to the array.

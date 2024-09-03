@@ -12,7 +12,7 @@
 /// ```
 ///
 /// [WriteInto]: crate::WriteInto
-#[macro_export]
+#[macro_export(local_inner_macros)]
 macro_rules! show {
     (; end=$end:expr, sep=$sep:expr) => {
         $crate::WriteInto::write(&$end);
@@ -57,7 +57,7 @@ macro_rules! show {
 /// Implement [WriteInto] for given types that already implements [std::fmt::Display].
 ///
 /// [WriteInto]: crate::WriteInto
-#[macro_export]
+#[macro_export(local_inner_macros)]
 macro_rules! impl_write_into {
     ($($ty:ty)*) => {
         $(

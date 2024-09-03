@@ -8,6 +8,7 @@ fn test_example(name: &str, input: &str, out: &str) {
         .arg("run")
         .arg("--example")
         .arg(name)
+        .env("RUST_BACKTRACE", "1")
         .stdin(Stdio::piped())
         .stdout(Stdio::piped())
         .stderr(Stdio::inherit())
@@ -65,5 +66,31 @@ fn macros() {
 2, 2 2 :: 3 3 :: 1 2 3 4 5 6 7 8 9
 10 11 12 13 14 15 16 17 18
 ",
+    );
+}
+
+#[test]
+#[cfg_attr(miri, ignore)]
+fn doc_read() {
+    test_example("doc_read", include_str!("../examples/doc_read.txt"), "");
+}
+
+#[test]
+#[cfg_attr(miri, ignore)]
+fn doc_get_line() {
+    test_example(
+        "doc_get_line",
+        include_str!("../examples/doc_get_line.txt"),
+        "",
+    );
+}
+
+#[test]
+#[cfg_attr(miri, ignore)]
+fn doc_get_line_some() {
+    test_example(
+        "doc_get_line_some",
+        include_str!("../examples/doc_get_line_some.txt"),
+        "",
     );
 }

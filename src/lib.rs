@@ -15,7 +15,9 @@
     clippy::cargo
 )]
 #![forbid(clippy::should_panic_without_expect, clippy::incompatible_msrv)]
-//! A utility library for reading data from input and writting data to output.
+#![forbid(rustdoc::all)]
+
+//! A utility library for reading data from input and writing data to output.
 //!
 //! # In Short
 //!
@@ -30,48 +32,11 @@
 //! Given the input below:
 //!
 //! ```txt
-//! 42 abc def
-//! 0 0.3 lmn
-//! 1 2 3
-//! 1 2 3
-//! 4 5 6
-//! .@/#$
-//! !@#!@
-//! *&@:,
+#![doc = include_str!("../examples/doc_read.txt")]
 //! ```
 //!
 //! ```rust,no_run
-//! use iof::{read, Mat};
-//!
-//! // Read a single integer from input.
-//! let n: u32 = read!();  
-//! assert_eq!(n, 42);
-//!
-//! // Read a single string from input.
-//! let n: String = read!();
-//! assert_eq!(n, "abc");
-//!
-//! // Read a tuple from input.
-//! let (l, m, n): (u32, f64, String) = read!();
-//! assert_eq!(l, 0);
-//! assert_eq!(m, 0.3);
-//! assert_eq!(n, "lmn");
-//!
-//! // Read a vector of charcters from input.
-//! let v: Vec<char> = read!();
-//! assert_eq!(v, ['d', 'e', 'f']);
-//!  
-//! // Read a vector of integers from input.
-//! let v: Vec<u32> = read!(3);
-//! assert_eq!(v, [1, 2, 3]);
-//!
-//! // Read a matrix of integers from input.
-//! let m: Mat<u32> = read!(2, 3);
-//! assert_eq!(m, [[1, 2, 3], [4, 5, 6]]);
-//!
-//! // Read a matrix of characters from input.
-//! let m: Mat<char> = read!(3, 5);
-//! assert_eq!(m, [['.', '@', '/', '#', '$'], ['!', '@', '#', '!', '@'], ['*', '&', '@', ':', ',']]);
+#![doc = include_str!("../examples/doc_read.rs")]
 //! ```
 //!
 //! ## [get_line] and [get_line_some]
@@ -81,24 +46,11 @@
 //! Given the input below:
 //!
 //! ```txt
-//! 42
-//! abc
+#![doc = include_str!("../examples/doc_get_line.txt")]
 //! ```
 //!
 //! ```rust,no_run
-//! use iof::{get_line, read};
-//!
-//! // Read a single string from input.
-//! let s: String = read!();
-//! assert_eq!(s, "42");
-//!
-//! // Read a line of string from input.
-//! let s: String = get_line();
-//! assert_eq!(s, "");
-//!
-//! // Read a line of string from input.
-//! let s: String = get_line();
-//! assert_eq!(s, "abc");
+#![doc = include_str!("../examples/doc_get_line.rs")]
 //! ```
 //!
 //! *You may have noticed that the [get_line] function is similar to the [`input`](https://docs.python.org/zh-cn/3/library/functions.html#input) function in Python and [`std::get_line`](https://zh.cppreference.com/w/cpp/string/basic_string/getline) in cpp.*
@@ -108,20 +60,11 @@
 //! Given the input below:
 //!
 //! ```txt
-//! 42
-//! abc
+#![doc = include_str!("../examples/doc_get_line_some.txt")]
 //! ```
 //!
 //! ```rust,no_run
-//! use iof::{read, get_line_some};
-//!
-//! // Read a single string from input.
-//! let s: String = read!();
-//! assert_eq!(s, "42");
-//!
-//! // Read a non-empty line of string from input.
-//! let s: String = get_line_some();
-//! assert_eq!(s, "abc");
+#![doc = include_str!("../examples/doc_get_line_some.rs")]
 //! ```
 //!
 //! See [Cursor](#cursor) for more details.
@@ -143,21 +86,21 @@
 //!
 //! ## [ReadInto]
 //!
-//! Some higher-level functions are provided to read data sequence (a single item is also a sequnce) from input:
+//! Some higher-level functions are provided to read data sequence (a single item is also a sequence) from input:
 //!
 //! - [`read<T>()`] (or [`try_read<T>()`]) reads a single sequence from input and converts it to a value of `T`.
-//! - [`read_n<T>(n)`] (or [`try_read_n<T>(n)`]) reads `n`` sequences from input and converts them to a value of [Vec].
+//! - [`read_n<T>(n)`] (or [`try_read_n<T>(n)`]) reads `n` sequences from input and converts them to a value of [Vec].
 //! - [`read_m_n<T>(m, n)`] (or [`try_read_m_n<T>(m, n)`]) reads `m * n` sequences from input and converts them to a value of [`Mat<T>`].
 //!
 //! These functions are implemented for types that implement [ReadInto] trait. Currently, the following types implement [ReadInto] trait:
 //!
-//! - All types that implement [ReadIntoOne] trait;
+//! - All types that implement [ReadOneFrom] trait;
 //! - `[T; N]` where `T` implements [ReadInto] trait;
 //! - `Box<[T; N]>` where `T` implements [ReadInto] trait.
 //! - Tuple types, e.g., `(T1, T2, ..., Tn)`, where `Ti` implements [ReadInto] trait and `n` is neither 0 nor more than 12.
 //! - ...
 //!
-//! ## [ReadIntoOne]
+//! ## [ReadOneFrom]
 //!
 //! Some lower-level functions are provided to read a single data item from input:
 //!
@@ -234,10 +177,10 @@
 //!   If you call [`read_in_char`] for 3 times, it will read `1`, `2`, and `3` as three characters.
 //!
 //! - [`read_all<T>()`] (or [`try_read_all<T>()`]) reads all remaining data items from input and converts them to a value of [Vec].
-//! - [`read_all_in_line<T>()`] (or [`try_read_all_in_line<T>()`]) reads all data items in current line from input and converts them to a value of [Vec].
-//! - [`read_all_in_line_some<T>()`] (or [`try_read_all_in_line_some<T>()`]) reads all data items in the next non-empty line from input and converts them to a value of [Vec].
+//! - [`read_any_in_line<T>()`] (or [`try_read_any_in_line<T>()`]) reads all data items in current line from input and converts them to a value of [Vec].
+//! - [`read_some_in_line<T>()`] (or [`try_read_some_in_line<T>()`]) reads all data items in the next non-empty line from input and converts them to a value of [Vec].
 //!
-//! These functions are implemented for types that implement [ReadIntoOne] trait. Currently, the following types in [std] (or [core]) implement [ReadIntoOne] trait:
+//! These functions are implemented for types that implement [ReadOneFrom] trait. Currently, the following types in [std] (or [core]) implement [ReadOneFrom] trait:
 //!
 //! - [String];
 //! - [char] (but it has different behavior from other types);
@@ -249,7 +192,7 @@
 //! - [NonZeroI8], [NonZeroI16], [NonZeroI32], [NonZeroI64], [NonZeroI128], [NonZeroIsize];
 //! - ...
 //!
-//! And you can implement [ReadIntoOne] trait for your own types by implementing [ReadIntoOne::parse] method. For [FromStr] types, you can use the macro [impl_read_into_single!].
+//! And you can implement [ReadOneFrom] trait for your own types by implementing [ReadOneFrom::parse] method. For [FromStr] types, you can use the macro [impl_read_into_single!].
 //!
 //! [FromStr]: std::str::FromStr
 //!
@@ -361,7 +304,7 @@
 //!
 //! For character streams, The cursor is the position of the next character to be read. It is at the beginning of the input stream initially, and it moves forward as data items are read.
 //!
-//! In general, every call to a read function that consume a data item will consume the input up to the next whitespace character (but whitespaces after the data item will not be consumed), and every call to a read function that reads a line will consume the input up to the next newline character (and then the cursor will be at the beginning of the next line).
+//! In general, every call to a read function that consume a data item will consume the input up to the next whitespace character (but white spaces after the data item will not be consumed), and every call to a read function that reads a line will consume the input up to the next newline character (and then the cursor will be at the beginning of the next line).
 //!
 //! It's sometimes a little tricky to determine the position of the cursor. For example, given the input below:
 //!
@@ -370,22 +313,36 @@
 //! 4 5 6
 //! ```
 //!
-//! If you call [`read_one<String>`] for 3 times and [`read_in_line_trimmed<String>`] for 1 time, they will read `1`, `2`, `3`, and an empty string respectively. Therefore it's generally unrecommended to use [`read_in_line_trimmed<String>()`] and similar functions that read a possibly empty line of string without specifying the number of data items to read.
+//! If you call [`read_one<String>()`] for 3 times and [`read_in_line_trimmed<String>()`] for 1 time, they will read `1`, `2`, `3`, and an empty string respectively. Therefore it's generally unrecommended to use [`read_in_line_trimmed<String>()`] and similar functions that read a possibly empty line of string without specifying the number of data items to read.
 pub use {
     crate as iof,
     formatted::SepBy,
     mat::Mat,
-    read_into::{error::ReadIntoError, ReadInto, ReadIntoOne},
+    read::{
+        error::ReadIntoError,
+        read_from::ReadFrom,
+        read_into::ReadInto,
+        read_one_from::{ReadOneFrom, ReadOneFromError},
+        read_one_into::ReadOneInto,
+    },
     stdio::{read_into::*, stdin, stdout, stream::*},
-    stream::{BufReadExt, InputStream},
-    write_into::{WriteInto, WriteOneInto},
+    stream::{input_stream::InputStream, traits::BufReadExt},
+    write::{WriteInto, WriteOneInto},
 };
 
 mod array;
 mod formatted;
 mod mat;
-mod read_into;
+mod read;
 mod sep_by;
 mod stdio;
 mod stream;
-mod write_into;
+mod write;
+
+/// Unwrap a result or panic with the error message.
+#[macro_export(local_inner_macros)]
+macro_rules! unwrap {
+    ($result:expr) => {
+        $result.unwrap_or_else(|err| ::std::panic!("{err}"))
+    };
+}

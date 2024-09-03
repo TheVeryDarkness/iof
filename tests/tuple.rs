@@ -9,7 +9,7 @@ fn read_tuple_3() {
     let vec: (u32, u32, u32) = reader.read();
     assert_eq!(vec, (1, 2, 3));
 
-    assert!(iof::ReadInto::<u32>::try_read(&mut reader).is_err());
+    assert!(<u32>::try_read_from(&mut reader).is_err());
 }
 
 #[test]
@@ -43,5 +43,5 @@ fn read_tuple_12() {
     let vec: (u32, u32, u32, u32, u32, u32, u32, u32, u32, u32, u32, u32) = reader.read();
     assert_eq!(vec, (1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12));
 
-    assert!(iof::ReadInto::<u32>::try_read(&mut reader).is_err());
+    assert!(<u32>::try_read_from(&mut reader).is_err());
 }

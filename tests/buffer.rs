@@ -146,7 +146,7 @@ fn read_string() {
     let reader = Cursor::new(buf);
     let mut reader = InputStream::new(reader);
 
-    assert!(reader.try_get_string().is_err());
+    assert!(reader.try_get_string_some().is_err());
 }
 
 #[test]
@@ -171,53 +171,25 @@ fn read_one_then_read_line() {
     let reader = Cursor::new("1\n2 \n3 ".as_bytes());
     let mut reader = InputStream::new(reader);
 
-    let a = reader.try_get_string().unwrap();
+    let a = reader.try_get_string_some().unwrap();
     assert_eq!(a, "1");
 
     let b = reader.try_get_line().unwrap();
     assert_eq!(b, "");
 
-    let a = reader.try_get_string().unwrap();
+    let a = reader.try_get_string_some().unwrap();
     assert_eq!(a, "2");
 
     let b = reader.try_get_line().unwrap();
     assert_eq!(b, " ");
 
-    let a = reader.try_get_string().unwrap();
+    let a = reader.try_get_string_some().unwrap();
     assert_eq!(a, "3");
 
     let b = reader.try_get_line().unwrap();
     assert_eq!(b, " ");
 
-    assert!(reader.try_get_string().is_err());
+    assert!(reader.try_get_string_some().is_err());
     assert!(reader.try_get_line().is_err());
     assert!(reader.try_get_line_some().is_err());
-}
-
-#[test]
-fn read_one_then_read_all_but_0() {
-    let reader = Cursor::new("1\n2 \n3 ".as_bytes());
-    let mut reader = InputStream::new(reader);
-
-    let a = reader.try_get_string().unwrap();
-    assert_eq!(a, "1");
-
-    let b: Vec<_> = reader.try_get_all_in_line().unwrap().collect();
-    assert_eq!(b, Vec::<&str>::new());
-
-    let a = reader.try_get_string().unwrap();
-    assert_eq!(a, "2");
-
-    let b: Vec<_> = reader.try_get_all_in_line().unwrap().collect();
-    assert_eq!(b, Vec::<&str>::new());
-
-    let a = reader.try_get_string().unwrap();
-    assert_eq!(a, "3");
-
-    let b: Vec<_> = reader.try_get_all_in_line().unwrap().collect();
-    assert!(b.is_empty());
-
-    assert!(reader.try_get_string().is_err());
-    assert!(reader.try_get_all_in_line().is_err());
-    assert!(reader.try_get_all_in_line().is_err());
 }

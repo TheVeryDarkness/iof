@@ -1,4 +1,4 @@
-use iof::{BufReadExt, InputStream, ReadInto, ReadIntoOne};
+use iof::{InputStream, ReadFrom, ReadInto, ReadOneFrom, ReadOneInto};
 use std::io::Cursor;
 
 #[test]
@@ -10,7 +10,7 @@ fn read_strings() {
     let world: String = reader.read();
     assert_eq!(hello, "Hello,");
     assert_eq!(world, "World!");
-    assert!(ReadInto::<String>::try_read(&mut reader).is_err());
+    assert!(<String>::try_read_from(&mut reader).is_err());
 }
 
 #[test]
@@ -20,7 +20,7 @@ fn read_string_vec() {
 
     let strings: Vec<String> = reader.read_n(4);
     assert_eq!(strings, vec!["There", "are", "4", "strings."]);
-    assert!(ReadInto::<String>::try_read(&mut reader).is_err());
+    assert!(<String>::try_read_from(&mut reader).is_err());
 }
 
 #[test]
@@ -28,9 +28,9 @@ fn read_all_strings() {
     let reader = Cursor::new("There are 4 strings.".as_bytes());
     let mut reader = InputStream::new(reader);
 
-    let strings: Vec<String> = reader.try_get_all().map(str::to_owned).collect();
+    let strings: Vec<String> = reader.read_all();
     assert_eq!(strings, vec!["There", "are", "4", "strings."]);
-    assert!(ReadInto::<String>::try_read(&mut reader).is_err());
+    assert!(<String>::try_read_from(&mut reader).is_err());
 }
 
 #[test]
@@ -40,7 +40,7 @@ fn read_line() {
 
     let strings: String = reader.read_in_line_some_trimmed();
     assert_eq!(strings, "There are 4 strings.");
-    assert!(ReadInto::<String>::try_read(&mut reader).is_err());
+    assert!(<String>::try_read_from(&mut reader).is_err());
 }
 
 #[test]
@@ -54,7 +54,7 @@ fn read_in_line() {
     let b: String = reader.read_in_line_trimmed();
     assert_eq!(b, "There are 3 lines.");
 
-    assert!(ReadIntoOne::<String>::try_read_in_line_some_trimmed(&mut reader).is_err());
+    assert!(<String>::try_read_some_in_line_from(&mut reader).is_err());
 }
 
 #[test]
@@ -64,7 +64,7 @@ fn read_in_line_some_trimmed_spaces() {
 
     let s: String = reader.read_in_line_some_trimmed();
     assert_eq!(s, "s");
-    assert!(ReadIntoOne::<String>::try_read_in_line_some_trimmed(&mut reader).is_err());
+    assert!(<String>::try_read_some_in_line_from(&mut reader).is_err());
 }
 
 #[test]
@@ -77,7 +77,7 @@ fn read_in_line_from_str_err() {
 }
 
 #[test]
-#[should_panic = "failed to read one more character before EOF"]
+#[should_panic = "expect more characters before EOF"]
 fn read_in_line_some_failure() {
     let reader = Cursor::new("\n \n \n".as_bytes());
     let mut reader = InputStream::new(reader);
@@ -102,7 +102,7 @@ fn read_unicode() {
     let s: String = reader.read();
     assert_eq!(s, "καλημέρα");
 
-    assert!(ReadInto::<String>::try_read(&mut reader).is_err());
+    assert!(<String>::try_read_from(&mut reader).is_err());
 }
 
 #[test]
@@ -122,7 +122,7 @@ fn read_in_line_trimmed_unicode() {
     let s: String = reader.read_in_line_trimmed();
     assert_eq!(s, "καλημέρα");
 
-    assert!(ReadIntoOne::<String>::try_read_in_line_trimmed(&mut reader).is_err());
+    assert!(<String>::try_read_in_line_trimmed_from(&mut reader).is_err());
 }
 
 #[test]
@@ -142,5 +142,5 @@ fn read_in_line_some_unicode() {
     let s: String = reader.read_in_line_some_trimmed();
     assert_eq!(s, "καλημέρα");
 
-    assert!(ReadIntoOne::<String>::try_read_in_line_some_trimmed(&mut reader).is_err());
+    assert!(<String>::try_read_in_line_some_trimmed_from(&mut reader).is_err());
 }

@@ -1,4 +1,4 @@
-use iof::{InputStream, ReadInto, ReadIntoOne, WriteInto, WriteOneInto};
+use iof::{InputStream, ReadInto, ReadOneInto, WriteInto, WriteOneInto};
 use std::io;
 
 struct IllBuffer;

@@ -9,8 +9,8 @@ fn read_array_0() {
     let vec: [i32; 0] = reader.read();
     assert_eq!(vec, []);
 
-    assert!(iof::ReadInto::<[u32; 0]>::try_read(&mut reader).is_ok());
-    assert!(iof::ReadInto::<[u32; 1]>::try_read(&mut reader).is_err());
+    assert!(<[u32; 0]>::try_read_from(&mut reader).is_ok());
+    assert!(<[u32; 1]>::try_read_from(&mut reader).is_err());
 }
 
 #[test]
@@ -21,8 +21,8 @@ fn read_boxed_array_0() {
     let vec: Box<[i32; 0]> = reader.read();
     assert_eq!(vec.as_ref(), &[]);
 
-    assert!(iof::ReadInto::<Box<[u32; 0]>>::try_read(&mut reader).is_ok());
-    assert!(iof::ReadInto::<Box<[u32; 1]>>::try_read(&mut reader).is_err());
+    assert!(<Box<[u32; 0]>>::try_read_from(&mut reader).is_ok());
+    assert!(<Box<[u32; 1]>>::try_read_from(&mut reader).is_err());
 }
 
 #[test]
@@ -33,8 +33,8 @@ fn read_array_1() {
     let vec: [i32; 1] = reader.read();
     assert_eq!(vec, [1]);
 
-    assert!(iof::ReadInto::<[u32; 0]>::try_read(&mut reader).is_ok());
-    assert!(iof::ReadInto::<[u32; 1]>::try_read(&mut reader).is_err());
+    assert!(<[u32; 0]>::try_read_from(&mut reader).is_ok());
+    assert!(<[u32; 1]>::try_read_from(&mut reader).is_err());
 }
 
 #[test]
@@ -45,8 +45,8 @@ fn read_boxed_array_1() {
     let vec: Box<[i32; 1]> = reader.read();
     assert_eq!(vec.as_ref(), &[1]);
 
-    assert!(iof::ReadInto::<Box<[u32; 0]>>::try_read(&mut reader).is_ok());
-    assert!(iof::ReadInto::<Box<[u32; 1]>>::try_read(&mut reader).is_err());
+    assert!(<Box<[u32; 0]>>::try_read_from(&mut reader).is_ok());
+    assert!(<Box<[u32; 1]>>::try_read_from(&mut reader).is_err());
 }
 
 #[test]
@@ -57,8 +57,8 @@ fn read_array_4() {
     let vec: [i32; 4] = reader.read();
     assert_eq!(vec, [1, -2, 3, -4]);
 
-    assert!(iof::ReadInto::<[u32; 0]>::try_read(&mut reader).is_ok());
-    assert!(iof::ReadInto::<[u32; 1]>::try_read(&mut reader).is_err());
+    assert!(<[u32; 0]>::try_read_from(&mut reader).is_ok());
+    assert!(<[u32; 1]>::try_read_from(&mut reader).is_err());
 }
 
 #[test]
@@ -69,8 +69,8 @@ fn read_boxed_array_4() {
     let vec: Box<[i32; 4]> = reader.read();
     assert_eq!(vec.as_ref(), &[1, -2, 3, -4]);
 
-    assert!(iof::ReadInto::<Box<[u32; 0]>>::try_read(&mut reader).is_ok());
-    assert!(iof::ReadInto::<Box<[u32; 1]>>::try_read(&mut reader).is_err());
+    assert!(<Box<[u32; 0]>>::try_read_from(&mut reader).is_ok());
+    assert!(<Box<[u32; 1]>>::try_read_from(&mut reader).is_err());
 }
 
 #[test]
@@ -81,8 +81,8 @@ fn try_read_array_4() {
     let vec: [i32; 4] = reader.try_read().unwrap();
     assert_eq!(vec, [1, -2, 3, -4]);
 
-    assert!(iof::ReadInto::<[u32; 0]>::try_read(&mut reader).is_ok());
-    assert!(iof::ReadInto::<[u32; 1]>::try_read(&mut reader).is_err());
+    assert!(<[u32; 0]>::try_read_from(&mut reader).is_ok());
+    assert!(<[u32; 1]>::try_read_from(&mut reader).is_err());
 }
 
 #[test]
@@ -93,13 +93,13 @@ fn try_read_boxed_array_4() {
     let vec: Box<[i32; 4]> = reader.try_read().unwrap();
     assert_eq!(vec.as_ref(), &[1, -2, 3, -4]);
 
-    assert!(iof::ReadInto::<Box<[u32; 0]>>::try_read(&mut reader).is_ok());
-    assert!(iof::ReadInto::<Box<[u32; 1]>>::try_read(&mut reader).is_err());
+    assert!(<Box<[u32; 0]>>::try_read_from(&mut reader).is_ok());
+    assert!(<Box<[u32; 1]>>::try_read_from(&mut reader).is_err());
 }
 
 #[test]
-#[should_panic = "failed to read one more character before EOF"]
-fn read_array_insuffcient() {
+#[should_panic = "expect more characters before EOF"]
+fn read_array_insufficient() {
     let reader = Cursor::new("-1 -2".as_bytes());
     let mut reader = InputStream::new(reader);
 
@@ -107,8 +107,8 @@ fn read_array_insuffcient() {
 }
 
 #[test]
-#[should_panic = "failed to read one more character before EOF"]
-fn read_boxed_array_insuffcient() {
+#[should_panic = "expect more characters before EOF"]
+fn read_boxed_array_insufficient() {
     let reader = Cursor::new("-1 -2".as_bytes());
     let mut reader = InputStream::new(reader);
 
