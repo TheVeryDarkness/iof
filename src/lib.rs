@@ -82,6 +82,12 @@
 //!
 //! *You may have noticed that the `show!` macro is similar to the [`print`](https://docs.python.org/zh-cn/3/library/functions.html#print) function in Python.*
 //!
+//! Code below writes the output to [standard output](std::io::Stdout):
+//!
+//! ```rust
+#![doc = include_str!("../examples/doc_show.rs")]
+//! ```
+//!
 //! # Input
 //!
 //! ## [ReadInto]

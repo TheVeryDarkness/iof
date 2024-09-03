@@ -94,3 +94,9 @@ fn doc_get_line_some() {
         "",
     );
 }
+
+#[test]
+#[cfg_attr(miri, ignore)]
+fn doc_show() {
+    test_example("doc_show", "", include_str!("../examples/doc_show.txt"));
+}
