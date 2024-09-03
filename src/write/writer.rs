@@ -10,18 +10,21 @@ pub struct Writer<'sep, 'end, 'buf> {
     buf: Option<&'buf mut dyn Write>,
 }
 
+impl<'sep, 'end, 'buf> Default for Writer<'sep, 'end, 'buf> {
+    fn default() -> Self {
+        Self {
+            index: 0,
+            sep: " ",
+            end: "\n",
+            buf: None,
+        }
+    }
+}
+
 impl<'sep, 'end, 'buf> Writer<'sep, 'end, 'buf> {
     /// Create a new writer.
     pub fn new() -> Self {
-        let sep = " ";
-        let end = "\n";
-        let buf = None;
-        Self {
-            index: 0,
-            sep,
-            end,
-            buf,
-        }
+        Self::default()
     }
     /// Set the separator.  
     pub fn sep(&mut self, sep: &'sep str) -> &mut Self {

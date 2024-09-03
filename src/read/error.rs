@@ -1,6 +1,5 @@
-use std::fmt::{self, Debug, Display};
-
 use crate::stream::{self, MSG_EOF, MSG_EOL};
+use std::fmt::{self, Debug, Display};
 
 /// Error during using [ReadInto] or [ReadOneFrom].
 ///
@@ -42,12 +41,6 @@ where
 }
 
 impl<E> std::error::Error for ReadError<E> where E: std::error::Error {}
-
-impl<E> From<std::io::Error> for ReadError<E> {
-    fn from(error: std::io::Error) -> Self {
-        Self::IOError(error)
-    }
-}
 
 impl<E> From<stream::error::StreamError> for ReadError<E> {
     fn from(error: stream::error::StreamError) -> Self {

@@ -64,6 +64,19 @@ fn read_one_then_read_0() {
 }
 
 #[test]
+fn read_any_in_line() {
+    let reader = Cursor::new("\n1 2 3".as_bytes());
+    let mut reader = InputStream::new(reader);
+
+    unwrap!(reader.try_skip_eol());
+
+    let a: Vec<u32> = reader.read_any_in_line();
+    assert_eq!(a, vec![1, 2, 3]);
+
+    assert!(<u32>::try_read_any_in_line_from(&mut reader).is_err());
+}
+
+#[test]
 #[should_panic = "invalid digit found in string"]
 fn read_n_from_str_err() {
     let reader = Cursor::new("1 -2 -3".as_bytes());

@@ -140,4 +140,15 @@ mod tests {
             stream.try_get_string_some()
         );
     }
+
+    #[test]
+    fn try_get_until_in_line() {
+        let s = "Hello, world!";
+        let mut stream = LineBuf::new(s);
+        assert_eq!(stream.try_get_until_in_line(&[',']).unwrap(), "Hello");
+        assert_eq!(stream.try_get_until_in_line(&['!']).unwrap(), ", world");
+        assert_eq!(stream.try_get_until_in_line(&['!']).unwrap(), "");
+        assert_eq!(stream.try_get_until_in_line(&[]).unwrap(), "!");
+        assert_eq!(stream.try_get_until_in_line(&[]).unwrap(), "");
+    }
 }

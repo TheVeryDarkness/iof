@@ -54,6 +54,8 @@ pub trait BufReadExt {
     }
 
     /// Go to the next line if the remaining part are end of line characters.
+    ///
+    /// Only skip the first end of line character.
     fn try_skip_eol(&mut self) -> Result<(), StreamError>;
 
     /// Skip all characters in `skipped`.

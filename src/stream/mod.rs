@@ -3,6 +3,8 @@ use error::StreamError;
 pub(super) mod error;
 pub(super) mod input_stream;
 pub(super) mod line_buf;
+#[cfg(test)]
+mod tests;
 pub(super) mod traits;
 
 /// ASCII white space characters.

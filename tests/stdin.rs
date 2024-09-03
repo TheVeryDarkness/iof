@@ -24,3 +24,9 @@ fn read_array_0() {
     assert!(s1.is_empty());
     assert!(s2.is_empty());
 }
+
+#[test]
+fn read_empty_tuple() {
+    let () = read();
+    let () = try_read().unwrap();
+}

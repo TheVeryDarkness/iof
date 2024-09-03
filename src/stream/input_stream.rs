@@ -138,10 +138,12 @@ impl<B: BufRead> BufReadExt for InputStream<B> {
     }
 
     fn try_skip_eol(&mut self) -> Result<(), StreamError> {
+        self.fill_buf_if_eol()?;
         let remaining = as_slice_from(&self.line_buf, self.cursor);
         for c in remaining.chars() {
             if is_eol(c) {
                 self.cursor += c.len_utf8();
+                debug_assert!(self.line_buf.is_char_boundary(self.cursor));
             } else {
                 break;
             }
@@ -227,6 +229,10 @@ mod tests {
             "{:?}",
             stream.try_get_string_some(),
         );
+        assert_eq!(
+            stream.try_get().unwrap_err().to_string(),
+            StreamError::Eof.to_string(),
+        );
     }
 
     #[test]
@@ -241,6 +247,10 @@ mod tests {
             matches!(stream.try_get_string_some().unwrap_err(), StreamError::Eof),
             "{:?}",
             stream.try_get_string_some()
+        );
+        assert_eq!(
+            stream.try_get().unwrap_err().to_string(),
+            StreamError::Eof.to_string(),
         );
     }
 }

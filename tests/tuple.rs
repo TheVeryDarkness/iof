@@ -13,6 +13,15 @@ fn read_tuple_3() {
 }
 
 #[test]
+#[should_panic = "expect more characters before EOF"]
+fn try_read_tuple_3_insufficient_err() {
+    let reader = Cursor::new("1".as_bytes());
+    let mut reader = InputStream::new(reader);
+
+    let _: (i32, i8, u32) = reader.read();
+}
+
+#[test]
 fn try_read_tuple_3_from_str_err() {
     let reader = Cursor::new("1 2 -3".as_bytes());
     let mut reader = InputStream::new(reader);
