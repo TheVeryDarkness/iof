@@ -2,7 +2,7 @@ use iof::{stdin, ReadInto};
 use ntest::timeout;
 
 #[test]
-#[cfg_attr(miri, ignored)]
+#[cfg_attr(miri, ignore)]
 #[timeout(100)]
 #[should_panic]
 fn reentry_stdin() {
