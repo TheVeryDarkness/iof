@@ -209,33 +209,13 @@
 //! Given the input below:
 //!
 //! ```txt
-//! 42
-//! Hello, World!
-//! 1 2 3 4
-//! 1 2
-//! 3 4
+#![doc = include_str!("../examples/doc_fn_read.txt")]
 //! ```
 //!
 //! Code below reads the input and stores it in variables:
 //!
 //! ```rust,no_run
-//! use iof::read;
-//!
-//! // Read a single integer from input.
-//! let n: u32 = read();
-//! assert_eq!(n, 42);
-//!
-//! // Read a string from input.
-//! let s: String = read();
-//! assert_eq!(s, "Hello, World!");
-//!
-//! // Read an array of integers from input.
-//! let arr: [u32; 4] = read();
-//! assert_eq!(arr, [1, 2, 3, 4]);
-//!
-//! // Read a nested array of integers from input.
-//! let arr: [[u32; 2]; 2] = read();
-//! assert_eq!(arr, [[1, 2], [3, 4]]);
+#![doc = include_str!("../examples/doc_fn_read.rs")]
 //! ```
 //!
 //! # Output
@@ -333,7 +313,7 @@ pub use {
     },
     stdio::{read_into::*, stdin, stdout, stream::*},
     stream::{input_stream::InputStream, traits::BufReadExt},
-    write::{WriteInto, WriteOneInto},
+    write::{writer::Writer, WriteInto, WriteOneInto},
 };
 
 mod array;

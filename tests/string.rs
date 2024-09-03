@@ -1,4 +1,4 @@
-use iof::{InputStream, ReadFrom, ReadInto, ReadOneFrom, ReadOneInto};
+use iof::{show, InputStream, ReadFrom, ReadInto, ReadOneFrom, ReadOneInto};
 use std::io::Cursor;
 
 #[test]
@@ -143,4 +143,11 @@ fn read_in_line_some_unicode() {
     assert_eq!(s, "καλημέρα");
 
     assert!(<String>::try_read_in_line_some_trimmed_from(&mut reader).is_err());
+}
+
+#[test]
+fn string() {
+    let mut buf = Cursor::new(Vec::new());
+    show!("Hello, World!"; end = "", buf = &mut buf);
+    show!("🦀🦀🦀"; buf = &mut buf);
 }

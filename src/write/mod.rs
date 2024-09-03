@@ -3,6 +3,7 @@ use std::io::{self, Write};
 
 mod impls;
 mod macros;
+pub(super) mod writer;
 
 type Result<T = ()> = io::Result<T>;
 
@@ -17,15 +18,15 @@ pub trait WriteOneInto {
     /// Separator between lines.
     const SEP_LINE: &'static str = "\n";
     /// Write into a stream.
-    fn try_write_one_into<S: Write>(&self, s: &mut S) -> Result;
+    fn try_write_one_into<S: Write + ?Sized>(&self, s: &mut S) -> Result;
     /// Unwrapping version of [WriteOneInto::try_write_one_into].
-    fn write_one_into<S: Write>(&self, s: &mut S) {
+    fn write_one_into<S: Write + ?Sized>(&self, s: &mut S) {
         unwrap!(self.try_write_one_into(s))
     }
 }
 
 impl<T: WriteOneInto + ?Sized> WriteOneInto for &T {
-    fn try_write_one_into<S: Write>(&self, s: &mut S) -> Result {
+    fn try_write_one_into<S: Write + ?Sized>(&self, s: &mut S) -> Result {
         (*self).try_write_one_into(s)
     }
 }
@@ -41,9 +42,9 @@ impl<T: WriteOneInto + ?Sized> WriteOneInto for &T {
 /// [Mat]: crate::Mat
 pub trait WriteInto {
     /// Write into a stream.
-    fn try_write_into<S: Write>(&self, s: &mut S) -> Result;
+    fn try_write_into<S: Write + ?Sized>(&self, s: &mut S) -> Result;
     /// Unwrapping version of [WriteInto::try_write_into].
-    fn write_into<S: Write>(&self, s: &mut S) {
+    fn write_into<S: Write + ?Sized>(&self, s: &mut S) {
         unwrap!(self.try_write_into(s))
     }
     /// Write into a string.
@@ -68,30 +69,30 @@ pub trait WriteInto {
 }
 
 impl<T: WriteOneInto> WriteInto for T {
-    fn try_write_into<S: Write>(&self, s: &mut S) -> Result<()> {
+    fn try_write_into<S: Write + ?Sized>(&self, s: &mut S) -> Result<()> {
         self.try_write_one_into(s)
     }
 }
 
 impl<T: WriteOneInto> WriteInto for Vec<T> {
-    fn try_write_into<S: Write>(&self, s: &mut S) -> Result<()> {
+    fn try_write_into<S: Write + ?Sized>(&self, s: &mut S) -> Result<()> {
         self.as_slice().try_write_into(s)
     }
 }
 
 impl<T: WriteOneInto, const N: usize> WriteInto for [T; N] {
-    fn try_write_into<S: Write>(&self, s: &mut S) -> Result<()> {
+    fn try_write_into<S: Write + ?Sized>(&self, s: &mut S) -> Result<()> {
         self.as_slice().try_write_into(s)
     }
 }
 impl<T: WriteOneInto> WriteInto for [T] {
-    fn try_write_into<S: Write>(&self, s: &mut S) -> Result<()> {
+    fn try_write_into<S: Write + ?Sized>(&self, s: &mut S) -> Result<()> {
         WriteInto::try_write_into(&self.sep_by(T::SEP_ITEM), s)
     }
 }
 
 impl<T: WriteOneInto> WriteInto for Mat<T> {
-    fn try_write_into<S: Write>(&self, s: &mut S) -> Result<()> {
+    fn try_write_into<S: Write + ?Sized>(&self, s: &mut S) -> Result<()> {
         self.iter()
             .map(|row| row.iter().sep_by(T::SEP_ITEM))
             .sep_by(T::SEP_LINE)
@@ -100,7 +101,7 @@ impl<T: WriteOneInto> WriteInto for Mat<T> {
 }
 
 impl<T: WriteOneInto, const M: usize, const N: usize> WriteInto for [[T; N]; M] {
-    fn try_write_into<S: Write>(&self, s: &mut S) -> Result<()> {
+    fn try_write_into<S: Write + ?Sized>(&self, s: &mut S) -> Result<()> {
         self.iter()
             .map(|row| row.iter().sep_by(T::SEP_ITEM))
             .sep_by(T::SEP_LINE)

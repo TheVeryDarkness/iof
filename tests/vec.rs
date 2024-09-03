@@ -110,3 +110,11 @@ fn display() {
     assert_eq!(s.try_write_into_string().unwrap(), "");
     assert_eq!(s.write_into_string(), "");
 }
+
+#[test]
+fn show() {
+    show!(vec![1, 2, 3]);
+    show!(vec![vec![1, 2], vec![3, 4]]);
+    show!(vec![] as Vec<usize>);
+    show!(vec![vec![1, 2, 3], vec![4, 5, 6], vec![7, 8, 9]]);
+}

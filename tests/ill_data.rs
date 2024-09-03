@@ -4,7 +4,7 @@ use std::io::{Result, Write};
 struct IllData(&'static [u8]);
 
 impl WriteInto for IllData {
-    fn try_write_into<S: Write>(&self, s: &mut S) -> Result<()> {
+    fn try_write_into<S: Write + ?Sized>(&self, s: &mut S) -> Result<()> {
         s.write_all(self.0)?;
         Ok(())
     }

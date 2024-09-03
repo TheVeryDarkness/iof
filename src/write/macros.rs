@@ -14,46 +14,25 @@
 /// [WriteInto]: crate::WriteInto
 #[macro_export(local_inner_macros)]
 macro_rules! show {
-    (; end=$end:expr, sep=$sep:expr) => {
-        $crate::WriteInto::write(&$end);
+    ($($expr:expr),* $(,)? ; $($opt:ident=$val:expr),* $(,)?) => {
+        unwrap!(|| -> ::std::io::Result<()> {
+            $crate::Writer::new()
+                $(.$opt($val))*
+                $(.write(&$expr)?)*
+                .finish()?;
+            Ok(())
+        }())
     };
-    ($expr:expr $(, $res:expr)*; end=$end:expr, sep=$sep:expr) => {
-        $crate::WriteInto::write(&$expr);
-        $(
-            $crate::WriteInto::write(&$sep);
-            $crate::WriteInto::write(&$res);
-        )*
-        $crate::WriteInto::write(&$end);
-    };
-    ($expr:expr $(, $res:expr)*; sep=$sep:expr, end=$end:expr) => {
-        $crate::show!($expr $(, $res)*; end=$end, sep=$sep);
-    };
-    ($expr:expr $(, $res:expr)*; end=$end:expr) => {
-        $crate::show!($expr $(, $res)*; end=$end, sep=" ");
-    };
-    ($expr:expr $(, $res:expr)*; sep=$sep:expr) => {
-        $crate::show!($expr $(, $res)*; end="\n", sep=$sep);
-    };
-    ($expr:expr $(, $res:expr)* $(;)?) => {
-        $crate::show!($expr $(, $res)*; end="\n", sep="");
-    };
-
-    (; end=$end:expr) => {
-        $crate::WriteInto::write(&$end);
-    };
-    (; sep=$sep:expr, end=$end:expr) => {
-        $crate::show!(; end=$end, sep=$sep);
-    };
-    (; end=$end:expr) => {
-        $crate::show!(; end=$end, sep=" ");
-    };
-    (; sep=$sep:expr) => {
-        $crate::show!(; end="\n", sep=$sep);
-    };
-    ($(;)?) => {
-        $crate::show!(; end="\n", sep="");
+    ($($expr:expr),* $(,)?) => {
+        unwrap!(|| -> ::std::io::Result<()> {
+            $crate::Writer::new()
+                $(.write(&$expr)?)*
+                .finish()?;
+            Ok(())
+        }())
     };
 }
+
 /// Implement [WriteInto] for given types that already implements [std::fmt::Display].
 ///
 /// [WriteInto]: crate::WriteInto
@@ -62,7 +41,7 @@ macro_rules! impl_write_into {
     ($($ty:ty)*) => {
         $(
             impl $crate::WriteOneInto for $ty {
-                fn try_write_one_into<S: ::std::io::Write>(&self, s: &mut S) -> ::std::io::Result<()> {
+                fn try_write_one_into<S: ::std::io::Write + ?::std::marker::Sized>(&self, s: &mut S) -> ::std::io::Result<()> {
                     ::std::write!(s, "{}", self)
                 }
             }

@@ -45,3 +45,11 @@ fn read_tuple_12() {
 
     assert!(<u32>::try_read_from(&mut reader).is_err());
 }
+
+#[test]
+fn show() {
+    show!((1, 2, 3));
+    show!(((1, 2), (3, 4)));
+    show!(());
+    show!((1, 2, 3), (4, 5, 6), (7, 8, 9));
+}

@@ -77,6 +77,16 @@ fn doc_read() {
 
 #[test]
 #[cfg_attr(miri, ignore)]
+fn doc_fn_read() {
+    test_example(
+        "doc_fn_read",
+        include_str!("../examples/doc_fn_read.txt"),
+        "",
+    );
+}
+
+#[test]
+#[cfg_attr(miri, ignore)]
 fn doc_get_line() {
     test_example(
         "doc_get_line",

@@ -18,4 +18,10 @@ fn main() {
 
     // Write a tuple to output.
     show!((1, 2, 3));
+
+    // Write a tuple of tuples to output.
+    show!(((1, 2), (3, 4)));
+
+    // Write an empty tuple to output.
+    show!(());
 }

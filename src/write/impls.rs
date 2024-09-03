@@ -21,7 +21,7 @@ impl_write_into!(
 impl WriteOneInto for char {
     const SEP_ITEM: &'static str = "";
 
-    fn try_write_one_into<S: io::Write>(&self, s: &mut S) -> io::Result<()> {
+    fn try_write_one_into<S: io::Write + ?Sized>(&self, s: &mut S) -> io::Result<()> {
         s.write_all(&[*self as u8])
     }
 }
@@ -31,7 +31,7 @@ macro_rules! impl_write_one_into_for_tuple {
         impl<$t0: WriteOneInto, $($t: WriteOneInto),*> WriteOneInto for ($t0, $($t,)*) {
             const SEP_ITEM: &'static str = " ";
 
-            fn try_write_one_into<S: io::Write>(&self, s: &mut S) -> io::Result<()> {
+            fn try_write_one_into<S: io::Write + ?Sized>(&self, s: &mut S) -> io::Result<()> {
                 let ($n0, $($n, )*) = self;
                 $n0.try_write_one_into(s)?;
                 $(
@@ -46,7 +46,7 @@ macro_rules! impl_write_one_into_for_tuple {
         impl WriteOneInto for () {
             const SEP_ITEM: &'static str = " ";
 
-            fn try_write_one_into<S: io::Write>(&self, _s: &mut S) -> io::Result<()> {
+            fn try_write_one_into<S: io::Write + ?Sized>(&self, _s: &mut S) -> io::Result<()> {
                 Ok(())
             }
         }
