@@ -79,21 +79,23 @@ pub trait BufReadExt {
     /// If current line is empty or all ASCII-white-spaces, it will read a new line.
     fn try_get_string_some(&mut self) -> Result<&str, StreamError>;
 
-    /// Get a single line. The trailing newline will be trimmed.
+    /// Get a single line. The trailing newline will be consumed and trimmed.
     #[inline]
     fn try_get_line(&mut self) -> Result<&str, StreamError> {
         let line = self.try_get_until_in_line(&[])?;
         Ok(line.trim_end_matches(EOL))
     }
 
-    /// Get a single line. The trailing white-paces will be trimmed.
+    /// Get a single line. The trailing white spaces will be consumed and trimmed.
     #[inline]
     fn try_get_line_trimmed(&mut self) -> Result<&str, StreamError> {
         let line = self.try_get_line()?;
         Ok(line.trim_end_matches(WHITE))
     }
 
-    /// Get a single not-empty line. Repeat reading a new line if current line is empty.
+    /// Get a single not-empty line. The trailing newline will be consumed and trimmed.
+    ///
+    /// Repeat reading a new line if current line is empty.
     #[inline]
     fn try_get_line_some(&mut self) -> Result<&str, StreamError> {
         loop {
@@ -105,7 +107,9 @@ pub trait BufReadExt {
         }
     }
 
-    /// Get a single not-empty line. The trailing white-spaces will be trimmed.
+    /// Get a single not-empty line.  The trailing white spaces will be consumed and trimmed.
+    ///
+    /// Repeat reading a new line if current line is empty.
     #[inline]
     fn try_get_line_some_trimmed(&mut self) -> Result<&str, StreamError> {
         loop {

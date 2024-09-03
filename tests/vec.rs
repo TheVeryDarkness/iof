@@ -52,20 +52,11 @@ fn read_one_then_read_0() {
     let a: u32 = reader.read_one();
     assert_eq!(a, 1);
 
-    let b: Vec<u32> = reader.read();
-    assert_eq!(b, []);
-
     let a: u32 = reader.read_one();
     assert_eq!(a, 2);
 
-    let b: Vec<u32> = reader.read();
-    assert_eq!(b, []);
-
     let a: u32 = reader.read_one();
     assert_eq!(a, 3);
-
-    let b: Vec<u32> = reader.read();
-    assert_eq!(b, []);
 
     assert!(<u32>::try_read_from(&mut reader).is_err());
     assert!(<Vec<u32>>::try_read_from(&mut reader).is_err());

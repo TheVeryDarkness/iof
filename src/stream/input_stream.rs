@@ -76,16 +76,25 @@ impl<B: BufRead> InputStream<B> {
     /// See [Self::fill_buf].
     #[inline]
     fn remove_leading(&mut self, pattern: &[char]) -> Result<(&str, usize), StreamError> {
-        if self.is_eol() {
-            let _read = self.read_buf()?;
+        let mut len_skipped = 0;
+        loop {
+            if self.is_eol() {
+                let read = self.read_buf()?;
+                if !read {
+                    return Ok(("", len_skipped));
+                }
+            }
+            let remaining = as_slice_from(&self.line_buf, self.cursor);
+            let remaining_trimmed = remaining.trim_start_matches(pattern);
+            len_skipped += remaining.len() - remaining_trimmed.len();
+            self.cursor = self.line_buf.len() - remaining_trimmed.len();
+            debug_assert!(self.line_buf.is_char_boundary(self.cursor));
+            if self.is_eol() {
+                continue;
+            }
+            let remaining = unsafe { transmute(remaining_trimmed) };
+            return Ok((remaining, len_skipped));
         }
-        let remaining = as_slice_from(&self.line_buf, self.cursor);
-        let len_skipped = remaining.len();
-        let remaining = remaining.trim_start_matches(pattern);
-        let len_skipped = len_skipped - remaining.len();
-        self.cursor = self.line_buf.len() - remaining.len();
-        debug_assert!(self.line_buf.is_char_boundary(self.cursor));
-        Ok((remaining, len_skipped))
     }
 }
 
@@ -185,7 +194,7 @@ mod tests {
 
     #[test]
     fn try_get() {
-        let s = "Hello, world!";
+        let s = "Hello, world!\nHello, Rust!";
         let mut stream = InputStream::new(Cursor::new(s));
         assert_eq!(stream.try_get().unwrap(), 'H');
         assert_eq!(stream.try_get().unwrap(), 'e');
@@ -200,19 +209,34 @@ mod tests {
         assert_eq!(stream.try_get().unwrap(), 'l');
         assert_eq!(stream.try_get().unwrap(), 'd');
         assert_eq!(stream.try_get().unwrap(), '!');
+        assert_eq!(stream.try_get().unwrap(), '\n');
+        assert_eq!(stream.try_get().unwrap(), 'H');
+        assert_eq!(stream.try_get().unwrap(), 'e');
+        assert_eq!(stream.try_get().unwrap(), 'l');
+        assert_eq!(stream.try_get().unwrap(), 'l');
+        assert_eq!(stream.try_get().unwrap(), 'o');
+        assert_eq!(stream.try_get().unwrap(), ',');
+        assert_eq!(stream.try_get().unwrap(), ' ');
+        assert_eq!(stream.try_get().unwrap(), 'R');
+        assert_eq!(stream.try_get().unwrap(), 'u');
+        assert_eq!(stream.try_get().unwrap(), 's');
+        assert_eq!(stream.try_get().unwrap(), 't');
+        assert_eq!(stream.try_get().unwrap(), '!');
         assert!(
             matches!(stream.try_get().unwrap_err(), StreamError::EOF),
             "{:?}",
-            stream.try_get_string_some()
+            stream.try_get_string_some(),
         );
     }
 
     #[test]
     fn try_get_string() {
-        let s = "Hello, world!";
+        let s = "Hello, world!\nHello, Rust!";
         let mut stream = InputStream::new(Cursor::new(s));
         assert_eq!(stream.try_get_string_some().unwrap(), "Hello,");
         assert_eq!(stream.try_get_string_some().unwrap(), "world!");
+        assert_eq!(stream.try_get_string_some().unwrap(), "Hello,");
+        assert_eq!(stream.try_get_string_some().unwrap(), "Rust!");
         assert!(
             matches!(stream.try_get_string_some().unwrap_err(), StreamError::EOF),
             "{:?}",

@@ -3,7 +3,7 @@ use crate::{unwrap, BufReadExt};
 
 /// Read a line from standard input. The trailing newline will be consumed and trimmed.
 ///
-/// ```
+/// ```txt
 ///
 /// a b c
 /// ```
@@ -13,7 +13,7 @@ pub fn get_line() -> String {
 
 /// Read a non-empty line from standard input. The trailing newline will be consumed and trimmed.
 ///
-/// ```
+/// ```txt
 ///
 /// a b c
 /// ```

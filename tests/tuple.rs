@@ -19,10 +19,10 @@ fn try_read_tuple_3_from_str_err() {
 
     let vec: Result<(i32, i8, u32), _> = reader.try_read();
     let err = vec.unwrap_err();
-    assert_eq!(err.to_string(), "invalid digit found in string");
+    assert_eq!(err.to_string(), "Error during converting a string \"-3\" to a value of `u32`: invalid digit found in string");
     assert_eq!(
         format!("{:?}", err),
-        "T3(ParseIntError { kind: InvalidDigit })"
+        "FromStrError(T3(ParseIntError { kind: InvalidDigit }), \"-3\", \"u32\")"
     );
 }
 
