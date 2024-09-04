@@ -5,16 +5,21 @@ use std::io::Cursor;
 fn all(stream: &mut impl BufReadExt) {
     let c = unwrap!(stream.try_get());
     assert_eq!(c, 'H');
+
     let c = unwrap!(stream.try_peek());
     assert_eq!(c, 'e');
+
     let c = unwrap!(stream.try_get_if(&['H', 'e']));
     assert_eq!(c, Some('e'));
-    let c = unwrap!(stream.try_skip_eol());
-    assert_eq!(c, ());
+
+    let () = unwrap!(stream.try_skip_eol());
+
     let c = unwrap!(stream.try_skip_all(&['l', 'o']));
     assert_eq!(c, 3);
+
     let s = unwrap!(stream.try_get_until_in_line(&['!']));
     assert_eq!(s, ", world");
+
     let s = unwrap!(stream.try_get_string_some());
     assert_eq!(s, "!");
 }
