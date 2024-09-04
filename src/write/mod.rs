@@ -20,6 +20,8 @@ pub trait WriteOneInto {
     /// Write into a stream.
     fn try_write_one_into<S: Write + ?Sized>(&self, s: &mut S) -> Result;
     /// Unwrapping version of [WriteOneInto::try_write_one_into].
+    #[track_caller]
+    #[inline]
     fn write_one_into<S: Write + ?Sized>(&self, s: &mut S) {
         unwrap!(self.try_write_one_into(s))
     }
@@ -44,6 +46,8 @@ pub trait WriteInto {
     /// Write into a stream.
     fn try_write_into<S: Write + ?Sized>(&self, s: &mut S) -> Result;
     /// Unwrapping version of [WriteInto::try_write_into].
+    #[track_caller]
+    #[inline]
     fn write_into<S: Write + ?Sized>(&self, s: &mut S) {
         unwrap!(self.try_write_into(s))
     }
@@ -55,6 +59,8 @@ pub trait WriteInto {
         String::from_utf8(s).map_err(|err| io::Error::new(io::ErrorKind::InvalidData, err))
     }
     /// Unwrapping version of [WriteInto::try_write_into_string].
+    #[track_caller]
+    #[inline]
     fn write_into_string(&self) -> String {
         unwrap!(self.try_write_into_string())
     }
@@ -63,6 +69,8 @@ pub trait WriteInto {
         self.try_write_into(&mut stdout())
     }
     /// Unwrapping version of [WriteInto::try_write].
+    #[track_caller]
+    #[inline]
     fn write(&self) {
         unwrap!(self.try_write())
     }

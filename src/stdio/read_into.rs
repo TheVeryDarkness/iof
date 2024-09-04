@@ -22,6 +22,7 @@ macro_rules! expose_stdin {
         /// If this function is called in multiple threads, the behavior is undefined, possibly causing a deadlock.
         ///
         #[doc = concat!("If [`", stringify!($trait_into), "::", stringify!($try_fn), "`] returns an error.")]
+        #[inline]
         pub fn $try_fn<$ty_arg>($($arg: $arg_ty),*) -> Result<$ret, $err>
         where
             $ty_arg: $trait,
@@ -30,6 +31,8 @@ macro_rules! expose_stdin {
         }
 
         #[doc = concat!("Unwrap the result of [`", stringify!($try_fn), "`].")]
+        #[track_caller]
+        #[inline]
         pub fn $fn<$ty_arg>($($arg: $arg_ty),*) -> $ret
         where
             $ty_arg: $trait,

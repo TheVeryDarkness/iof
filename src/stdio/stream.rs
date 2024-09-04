@@ -7,6 +7,8 @@ use crate::{unwrap, BufReadExt};
 ///
 /// a b c
 /// ```
+#[track_caller]
+#[inline]
 pub fn get_line() -> String {
     unwrap!(stdin().try_get_line().map(ToOwned::to_owned))
 }
@@ -17,6 +19,8 @@ pub fn get_line() -> String {
 ///
 /// a b c
 /// ```
+#[track_caller]
+#[inline]
 pub fn get_line_some() -> String {
     unwrap!(stdin().try_get_line_some().map(ToOwned::to_owned))
 }
