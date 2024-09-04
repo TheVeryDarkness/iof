@@ -4,6 +4,8 @@ use std::{
 };
 
 fn test_example(name: &str, input: &str, out: &str) {
+    #[cfg(target_os = "windows")]
+    let out = out.replace("\n", "\r\n");
     let mut child = Command::new("cargo")
         .arg("run")
         .arg("--example")
