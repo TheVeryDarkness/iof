@@ -59,7 +59,7 @@ impl<'s, T: ReadOneFrom> Iterator for ReadAllIn<'s, T> {
 #[cfg(test)]
 mod tests {
     use super::ReadAll;
-    use crate::{stream::line_buf::LineBuf, unwrap, InputStream};
+    use crate::{stream::line_buf::LineBuf, unwrap, BufReadExt, InputStream, ReadInto};
     use std::io::Cursor;
 
     #[test]
@@ -80,5 +80,37 @@ mod tests {
         let res: Result<Vec<String>, _> = iter.collect();
         let res = unwrap!(res);
         assert_eq!(res, vec!["Hello,", "world!"]);
+    }
+
+    #[test]
+    #[should_panic = "expect more characters before EOL"]
+    fn line_buf_string() {
+        let s = "\n";
+        let mut buf = LineBuf::new(s);
+        let _: &str = unwrap!(buf.try_get_string_some());
+    }
+
+    #[test]
+    #[should_panic = "expect more characters before EOF"]
+    fn input_stream_string() {
+        let s = "\n";
+        let mut buf = InputStream::new(Cursor::new(s));
+        let _: &str = unwrap!(buf.try_get_string_some());
+    }
+
+    #[test]
+    #[should_panic = "expect more characters before EOL"]
+    fn line_buf_tuple() {
+        let s = "1 2";
+        let mut buf = LineBuf::new(s);
+        let _: (f64, f64, f64) = unwrap!(buf.try_read());
+    }
+
+    #[test]
+    #[should_panic = "expect more characters before EOF"]
+    fn input_stream_tuple() {
+        let s = "1 2";
+        let mut buf = InputStream::new(Cursor::new(s));
+        let _: (f64, f64, f64) = unwrap!(buf.try_read());
     }
 }

@@ -25,16 +25,12 @@ macro_rules! impl_read_into_for_tuple {
         impl<$($t: ReadFrom, )+> ReadFrom for ( $($t, )+ ) {
             type ParseError = $e<$(<$t as ReadFrom>::ParseError, )+>;
             fn try_read_from<S: BufReadExt>(stream: &mut S) -> Result<($($t, )+), ReadFromError<Self>> {
-                Ok((
-                    $(
-                        <$t as ReadFrom>::try_read_from(stream).map_err(|err| match err {
-                            ReadFromError::<$t>::IOError(e) => ReadFromError::<Self>::IOError(e),
-                            ReadFromError::<$t>::EOF => ReadFromError::<Self>::EOF,
-                            ReadFromError::<$t>::EOL => ReadFromError::<Self>::EOL,
-                            ReadFromError::<$t>::FromStrError(e, s, n) => ReadFromError::<Self>::FromStrError($e::$t(e), s, n),
-                        })?,
-                    )+
-                ))
+                Ok(( $(<$t as ReadFrom>::try_read_from(stream).map_err(|err| match err {
+                    ReadFromError::<$t>::IOError(e) => ReadFromError::<Self>::IOError(e),
+                    ReadFromError::<$t>::EOF => ReadFromError::<Self>::EOF,
+                    ReadFromError::<$t>::EOL => ReadFromError::<Self>::EOL,
+                    ReadFromError::<$t>::FromStrError(e, s, n) => ReadFromError::<Self>::FromStrError($e::$t(e), s, n),
+                })?, )+ ))
             }
         }
     };

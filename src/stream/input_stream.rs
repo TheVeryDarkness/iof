@@ -224,11 +224,7 @@ mod tests {
         assert_eq!(stream.try_get().unwrap(), 's');
         assert_eq!(stream.try_get().unwrap(), 't');
         assert_eq!(stream.try_get().unwrap(), '!');
-        assert!(
-            matches!(stream.try_get().unwrap_err(), StreamError::Eof),
-            "{:?}",
-            stream.try_get_string_some(),
-        );
+        assert!(matches!(stream.try_get().unwrap_err(), StreamError::Eof),);
         assert_eq!(
             stream.try_get().unwrap_err().to_string(),
             StreamError::Eof.to_string(),
@@ -243,11 +239,10 @@ mod tests {
         assert_eq!(stream.try_get_string_some().unwrap(), "world!");
         assert_eq!(stream.try_get_string_some().unwrap(), "Hello,");
         assert_eq!(stream.try_get_string_some().unwrap(), "Rust!");
-        assert!(
-            matches!(stream.try_get_string_some().unwrap_err(), StreamError::Eof),
-            "{:?}",
-            stream.try_get_string_some()
-        );
+        assert!(matches!(
+            stream.try_get_string_some().unwrap_err(),
+            StreamError::Eof
+        ),);
         assert_eq!(
             stream.try_get().unwrap_err().to_string(),
             StreamError::Eof.to_string(),

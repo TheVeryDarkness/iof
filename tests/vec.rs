@@ -119,6 +119,24 @@ fn read_all() -> anyhow::Result<()> {
 }
 
 #[test]
+#[should_panic = "stream did not contain valid UTF-8"]
+fn read_all_encoding_error() {
+    let reader = Cursor::new(b"3 2 \xcc1");
+    let mut reader = InputStream::new(reader);
+
+    let _: Vec<u32> = reader.read_all();
+}
+
+#[test]
+#[should_panic = "Error during converting a string \",1\" to a value of `u32`: invalid digit found in string"]
+fn read_all_digit_error() {
+    let reader = Cursor::new("3 2 ,1".as_bytes());
+    let mut reader = InputStream::new(reader);
+
+    let _: Vec<u32> = reader.read_all();
+}
+
+#[test]
 fn display() {
     let s = Vec::from([1, 2, 3]);
     assert_eq!(s.try_write_into_string().unwrap(), "1 2 3");

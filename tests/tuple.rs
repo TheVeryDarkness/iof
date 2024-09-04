@@ -22,6 +22,15 @@ fn try_read_tuple_3_insufficient_err() {
 }
 
 #[test]
+#[should_panic = "stream did not contain valid UTF-8"]
+fn try_read_tuple_3_encoding_err() {
+    let reader = Cursor::new(b"1 \xff 3");
+    let mut reader = InputStream::new(reader);
+
+    let _: (i32, i8, u32) = reader.read();
+}
+
+#[test]
 fn try_read_tuple_3_from_str_err() {
     let reader = Cursor::new("1 2 -3".as_bytes());
     let mut reader = InputStream::new(reader);

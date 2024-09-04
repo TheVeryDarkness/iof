@@ -126,6 +126,10 @@ mod tests {
         assert_eq!(stream.try_get().unwrap(), 'd');
         assert_eq!(stream.try_get().unwrap(), '!');
         assert!(matches!(stream.try_get().unwrap_err(), StreamError::Eol));
+        assert_eq!(
+            stream.try_get_string_some().unwrap_err().to_string(),
+            StreamError::Eol.to_string(),
+        );
     }
 
     #[test]
@@ -134,10 +138,13 @@ mod tests {
         let mut stream = LineBuf::new(s);
         assert_eq!(stream.try_get_string_some().unwrap(), "Hello,");
         assert_eq!(stream.try_get_string_some().unwrap(), "world!");
-        assert!(
-            matches!(stream.try_get_string_some().unwrap_err(), StreamError::Eol),
-            "{:?}",
-            stream.try_get_string_some()
+        assert!(matches!(
+            stream.try_get_string_some().unwrap_err(),
+            StreamError::Eol,
+        ));
+        assert_eq!(
+            stream.try_get_string_some().unwrap_err().to_string(),
+            StreamError::Eol.to_string(),
         );
     }
 
