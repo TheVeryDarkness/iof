@@ -1,14 +1,13 @@
 /// Write the given expression into [standard output](std::io::Stdout) using [WriteInto].
 ///
-/// ```rust
-/// use iof::show;
+/// You can configure the writer using the following options:
 ///
-/// show!(42);
-/// show!(42, "Hello, World!");
-/// show!(42, "Hello, World!", [1, 2, 3, 4]);
-/// show!(42, "Hello, World!", [1, 2, 3, 4], [[1, 2], [3, 4]]);
-/// show!(42, "Hello, World!", [1, 2, 3, 4], [[1, 2], [3, 4]]; sep=", ");
-/// show!(42, "Hello, World!", [1, 2, 3, 4], [[1, 2], [3, 4]]; sep=", ", end="!");
+/// - `sep`: Separator between values. Default is `" "`.
+/// - `end`: End of the output. Default is `"\n"`.
+/// - `buf`: Buffer to write into. Default is [standard output](crate::stdout).
+///
+/// ```rust
+#[doc = include_str!("../../examples/doc_macro_show.rs")]
 /// ```
 ///
 /// [WriteInto]: crate::WriteInto

@@ -112,3 +112,13 @@ fn doc_get_line_some() {
 fn doc_show() {
     test_example("doc_show", "", include_str!("../examples/doc_show.txt"));
 }
+
+#[test]
+#[cfg_attr(miri, ignore)]
+fn doc_macro_show() {
+    test_example(
+        "doc_macro_show",
+        "",
+        include_str!("../examples/doc_macro_show.txt"),
+    );
+}
