@@ -55,19 +55,8 @@ fn string_reverse() {
 fn macros() {
     test_example(
         "macros",
-        "2\n3 3\n1 2 3\n4 5 6\n7 8 9\n10 11 12\n13 14 15\n16 17 18",
-        "\
-2
-3 3
-1 2 3 4 5 6 7 8 9
-10 11 12 13 14 15 16 17 18
-2
-3 3
-1 2 3 4 5 6 7 8 9
-10 11 12 13 14 15 16 17 18
-2, 2 2 :: 3 3 :: 1 2 3 4 5 6 7 8 9
-10 11 12 13 14 15 16 17 18
-",
+        include_str!("../examples/macros-input.txt"),
+        include_str!("../examples/macros-output.txt"),
     );
 }
 

@@ -1,11 +1,12 @@
 #[macro_export]
-/// Read a single data item, a [Vec] or a [Mat] from input.
+/// Read a single data item, a [Vec] or a [Mat] from input using [ReadInto].
 ///
 /// - `read!()` reads a single data item from input.
 /// - `read!(n)` reads `n` data items from input and stores them in a [Vec].
 /// - `read!(m, n)` reads `m * n` data items from input and stores them in a [Mat].
 ///
 /// [Mat]: crate::Mat
+/// [ReadInto]: crate::ReadInto
 ///
 /// # Example
 ///
@@ -21,7 +22,7 @@ macro_rules! read {
     };
     ($dim0:expr $(, $dims:expr)* $(,)?) => {{
         let range = 0usize..$dim0;
-        ::std::vec::Vec::<_>::from_iter(range.map(|_| $crate::read!($($dims)*)))
+        ::std::vec::Vec::<_>::from_iter(range.map(|_| $crate::read!($($dims, )*)))
     }};
 }
 
