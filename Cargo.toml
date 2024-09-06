@@ -1,6 +1,6 @@
 [package]
 name = "iof"
-version = "0.2.0-alpha.2"
+version = "0.2.0"
 edition = "2021"
 description = "Read from and write data to console or file in simple formats."
 keywords = ["input", "oj", "stream", "formatted"]
