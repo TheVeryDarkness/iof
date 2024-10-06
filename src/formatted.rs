@@ -3,7 +3,7 @@ use crate::write::{sep_by, separator::Separator};
 /// Create an object using given separator.
 ///
 /// Pass an iterator and several separators.
-/// 
+///
 /// # Examples
 ///
 /// ```rust
