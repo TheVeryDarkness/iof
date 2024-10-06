@@ -53,7 +53,7 @@
 #![doc = include_str!("../examples/doc_get_line.rs")]
 //! ```
 //!
-//! *You may have noticed that the [get_line] function is similar to the [`input`](https://docs.python.org/zh-cn/3/library/functions.html#input) function in Python and [`std::get_line`](https://zh.cppreference.com/w/cpp/string/basic_string/getline) in cpp.*
+//! *You may have noticed that the [get_line] function is similar to the [`input`](https://docs.python.org/zh-cn/3/library/functions.html#input) function in Python3 and [`std::get_line`](https://zh.cppreference.com/w/cpp/string/basic_string/getline) in cpp.*
 //!
 //! Sometimes you may want to ensure that the line is not empty. You can use [get_line_some] functions to read a non-empty line of string from the position of next non-whitespace character to the end of the line.
 //!
@@ -71,14 +71,15 @@
 //!
 //! ## [show!]
 //!
-//! You can use [show!] macro to write a single data item, a [Vec] or a [Mat] to output.
+//! You can use [show!] macro to write something to output.
 //!
-//! - `show!(e)` writes a single data item `e` to output.
-//! - `show!(e1, e2, ...)` writes several data items `e1, e2, ...` to output. They are separated by a space.
-//! - `show!(e1, e2, ...; sep=", ")` writes several data items `e1, e2, ...` to output. They are separated by a comma and a space, as specified in the `sep` parameter.
-//! - `show!(e1, e2, ...; sep=", ", end="!")` writes several data items `e1, e2, ...` to output. They are separated by a comma and a space, as specified in the `sep` parameter, and ended with an exclamation mark, as specified in the `end` parameter.
+//! - `show!(e)` writes `e` to output. They are formatted with default format.
+//! - `show!([a, b], sep = [", "])` writes `[a, b]` like a [`Vec`] to output. They are separated by a comma and a space, as specified in the `sep` parameter.
+//! - `show!([[a, b], [c, d]], sep = ["\n", " "])` writes `e` like a [`Mat`] to output. Rows of them are separated by LF, and columns are separated by a space, as specified in the `sep` parameter.
 //!
-//! Note that all parameter are optional and placed after a semicolon, and the order of parameters does not matter. The default value of `sep` is a space (`' '`), and the default value of `end` is a newline (`'\n'`).
+//! Also, you can append a `=>` and a buffer to write to a buffer instead of [standard output](std::io::Stdout), such as `show!(e => buf)` and `show!([a, b], sep = [", "] => buf)`.
+//!
+//! Note that all parameters are optional and placed after a comma, and the order of parameters does not matter. The default value of `sep` and the default value of `end` are from the [GetDefaultSeparator] trait. See [Separator](#separator) for more details.
 //!
 //! *You may have noticed that the `show!` macro is similar to the [`print`](https://docs.python.org/zh-cn/3/library/functions.html#print) function in Python.*
 //!
@@ -86,6 +87,12 @@
 //!
 //! ```rust
 #![doc = include_str!("../examples/doc_show.rs")]
+//! ```
+//!
+//! And code above generates the output below:
+//!
+//! ```txt
+#![doc = include_str!("../examples/doc_show.txt")]
 //! ```
 //!
 //! # Input
@@ -271,7 +278,22 @@
 //! [NonZeroI128]: std::num::NonZeroI128
 //! [NonZeroIsize]: std::num::NonZeroIsize
 //!
-//! # Warning
+//! ## [Separator] and [GetDefaultSeparator]
+//!
+//! The separator is a string that separates data items. It can be a single character, a string, or a slice of strings.
+//!
+//! The default separator is defined as follows:
+//!
+//! - For all types whose rank is 0, it uses `[]`;
+//! - For all types whose rank is 1 and `T` must be separated by a space, it uses `[" "]`;
+//! - For all types whose rank is 1 and `T` need not be separated by a space, it uses `[""]`;
+//! - For all types whose rank is 2 and `T` must be separated by a space, it uses `["\n", " "]`;
+//! - For all types whose rank is 2 and `T` need not be separated by a space, it uses `["\n", ""]`.
+//! - ...
+//!
+//! The rank of a type is the number of dimensions of the data sequence. For example, the rank of a primitive type `T` is 0, the rank of [`Vec<T>`] is 1, and the rank of [`Mat<T>`] is 2.
+//!
+//! # Notes
 //!
 //! ## Concurrency
 //!
