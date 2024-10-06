@@ -43,8 +43,8 @@ macro_rules! impl_for_single {
                     ::std::write!(s, "{}", self)
                 }
             }
-            impl $crate::ranked::Rank for $ty {
-                const RANK: usize = 0;
+            impl $crate::dimension::Dimension for $ty {
+                const DIMENSION: usize = 0;
                 const SPACE: bool = true;
             }
         )*

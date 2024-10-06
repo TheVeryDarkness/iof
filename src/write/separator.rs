@@ -1,5 +1,5 @@
 //! Separator and default separator.
-use super::ranked::Rank;
+use super::dimension::Dimension;
 use std::fmt::Arguments;
 
 /// Position.
@@ -59,14 +59,14 @@ pub trait GetDefaultSeparator {
     const DEFAULT_SEPARATOR: &'static [Self::Separator];
 }
 
-const fn get_rank(rank: usize, space: bool) -> &'static [&'static str] {
-    match (rank, space) {
+const fn get_separator(dimension: usize, space: bool) -> &'static [&'static str] {
+    match (dimension, space) {
         (0, _) => &[],
         (1, true) => &[" "],
         (1, false) => &[""],
         (2, true) => &["\n", " "],
         (2, false) => &["\n", ""],
-        // Rank > 2 is not supported.
+        // Dimension > 2 is not supported.
         // `unimplemented!()` would cause a compile-time error,
         // so we use an empty slice instead.
         (_, true) => &[],
@@ -74,9 +74,9 @@ const fn get_rank(rank: usize, space: bool) -> &'static [&'static str] {
     }
 }
 
-impl<T: Rank + ?Sized> GetDefaultSeparator for T {
+impl<T: Dimension + ?Sized> GetDefaultSeparator for T {
     type Separator = &'static str;
-    const DEFAULT_SEPARATOR: &'static [&'static str] = get_rank(T::RANK, T::SPACE);
+    const DEFAULT_SEPARATOR: &'static [&'static str] = get_separator(T::DIMENSION, T::SPACE);
 }
 
 #[cfg(test)]
@@ -84,9 +84,9 @@ mod tests {
     use super::*;
     use crate::Mat;
 
-    fn check<T: Rank + ?Sized>(separator: &[&str]) {
+    fn check<T: Dimension + ?Sized>(separator: &[&str]) {
         assert_eq!(<T as GetDefaultSeparator>::DEFAULT_SEPARATOR, separator);
-        assert_eq!(get_rank(T::RANK, T::SPACE), separator);
+        assert_eq!(get_separator(T::DIMENSION, T::SPACE), separator);
     }
 
     #[test]

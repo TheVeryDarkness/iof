@@ -1,4 +1,4 @@
-use super::{ranked::Rank, separator::Separator, WriteInto};
+use super::{dimension::Dimension, separator::Separator, WriteInto};
 use std::{
     fmt::{self, Binary, Debug, Display, LowerExp, LowerHex, Octal, Pointer, UpperExp, UpperHex},
     io::Write,
@@ -66,8 +66,8 @@ impl_for_sep_by!(Pointer);
 impl_for_sep_by!(LowerExp);
 impl_for_sep_by!(UpperExp);
 
-impl<I: Iterator<Item = T> + Clone, T: WriteInto, S: Separator + ?Sized> Rank for SepBy<'_, I, S> {
-    const RANK: usize = 0;
+impl<I: Iterator<Item = T> + Clone, T: WriteInto, S: Separator + ?Sized> Dimension for SepBy<'_, I, S> {
+    const DIMENSION: usize = 0;
     const SPACE: bool = T::SPACE;
 }
 

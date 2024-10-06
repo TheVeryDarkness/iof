@@ -1,10 +1,10 @@
-use iof::{ranked::Rank, separator::Separator, unwrap, WriteInto};
+use iof::{dimension::Dimension, separator::Separator, unwrap, WriteInto};
 use std::io::{Result, Write};
 
 struct IllData(&'static [u8]);
 
-impl Rank for IllData {
-    const RANK: usize = 0;
+impl Dimension for IllData {
+    const DIMENSION: usize = 0;
     const SPACE: bool = true;
 }
 impl WriteInto for IllData {

@@ -1,11 +1,11 @@
 use crate::{stdout, SepBy};
-use ranked::Rank;
+use dimension::Dimension;
 use separator::{GetDefaultSeparator, Separator};
 use std::io::{self, Write};
 
 mod impls;
 mod macros;
-pub mod ranked;
+pub mod dimension;
 pub(super) mod sep_by;
 pub mod separator;
 pub(super) mod writer;
@@ -21,7 +21,7 @@ type Result<T = ()> = io::Result<T>;
 ///   They write each row separated by a newline, and each item in a row separated by a space.
 ///
 /// [Mat]: crate::Mat
-pub trait WriteInto: Rank {
+pub trait WriteInto: Dimension {
     /// Write into a stream with given separator.
     fn try_write_into_with_sep<S: Write + ?Sized>(
         &self,
@@ -85,7 +85,7 @@ impl<T: WriteInto> WriteInto for Vec<T> {
         s: &mut S,
         sep: &[impl Separator],
     ) -> Result<()> {
-        debug_assert_eq!(sep.len(), Self::RANK);
+        debug_assert_eq!(sep.len(), Self::DIMENSION);
         self.as_slice().try_write_into_with_sep(s, sep)
     }
 }

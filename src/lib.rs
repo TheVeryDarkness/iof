@@ -305,14 +305,14 @@
 //!
 //! The default separator is defined as follows:
 //!
-//! - For all types whose rank is 0, it uses `[]`;
-//! - For all types whose rank is 1 and `T` must be separated by a space, it uses `[" "]`;
-//! - For all types whose rank is 1 and `T` need not be separated by a space, it uses `[""]`;
-//! - For all types whose rank is 2 and `T` must be separated by a space, it uses `["\n", " "]`;
-//! - For all types whose rank is 2 and `T` need not be separated by a space, it uses `["\n", ""]`.
+//! - For all types whose dimension is 0, it uses `[]`;
+//! - For all types whose dimension is 1 and `T` must be separated by a space, it uses `[" "]`;
+//! - For all types whose dimension is 1 and `T` need not be separated by a space, it uses `[""]`;
+//! - For all types whose dimension is 2 and `T` must be separated by a space, it uses `["\n", " "]`;
+//! - For all types whose dimension is 2 and `T` need not be separated by a space, it uses `["\n", ""]`.
 //! - ...
 //!
-//! The rank of a type is the number of dimensions of the data sequence. For example, the rank of a primitive type `T` is 0, the rank of [`Vec<T>`] is 1, and the rank of [`Mat<T>`] is 2.
+//! The dimension of a type is the number of dimensions of the data sequence. For example, the dimension of a primitive type `T` is 0, the dimension of [`Vec<T>`] is 1, and the dimension of [`Mat<T>`] is 2.
 //!
 //! # Notes
 //!
@@ -350,7 +350,7 @@ pub use {
     },
     stdio::{read_into::*, stdin, stdout, stream::*},
     stream::{input_stream::InputStream, traits::BufReadExt},
-    write::{ranked, separator, writer::Writer, WriteInto},
+    write::{dimension, separator, writer::Writer, WriteInto},
     Vec,
 };
 

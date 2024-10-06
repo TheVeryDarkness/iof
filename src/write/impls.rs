@@ -1,4 +1,4 @@
-use super::{ranked::*, Separator, WriteInto};
+use super::{dimension::*, Separator, WriteInto};
 use crate::impl_for_single;
 use std::{io, num::*};
 
@@ -24,31 +24,31 @@ impl WriteInto for char {
         s: &mut S,
         sep: &[impl Separator],
     ) -> super::Result {
-        debug_assert_eq!(sep.len(), Self::RANK);
+        debug_assert_eq!(sep.len(), Self::DIMENSION);
         s.write_all(&[*self as u8])
     }
 }
 
-impl Rank for char {
-    const RANK: usize = 0;
+impl Dimension for char {
+    const DIMENSION: usize = 0;
     const SPACE: bool = false;
 }
 
 macro_rules! check_separators_count {
     ($sep:expr, $t0:ty $(, $t:ty)*) => {
-        debug_assert_eq!($sep.len(), Self::RANK, "Separator count mismatch.");
+        debug_assert_eq!($sep.len(), Self::DIMENSION, "Separator count mismatch.");
         $(
             debug_assert_eq!(
-                <$t0 as Rank>::RANK,
-                <$t as Rank>::RANK,
-                "Rank mismatch: {} != {}",
-                <$t0 as Rank>::RANK,
-                <$t as Rank>::RANK,
+                <$t0 as Dimension>::DIMENSION,
+                <$t as Dimension>::DIMENSION,
+                "Dimension mismatch: {} != {}",
+                <$t0 as Dimension>::DIMENSION,
+                <$t as Dimension>::DIMENSION,
             );
         )*
     };
     ($sep:expr $(,)?) => {
-        debug_assert_eq!($sep.len(), Self::RANK, "Separator count mismatch.");
+        debug_assert_eq!($sep.len(), Self::DIMENSION, "Separator count mismatch.");
     };
 }
 
@@ -75,8 +75,8 @@ macro_rules! impl_for_tuple {
                 Ok(())
             }
         }
-        impl<$t0: Rank, $($t: Rank,)*> Rank for ($t0, $($t,)*) {
-            const RANK: usize = 1 + $t0::RANK;
+        impl<$t0: Dimension, $($t: Dimension,)*> Dimension for ($t0, $($t,)*) {
+            const DIMENSION: usize = 1 + $t0::DIMENSION;
             const SPACE: bool = true;
         }
     };
@@ -90,8 +90,8 @@ macro_rules! impl_for_tuple {
                 Ok(())
             }
         }
-        impl<$t0: Rank> Rank for ($t0, ) {
-            const RANK: usize = 1 + $t0::RANK;
+        impl<$t0: Dimension> Dimension for ($t0, ) {
+            const DIMENSION: usize = 1 + $t0::DIMENSION;
             const SPACE: bool = true;
         }
     };
@@ -102,8 +102,8 @@ macro_rules! impl_for_tuple {
                 Ok(())
             }
         }
-        impl Rank for () {
-            const RANK: usize = 0;
+        impl Dimension for () {
+            const DIMENSION: usize = 0;
             const SPACE: bool = true;
         }
     };
