@@ -19,6 +19,19 @@
 
 //! A utility library for reading data from input and writing data to output.
 //!
+//! # Principles
+//!
+//! - **Simple**: You can read and write data with a single line of code.
+//! - **Flexible**: You can customize the format of data if the default format does not meet your needs.
+//! - **Efficient**: You can read and write data with minimal overhead.
+//! - **Safe**: You can read and write data without worrying about buffer overflow or other security issues.
+//! - **Easy to Learn**: You can read and write data with a similar interface to Python3 and C++.
+//! - **Extensible**: You can implement your own types to read and write data.
+//! - **Compatible**: You can read and write data with types that implement [std::fmt::Display] and [std::str::FromStr].
+//! - **Human Readable**: You can read and write data in a human-readable format.
+//!
+//!   For types whose representation is longer than 1 character, the default separator is a space; otherwise, it is an empty string, which means that there is no separator.
+//!
 //! # In Short
 //!
 //! ## [read!]
@@ -53,7 +66,7 @@
 #![doc = include_str!("../examples/doc_get_line.rs")]
 //! ```
 //!
-//! *You may have noticed that the [get_line] function is similar to the [`input`](https://docs.python.org/zh-cn/3/library/functions.html#input) function in Python3 and [`std::get_line`](https://zh.cppreference.com/w/cpp/string/basic_string/getline) in cpp.*
+//! *You may have noticed that the [get_line] function is similar to the [`input`](https://docs.python.org/zh-cn/3/library/functions.html#input) function in Python3 and [`std::get_line`](https://zh.cppreference.com/w/cpp/string/basic_string/getline) in C++.*
 //!
 //! Sometimes you may want to ensure that the line is not empty. You can use [get_line_some] functions to read a non-empty line of string from the position of next non-whitespace character to the end of the line.
 //!
@@ -104,9 +117,9 @@
 //!
 //! Some higher-level functions are provided to read data sequence (a single item is also a sequence) from input:
 //!
-//! - [`read<T>()`] (or [`try_read<T>()`]) reads a single sequence from input and converts it to a value of `T`.
-//! - [`read_n<T>(n)`] (or [`try_read_n<T>(n)`]) reads `n` sequences from input and converts them to a value of [Vec].
-//! - [`read_m_n<T>(m, n)`] (or [`try_read_m_n<T>(m, n)`]) reads `m * n` sequences from input and converts them to a value of [`Mat<T>`].
+//! - [`read<T>()`](read()) (or [`try_read<T>()`](try_read())) reads a single sequence from input and converts it to a value of `T`.
+//! - [`read_n<T>(n)`](read_n()) (or [`try_read_n<T>(n)`](try_read_n())) reads `n` sequences from input and converts them to a value of [Vec].
+//! - [`read_m_n<T>(m, n)`](read_m_n()) (or [`try_read_m_n<T>(m, n)`](try_read_m_n())) reads `m * n` sequences from input and converts them to a value of [`Mat<T>`].
 //!
 //! These functions are implemented for types that implement [ReadInto] trait. Currently, the following types implement [ReadInto] trait:
 //!
@@ -299,11 +312,11 @@
 //! [NonZeroI128]: std::num::NonZeroI128
 //! [NonZeroIsize]: std::num::NonZeroIsize
 //!
-//! ## [Separator] and [GetDefaultSeparator]
+//! ## Separator
 //!
-//! The separator is a string that separates data items. It can be a single character, a string, or a slice of strings.
+//! The [separator] is a string that separates data items. It can be a single character, a string, or a slice of strings.
 //!
-//! The default separator is defined as follows:
+//! The default separator from [GetDefaultSeparator] is defined as follows:
 //!
 //! - For all types whose dimension is 0, it uses `[]`;
 //! - For all types whose dimension is 1 and `T` must be separated by a space, it uses `[" "]`;
