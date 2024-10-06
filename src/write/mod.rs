@@ -3,9 +3,9 @@ use dimension::Dimension;
 use separator::{GetDefaultSeparator, Separator};
 use std::io::{self, Write};
 
+pub mod dimension;
 mod impls;
 mod macros;
-pub mod dimension;
 pub(super) mod sep_by;
 pub mod separator;
 pub(super) mod writer;

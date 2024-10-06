@@ -66,7 +66,9 @@ impl_for_sep_by!(Pointer);
 impl_for_sep_by!(LowerExp);
 impl_for_sep_by!(UpperExp);
 
-impl<I: Iterator<Item = T> + Clone, T: WriteInto, S: Separator + ?Sized> Dimension for SepBy<'_, I, S> {
+impl<I: Iterator<Item = T> + Clone, T: WriteInto, S: Separator + ?Sized> Dimension
+    for SepBy<'_, I, S>
+{
     const DIMENSION: usize = 0;
     const SPACE: bool = T::SPACE;
 }
