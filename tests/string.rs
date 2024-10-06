@@ -159,5 +159,8 @@ fn string() {
     let mut buf = Cursor::new(Vec::new());
     show!("Hello, World!", end = "" => &mut buf);
     show!("🦀🦀🦀", => &mut buf);
-    assert_eq!(unwrap!(String::from_utf8(buf.into_inner())), "Hello, World!🦀🦀🦀\n");
+    assert_eq!(
+        unwrap!(String::from_utf8(buf.into_inner())),
+        "Hello, World!🦀🦀🦀\n",
+    );
 }

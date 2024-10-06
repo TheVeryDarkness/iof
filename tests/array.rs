@@ -121,13 +121,22 @@ fn display() {
     assert_eq!(s.try_write_into_string_with_sep(&[" "]).unwrap(), "1 2 3");
 
     let s = [[1, 2, 3], [4, 5, 6]];
-    assert_eq!(s.try_write_into_string_with_sep(&["\n", " "]).unwrap(), "1 2 3\n4 5 6");
+    assert_eq!(
+        s.try_write_into_string_with_sep(&["\n", " "]).unwrap(),
+        "1 2 3\n4 5 6",
+    );
 
     let s = [[1, 2], [3, 4]];
-    assert_eq!(s.try_write_into_string_with_sep(&["\n", " "]).unwrap(), "1 2\n3 4");
+    assert_eq!(
+        s.try_write_into_string_with_sep(&["\n", " "]).unwrap(),
+        "1 2\n3 4",
+    );
 
     let s = [[1, 2]];
-    assert_eq!(s.try_write_into_string_with_sep(&["\n", " "]).unwrap(), "1 2");
+    assert_eq!(
+        s.try_write_into_string_with_sep(&["\n", " "]).unwrap(),
+        "1 2",
+    );
 
     let s: [[usize; 0]; 0] = [];
     assert_eq!(s.try_write_into_string_with_sep(&[" "]).unwrap(), "");

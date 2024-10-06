@@ -37,45 +37,6 @@ pub trait GetDefaultSeparator {
     const DEFAULT_SEPARATOR: &'static [Self::Separator];
 }
 
-// impl<T0: Rank0 + ?Sized> GetDefaultSeparator for T0 {
-//     type Separator = &'static str;
-//     const DEFAULT_SEPARATOR: &'static [&'static str] = &[];
-// }
-
-// macro_rules! impl_rank1 {
-//     ($ty:ty, $($tt:tt)*) => {
-//         impl<T0: Rank0, $($tt)*> GetDefaultSeparator for $ty {
-//             type Separator = &'static str;
-//             const DEFAULT_SEPARATOR: &'static [&'static str] = &[" "];
-//         }
-//     };
-// }
-
-// impl_rank1!(Vec<T0>,);
-// impl_rank1!([T0; N], const N: usize);
-// impl_rank1!([T0],);
-
-// macro_rules! impl_rank2 {
-//     ($ty:ty, $($tt:tt)*) => {
-//         impl<T0: Rank0, $($tt)*> GetDefaultSeparator for $ty {
-//             type Separator = &'static str;
-//             const DEFAULT_SEPARATOR: &'static [&'static str] = &[" ", "\n"];
-//         }
-//     };
-// }
-
-// impl_rank2!(Vec<Vec<T0>>, );
-// impl_rank2!([Vec<T0>], );
-// impl_rank2!([Vec<T0>; N], const N: usize);
-
-// impl_rank2!(Vec<[T0; M]>, const M: usize);
-// impl_rank2!([[T0; M]], const M: usize);
-// impl_rank2!([[T0; M]; N], const M: usize, const N: usize);
-
-// impl_rank2!(Vec<&[T0]>, );
-// impl_rank2!([&[T0]], );
-// impl_rank2!([&[T0]; N], const N: usize);
-
 const fn get_rank(rank: usize, space: bool) -> &'static [&'static str] {
     match (rank, space) {
         (0, _) => &[],

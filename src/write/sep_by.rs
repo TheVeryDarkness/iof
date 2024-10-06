@@ -70,7 +70,6 @@ impl<I: Iterator<Item = T> + Clone, T: WriteInto, S: Separator + ?Sized> WriteIn
         residual: &[impl Separator],
     ) -> super::Result {
         let mut iter = self.iter.clone();
-        // eprintln!("sep: {:?}; residual: {:?}", self.sep, residual);
         if let Some(first) = iter.next() {
             first.try_write_into_with_sep(s, residual)?;
         }

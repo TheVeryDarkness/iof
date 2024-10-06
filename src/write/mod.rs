@@ -67,18 +67,6 @@ pub trait WriteInto: Rank {
     }
 }
 
-// impl<T: WriteOneInto> WriteInto for T {
-//     #[inline]
-//     fn try_write_into_with_sep<S: Write + ?Sized>(
-//         &self,
-//         s: &mut S,
-//         sep: &[impl Separator],
-//     ) -> Result<()> {
-//         debug_assert!(sep.is_empty());
-//         self.try_write_one_into(s)
-//     }
-// }
-
 impl<T: WriteInto + ?Sized> WriteInto for &T {
     #[inline]
     fn try_write_into_with_sep<S: Write + ?Sized>(
