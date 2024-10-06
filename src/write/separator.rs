@@ -25,11 +25,23 @@ impl Separator for String {
     }
 }
 
-impl Separator for [u8] {
-    fn write<S: io::Write + ?Sized>(&self, s: &mut S) -> io::Result<()> {
-        s.write_all(self)
-    }
-}
+// impl Separator for [u8] {
+//     fn write<S: io::Write + ?Sized>(&self, s: &mut S) -> io::Result<()> {
+//         s.write_all(self)
+//     }
+// }
+
+// impl<const N: usize> Separator for [u8; N] {
+//     fn write<S: io::Write + ?Sized>(&self, s: &mut S) -> io::Result<()> {
+//         s.write_all(self)
+//     }
+// }
+
+// impl Separator for Vec<u8> {
+//     fn write<S: io::Write + ?Sized>(&self, s: &mut S) -> io::Result<()> {
+//         s.write_all(self)
+//     }
+// }
 
 impl<T: Separator + ?Sized> Separator for &T {
     fn write<S: io::Write + ?Sized>(&self, s: &mut S) -> io::Result<()> {

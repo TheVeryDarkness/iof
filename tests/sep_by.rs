@@ -46,6 +46,21 @@ fn limited_buffer_4() {
 }
 
 #[test]
+fn sep_by_char() {
+    let s = [0, 0, 0, 0].sep_by(&':').to_string();
+    assert_eq!(s, "0:0:0:0");
+
+    let s = sep_by!([0, 0, 0, 0], ':').to_string();
+    assert_eq!(s, "0:0:0:0");
+}
+
+#[test]
+fn sep_by_string() {
+    let s = [0, 0, 0, 0].sep_by(&String::from("::")).to_string();
+    assert_eq!(s, "0::0::0::0");
+}
+
+#[test]
 fn test_macro_set() {
     let set = BTreeSet::from_iter([3, 2, 1]);
 
