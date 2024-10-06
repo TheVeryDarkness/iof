@@ -239,17 +239,25 @@
 //!
 //!   ```rust
 //!   use iof::{sep_by, SepBy};
+//!   use std::collections::{BTreeMap, BTreeSet};
 //!
 //!   let v = vec![1, 2, 3];
-//!   let s = format!("{}", v.sep_by(", "));
+//!   let s = v.sep_by(", ").to_string();
 //!   assert_eq!(s, "1, 2, 3");
 //!
 //!   let v = vec![vec![1, 2, 3], vec![4, 5, 6]];
 //!   let s = sep_by!(v, "\n", ", ");
 //!   // Above line is equivalent to:
 //!   // let s = v.map(|e| e.sep_by("\n")).sep_by(" ");
-//!   let s = format!("{}", s);
-//!   assert_eq!(s, "1, 2, 3\n4, 5, 6");
+//!   assert_eq!(s.to_string(), "1, 2, 3\n4, 5, 6");
+//!
+//!   let v = BTreeSet::from_iter([3, 1, 2, 4]);
+//!   let s = v.sep_by(", ").to_string();
+//!   assert_eq!(s, "1, 2, 3, 4");
+//!
+//!   let v = BTreeMap::from_iter([(3, "w"), (1, "x"), (2, "y"), (4, "z")]);
+//!   let s = v.iter().map(|(k, v)| format!("{} -> {}", k, v)).sep_by("\n").to_string();
+//!   assert_eq!(s, "1 -> x\n2 -> y\n3 -> w\n4 -> z");
 //!   ```
 //!
 //!   Note that the iterator must implement [Clone] trait to use the [SepBy] trait.
