@@ -95,6 +95,9 @@
 #![doc = include_str!("../examples/doc_show.txt")]
 //! ```
 //!
+//! [GetDefaultSeparator]: crate::separator::GetDefaultSeparator
+//! [Separator]: crate::separator::Separator
+//!
 //! # Input
 //!
 //! ## [ReadInto]

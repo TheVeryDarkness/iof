@@ -4,8 +4,6 @@ use crate::write::{sep_by, separator::Separator};
 ///
 /// Pass an iterator and several separators.
 /// 
-/// See [sep_by::SepBy] for more information.
-///
 /// # Examples
 ///
 /// ```rust
@@ -24,7 +22,7 @@ macro_rules! sep_by {
     };
 }
 
-/// [std::fmt::Display] with given separator.
+/// Create a new object using given iterator and separator.
 ///
 /// Note that this is a trait, and you can use it with any type that implements [IntoIterator] and whose [IntoIterator::IntoIter] implements [Clone].
 ///
@@ -40,10 +38,10 @@ pub trait SepBy: IntoIterator
 where
     <Self as IntoIterator>::IntoIter: Clone,
 {
-    /// Create an iterator that implement [core::fmt::Display] using given separator.
+    /// Create an object that implement [core::fmt::Display] using given iterator and separator.
     fn sep_by<S: Separator + ?Sized>(self, sep: &'_ S) -> sep_by::SepBy<'_, Self::IntoIter, S>;
 
-    /// Create an iterator that implement [WriteInto](crate::WriteInto) using given separator.
+    /// Create an object that implement [WriteInto](crate::WriteInto) using given iterator and separator.
     fn sep_by_write_into<S: Separator + ?Sized>(
         self,
         sep: &'_ S,
