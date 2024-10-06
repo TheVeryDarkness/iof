@@ -1,4 +1,4 @@
-#[macro_export]
+#[macro_export(local_inner_macros)]
 /// Read a single data item, a [Vec] or a [Mat] from input using [ReadInto].
 ///
 /// - `read!()` reads a single data item from input.

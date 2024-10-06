@@ -1,9 +1,19 @@
-use crate::write::{
-    sep_by::{self},
-    separator::Separator,
-};
+use crate::write::{sep_by, separator::Separator};
+
+/// Create an object that implement [core::fmt::Display] using given separator.
+#[macro_export(local_inner_macros)]
+macro_rules! sep_by {
+    ($iter:expr, $sep:expr, $($residual:expr),+ $(,)?) => {
+        $crate::SepBy::sep_by(::std::iter::IntoIterator::into_iter($iter).map(|iter| $crate::sep_by!(iter, $($residual, )+)), $sep)
+    };
+    ($iter:expr, $sep:expr $(,)?) => {
+        $crate::SepBy::sep_by($iter, $sep)
+    };
+}
 
 /// [std::fmt::Display] with given separator.
+///
+/// Note that this is a trait, and you can use it with any type that implements [IntoIterator] and whose [IntoIterator::IntoIter] implements [Clone].
 ///
 /// # Examples
 ///

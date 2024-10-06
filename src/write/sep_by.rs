@@ -1,6 +1,6 @@
 use super::{ranked::Rank, separator::Separator, WriteInto};
 use std::{
-    fmt::{self, Binary, Display, LowerExp, LowerHex, Octal, Pointer, UpperExp, UpperHex},
+    fmt::{self, Binary, Debug, Display, LowerExp, LowerHex, Octal, Pointer, UpperExp, UpperHex},
     io::Write,
 };
 
@@ -11,10 +11,18 @@ use std::{
 /// [Clone] is required, as this implementation consumes the iterator.
 ///
 /// All configuration on [fmt::Formatter] is delegated to the item type.
-#[derive(Debug, Clone)]
 pub struct SepBy<'a, I, S: ?Sized> {
     sep: &'a S,
     iter: I,
+}
+
+impl<'a, I: Clone, S: ?Sized> Clone for SepBy<'a, I, S> {
+    fn clone(&self) -> Self {
+        Self {
+            sep: self.sep,
+            iter: self.iter.clone(),
+        }
+    }
 }
 
 impl<'a, I: Iterator + Clone, S: Separator + ?Sized> SepBy<'a, I, S> {
@@ -47,6 +55,7 @@ macro_rules! impl_for_sep_by {
 }
 
 impl_for_sep_by!(Display);
+impl_for_sep_by!(Debug);
 
 impl_for_sep_by!(Octal);
 impl_for_sep_by!(Binary);

@@ -227,7 +227,7 @@
 //!
 //! # Output
 //!
-//! ## [SepBy]
+//! ## [SepBy] and [sep_by!]
 //!
 //! Some lower-level functions are provided to write a data sequence with customizing format to output:
 //!
@@ -238,11 +238,21 @@
 //!   For example:
 //!
 //!   ```rust
-//!   use iof::SepBy;
+//!   use iof::{sep_by, SepBy};
+//!
 //!   let v = vec![1, 2, 3];
 //!   let s = format!("{}", v.sep_by(", "));
 //!   assert_eq!(s, "1, 2, 3");
+//!
+//!   let v = vec![vec![1, 2, 3], vec![4, 5, 6]];
+//!   let s = sep_by!(v, "\n", ", ");
+//!   // Above line is equivalent to:
+//!   // let s = v.map(|e| e.sep_by("\n")).sep_by(" ");
+//!   let s = format!("{}", s);
+//!   assert_eq!(s, "1, 2, 3\n4, 5, 6");
 //!   ```
+//!
+//!   Note that the iterator must implement [Clone] trait to use the [SepBy] trait.
 //!
 //! ## [WriteInto]
 //!
