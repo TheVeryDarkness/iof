@@ -76,4 +76,10 @@ mod tests {
         check::<Vec<usize>>(&[" "]);
         check::<Mat<usize>>(&["\n", " "]);
     }
+
+    #[test]
+    fn check_separator_unimplemented() {
+        check::<Vec<Vec<Vec<usize>>>>(&[]);
+        check::<Vec<Vec<Vec<char>>>>(&[]);
+    }
 }
