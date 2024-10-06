@@ -364,7 +364,7 @@ mod stream;
 mod write;
 
 /// Unwrap a result or panic with the error message.
-#[macro_export(local_inner_macros)]
+#[macro_export]
 macro_rules! unwrap {
     ($result:expr) => {
         $result.unwrap_or_else(|err| ::std::panic!("{err}"))

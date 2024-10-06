@@ -12,7 +12,7 @@ use crate::write::{sep_by, separator::Separator};
 /// let s = format!("{}", sep_by!(v.iter(), ", "));
 /// assert_eq!(s, "1, 2, 3");
 /// ```
-#[macro_export(local_inner_macros)]
+#[macro_export]
 macro_rules! sep_by {
     ($iter:expr, $sep:expr, $($residual:expr),+ $(,)?) => {
         $crate::SepBy::sep_by(::std::iter::IntoIterator::into_iter($iter).map(|iter| $crate::sep_by!(iter, $($residual, )+)), &$sep)

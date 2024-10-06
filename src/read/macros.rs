@@ -1,4 +1,3 @@
-#[macro_export(local_inner_macros)]
 /// Read a single data item, a [Vec] or a [Mat] from input using [ReadInto].
 ///
 /// - `read!()` reads a single data item from input.
@@ -16,6 +15,7 @@
 /// let b: Vec<usize> = read!(3);
 /// let c: Vec<Vec<usize>> = read!(2, 3);
 /// ```
+#[macro_export]
 macro_rules! read {
     () => {
         $crate::unwrap!($crate::try_read())
@@ -32,7 +32,7 @@ macro_rules! read {
 ///
 /// [ReadOneFrom]: crate::ReadOneFrom
 /// [ReadInto]: crate::ReadInto
-#[macro_export(local_inner_macros)]
+#[macro_export]
 macro_rules! impl_read_into_single {
     (char $($tys:ident)*) => {
         impl $crate::ReadOneFrom for char {
