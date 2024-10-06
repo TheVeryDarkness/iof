@@ -16,6 +16,18 @@ impl<T: Rank + ?Sized> Rank for &T {
     const RANK: usize = T::RANK;
     const SPACE: bool = T::SPACE;
 }
+impl<T: Rank + ?Sized> Rank for Box<T> {
+    const RANK: usize = T::RANK;
+    const SPACE: bool = T::SPACE;
+}
+impl<T: Rank + ?Sized> Rank for std::rc::Rc<T> {
+    const RANK: usize = T::RANK;
+    const SPACE: bool = T::SPACE;
+}
+impl<T: Rank + ?Sized> Rank for std::sync::Arc<T> {
+    const RANK: usize = T::RANK;
+    const SPACE: bool = T::SPACE;
+}
 
 // Implementation for higher-rank types.
 impl<T: Rank> Rank for Vec<T> {

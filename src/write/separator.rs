@@ -7,9 +7,27 @@ pub trait Separator: std::fmt::Debug {
     fn write<S: io::Write + ?Sized>(&self, s: &mut S) -> io::Result<()>;
 }
 
+impl Separator for char {
+    fn write<S: io::Write + ?Sized>(&self, s: &mut S) -> io::Result<()> {
+        write!(s, "{}", self)
+    }
+}
+
 impl Separator for str {
     fn write<S: io::Write + ?Sized>(&self, s: &mut S) -> io::Result<()> {
         s.write_all(self.as_bytes())
+    }
+}
+
+impl Separator for String {
+    fn write<S: io::Write + ?Sized>(&self, s: &mut S) -> io::Result<()> {
+        s.write_all(self.as_bytes())
+    }
+}
+
+impl Separator for [u8] {
+    fn write<S: io::Write + ?Sized>(&self, s: &mut S) -> io::Result<()> {
+        s.write_all(self)
     }
 }
 
