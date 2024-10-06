@@ -56,3 +56,24 @@ impl<T: Rank + ?Sized> GetDefaultSeparator for T {
     type Separator = &'static str;
     const DEFAULT_SEPARATOR: &'static [&'static str] = get_rank(T::RANK, T::SPACE);
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::Mat;
+
+    fn check<T: Rank + ?Sized>(separator: &[&str]) {
+        assert_eq!(<T as GetDefaultSeparator>::DEFAULT_SEPARATOR, separator);
+        assert_eq!(get_rank(T::RANK, T::SPACE), separator);
+    }
+
+    #[test]
+    fn check_separator() {
+        check::<char>(&[""; 0]);
+        check::<Vec<char>>(&[""]);
+        check::<Mat<char>>(&["\n", ""]);
+        check::<usize>(&[""; 0]);
+        check::<Vec<usize>>(&[" "]);
+        check::<Mat<usize>>(&["\n", " "]);
+    }
+}

@@ -65,12 +65,54 @@ fn read_tuple_12() {
 }
 
 #[test]
-fn show() {
-    show!((1, 2, 3));
-    show!(((1, 2), (3, 4)));
-    show!(());
-    show!(((1, 2, 3), (4, 5, 6), (7, 8, 9)));
+fn write() {
     let mut buf = Vec::new();
+    let vec = (1, 2, 3);
+    unwrap!(vec.try_write_into(&mut buf));
+    assert_eq!(String::from_utf8(buf).unwrap(), "1 2 3");
+
+    let mut buf = Vec::new();
+    let vec = (1,);
+    unwrap!(vec.try_write_into(&mut buf));
+    assert_eq!(String::from_utf8(buf).unwrap(), "1");
+
+    let mut buf = Vec::new();
+    let vec = ((1, 2), (3, 4));
+    unwrap!(vec.try_write_into(&mut buf));
+    assert_eq!(String::from_utf8(buf).unwrap(), "1 2\n3 4");
+
+    let mut buf = Vec::new();
+    let vec = ();
+    unwrap!(vec.try_write_into(&mut buf));
+    assert_eq!(String::from_utf8(buf).unwrap(), "");
+
+    let mut buf = Vec::new();
+    let vec = ((1, 2, 3), (4, 5, 6), (7, 8, 9));
+    unwrap!(vec.try_write_into(&mut buf));
+    assert_eq!(String::from_utf8(buf).unwrap(), "1 2 3\n4 5 6\n7 8 9");
+}
+
+#[test]
+fn show() {
+    use std::str::from_utf8;
+    let mut buf = Vec::new();
+    buf.clear();
+    show!((1, 2, 3) => buf);
+    assert_eq!(unwrap!(from_utf8(&buf)), "1 2 3\n");
+
+    buf.clear();
+    show!(((1, 2), (3, 4)) => buf);
+    assert_eq!(unwrap!(from_utf8(&buf)), "1 2\n3 4\n");
+
+    buf.clear();
+    show!(() => buf);
+    assert_eq!(unwrap!(from_utf8(&buf)), "\n");
+
+    buf.clear();
     show!(((1, 2, 3), (4, 5, 6), (7, 8, 9)) => buf);
-    assert_eq!(String::from_utf8(buf).unwrap(), "1 2 3\n4 5 6\n7 8 9\n");
+    assert_eq!(unwrap!(from_utf8(&buf)), "1 2 3\n4 5 6\n7 8 9\n");
+
+    buf.clear();
+    show!(((1, 2, 3), (4, 5, 6), (7, 8, 9)) => buf);
+    assert_eq!(unwrap!(from_utf8(&buf)), "1 2 3\n4 5 6\n7 8 9\n");
 }

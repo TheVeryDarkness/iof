@@ -34,7 +34,7 @@ pub trait WriteInto: Rank {
     where
         Self: GetDefaultSeparator,
     {
-        self.try_write_into_with_sep(s, &Self::DEFAULT_SEPARATOR)
+        self.try_write_into_with_sep(s, Self::DEFAULT_SEPARATOR)
     }
     /// Write into a string with given separator.
     #[inline]
@@ -50,7 +50,7 @@ pub trait WriteInto: Rank {
     where
         Self: GetDefaultSeparator,
     {
-        self.try_write_into_string_with_sep(&Self::DEFAULT_SEPARATOR)
+        self.try_write_into_string_with_sep(Self::DEFAULT_SEPARATOR)
     }
     /// Write into [std::io::Stdout] with given separator.
     #[inline]
@@ -63,7 +63,7 @@ pub trait WriteInto: Rank {
     where
         Self: GetDefaultSeparator,
     {
-        self.try_write_with_sep(&Self::DEFAULT_SEPARATOR)
+        self.try_write_with_sep(Self::DEFAULT_SEPARATOR)
     }
 }
 

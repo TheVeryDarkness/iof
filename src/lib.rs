@@ -241,9 +241,9 @@
 //!
 //! Some higher-level functions are provided to write data sequence with default format to output:
 //!
-//! - [WriteInto::write()] (or [WriteInto::try_write()]) writes to [standard output](std::io::Stdout) with default format.
-//! - [WriteInto::write_into()] (or [WriteInto::try_write_into()]) writes to given buffer that implements [std::io::Write] with default format.
-//! - [WriteInto::write_into_string()] (or [WriteInto::try_write_into_string()]) writes to a new string with default format.
+//! - [WriteInto::try_write()] writes to [standard output](std::io::Stdout) with default format.
+//! - [WriteInto::try_write_into()] writes to given buffer that implements [std::io::Write] with default format.
+//! - [WriteInto::try_write_into_string()] writes to a new string with default format.
 //!   
 //! The default format is defined as follows:
 //!
@@ -257,12 +257,6 @@
 //!
 //! [Display]: std::fmt::Display
 //! [Display::fmt]: std::fmt::Display::fmt
-//!
-//! ## [WriteOneInto]
-//!
-//! Some lower-level functions are provided to write a single data item to output:
-//!
-//! - [WriteOneInto::write_one_into()] (or [WriteOneInto::try_write_one_into()]) writes to given buffer that implements [std::io::Write].
 //!
 //! [NonZeroU8]: std::num::NonZeroU8
 //! [NonZeroU16]: std::num::NonZeroU16
