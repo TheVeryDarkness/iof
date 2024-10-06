@@ -69,8 +69,8 @@ fn show() {
     show!((1, 2, 3));
     show!(((1, 2), (3, 4)));
     show!(());
-    show!((1, 2, 3), (4, 5, 6), (7, 8, 9));
+    show!(((1, 2, 3), (4, 5, 6), (7, 8, 9)));
     let mut buf = Vec::new();
-    show!((1, 2, 3), (4, 5, 6), (7, 8, 9); buf = &mut buf);
-    assert_eq!(String::from_utf8(buf).unwrap(), "1 2 3 4 5 6 7 8 9\n");
+    show!(((1, 2, 3), (4, 5, 6), (7, 8, 9)) => buf);
+    assert_eq!(String::from_utf8(buf).unwrap(), "1 2 3\n4 5 6\n7 8 9\n");
 }

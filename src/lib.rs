@@ -313,14 +313,18 @@ pub use {
     },
     stdio::{read_into::*, stdin, stdout, stream::*},
     stream::{input_stream::InputStream, traits::BufReadExt},
-    write::{writer::Writer, WriteInto, WriteOneInto},
+    write::{
+        ranked,
+        separator::{GetDefaultSeparator, Separator},
+        writer::Writer,
+        WriteInto,
+    },
 };
 
 mod array;
 mod formatted;
 mod mat;
 mod read;
-mod sep_by;
 mod stdio;
 mod stream;
 mod write;

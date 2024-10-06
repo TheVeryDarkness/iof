@@ -1,4 +1,4 @@
-use iof::{BufReadExt, InputStream, ReadInto, ReadOneInto, WriteInto, WriteOneInto};
+use iof::{unwrap, BufReadExt, InputStream, ReadInto, ReadOneInto, WriteInto};
 use std::io;
 
 struct IllBuffer;
@@ -114,13 +114,7 @@ fn try_write() {
 #[test]
 #[should_panic = "ill buffer"]
 fn write_into() {
-    [1, 2, 3].write_into(&mut IllBuffer);
-}
-
-#[test]
-#[should_panic = "ill buffer"]
-fn write_one_into() {
-    42_usize.write_one_into(&mut IllBuffer);
+    unwrap!([1, 2, 3].try_write_into(&mut IllBuffer));
 }
 
 #[test]

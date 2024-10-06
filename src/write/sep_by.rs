@@ -1,9 +1,8 @@
+use super::{ranked::Rank, separator::Separator, WriteInto};
 use std::{
     fmt::{self, Binary, Display, LowerExp, LowerHex, Octal, Pointer, UpperExp, UpperHex},
-    io::{self, Write},
+    io::Write,
 };
-
-use crate::WriteInto;
 
 /// Separate items with given separator in [fmt::Display].
 ///
@@ -13,23 +12,24 @@ use crate::WriteInto;
 ///
 /// All configuration on [fmt::Formatter] is delegated to the item type.
 #[derive(Debug, Clone)]
-pub struct SepBy<'a, I> {
-    sep: &'a str,
+pub struct SepBy<'a, I, S: ?Sized> {
+    sep: &'a S,
     iter: I,
 }
 
-impl<'a, I: Iterator + Clone> SepBy<'a, I> {
+impl<'a, I: Iterator + Clone, S: Separator + ?Sized> SepBy<'a, I, S> {
     /// Create a [SepBy].
-    pub fn new(iter: I, sep: &'a str) -> Self {
+    pub fn new(iter: I, sep: &'a S) -> Self {
         Self { sep, iter }
     }
 }
 
 macro_rules! impl_for_sep_by {
     ($trait:ident) => {
-        impl<'a, I: Iterator + Clone> $trait for SepBy<'a, I>
+        impl<'a, I: Iterator + Clone, S: Separator + ?Sized> $trait for SepBy<'a, I, S>
         where
             I::Item: $trait,
+            S: Display,
         {
             fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
                 let mut iter = self.iter.clone();
@@ -37,7 +37,7 @@ macro_rules! impl_for_sep_by {
                     $trait::fmt(&first, f)?;
                 }
                 for item in iter {
-                    f.write_str(self.sep)?;
+                    Display::fmt(&self.sep, f)?;
                     $trait::fmt(&item, f)?;
                 }
                 Ok(())
@@ -56,15 +56,27 @@ impl_for_sep_by!(Pointer);
 impl_for_sep_by!(LowerExp);
 impl_for_sep_by!(UpperExp);
 
-impl<I: Iterator<Item = T> + Clone, T: WriteInto> WriteInto for SepBy<'_, I> {
-    fn try_write_into<S: Write + ?Sized>(&self, s: &mut S) -> Result<(), io::Error> {
+impl<I: Iterator<Item = T> + Clone, T: WriteInto, S: Separator + ?Sized> Rank for SepBy<'_, I, S> {
+    const RANK: usize = 0;
+    const SPACE: bool = T::SPACE;
+}
+
+impl<I: Iterator<Item = T> + Clone, T: WriteInto, S: Separator + ?Sized> WriteInto
+    for SepBy<'_, I, S>
+{
+    fn try_write_into_with_sep<Stream: Write + ?Sized>(
+        &self,
+        s: &mut Stream,
+        residual: &[impl Separator],
+    ) -> super::Result {
         let mut iter = self.iter.clone();
+        // eprintln!("sep: {:?}; residual: {:?}", self.sep, residual);
         if let Some(first) = iter.next() {
-            first.try_write_into(s)?;
+            first.try_write_into_with_sep(s, residual)?;
         }
         for item in iter {
-            let _ = s.write(self.sep.as_bytes())?;
-            item.try_write_into(s)?
+            self.sep.write(s)?;
+            item.try_write_into_with_sep(s, residual)?
         }
         Ok(())
     }

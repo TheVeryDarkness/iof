@@ -8,7 +8,7 @@ fn read_n() {
 
     let vec: Vec<u32> = reader.read_n(3);
     assert_eq!(vec, &[1, 2, 3]);
-    assert_eq!(vec.sep_by(" ").to_string(), "1 2 3");
+    assert_eq!(vec.sep_by(&" ").to_string(), "1 2 3");
 
     assert!(<u32>::try_read_n_from(&mut reader, 1).is_err());
 }
@@ -113,7 +113,7 @@ fn read_all() -> anyhow::Result<()> {
     let set: BTreeSet<u32> = reader.read_all().into_iter().collect();
 
     assert_eq!(set, BTreeSet::from([1, 2, 3]));
-    assert_eq!(set.iter().sep_by(" ").to_string(), "1 2 3");
+    assert_eq!(set.iter().sep_by(&" ").to_string(), "1 2 3");
 
     Ok(())
 }
@@ -140,15 +140,15 @@ fn read_all_digit_error() {
 fn display() {
     let s = Vec::from([1, 2, 3]);
     assert_eq!(s.try_write_into_string().unwrap(), "1 2 3");
-    assert_eq!(s.write_into_string(), "1 2 3");
+    assert_eq!(unwrap!(s.try_write_into_string()), "1 2 3");
 
     let s = Vec::from([1]);
     assert_eq!(s.try_write_into_string().unwrap(), "1");
-    assert_eq!(s.write_into_string(), "1");
+    assert_eq!(unwrap!(s.try_write_into_string()), "1");
 
     let s: Vec<i32> = Vec::from([]);
     assert_eq!(s.try_write_into_string().unwrap(), "");
-    assert_eq!(s.write_into_string(), "");
+    assert_eq!(unwrap!(s.try_write_into_string()), "");
 }
 
 #[test]

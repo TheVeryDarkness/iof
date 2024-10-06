@@ -2,6 +2,13 @@ use iof::*;
 use std::io::Cursor;
 
 #[test]
+fn check_separator() {
+    use iof::GetDefaultSeparator;
+    assert_eq!(<Vec<u32>>::DEFAULT_SEPARATOR, &[" "]);
+    assert_eq!(<Vec<i32>>::DEFAULT_SEPARATOR, &[" "]);
+}
+
+#[test]
 fn try_read_single_3() {
     let reader = Cursor::new("1 2 3".as_bytes());
     let mut reader = InputStream::new(reader);
@@ -199,15 +206,7 @@ fn try_read_char_only_sign() {
 #[test]
 fn try_write_one_into() {
     let mut s = Vec::new();
-    42.try_write_one_into(&mut s).unwrap();
-    let s = String::from_utf8(s).unwrap();
-    assert_eq!(s, "42");
-}
-
-#[test]
-fn write_one_into() {
-    let mut s = Vec::new();
-    42.write_one_into(&mut s);
+    42.try_write_into(&mut s).unwrap();
     let s = String::from_utf8(s).unwrap();
     assert_eq!(s, "42");
 }

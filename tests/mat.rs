@@ -38,7 +38,7 @@ fn read_m_n() {
 ]"
     );
 
-    assert_eq!(mat.write_into_string(), "1 2 3\n4 5 6");
+    assert_eq!(unwrap!(mat.try_write_into_string()), "1 2 3\n4 5 6");
 
     assert!(<u32>::try_read_n_from(&mut reader, 1).is_err());
 }
@@ -61,7 +61,7 @@ fn read_same_rows() {
         assert_eq!(row, [2, 3, 2].as_slice());
     }
 
-    assert_eq!(mat.write_into_string(), "2 3 2\n2 3 2\n2 3 2");
+    assert_eq!(unwrap!(mat.try_write_into_string()), "2 3 2\n2 3 2\n2 3 2");
 
     assert!(<u32>::try_read_m_n_from(&mut reader, 1, 1).is_err());
 }
@@ -78,7 +78,7 @@ fn read_all_same() {
     assert_eq!(mat.iter().size_hint(), (2, Some(2)));
     assert_eq!(format!("{:?}", mat), "[[2, 2, 2], [2, 2, 2]]");
 
-    assert_eq!(mat.write_into_string(), "2 2 2\n2 2 2");
+    assert_eq!(unwrap!(mat.try_write_into_string()), "2 2 2\n2 2 2");
 
     assert!(<u32>::try_read_m_n_from(&mut reader, 1, 1).is_err());
 }
@@ -95,7 +95,7 @@ fn read_char_mat() {
     assert_eq!(mat.iter().size_hint(), (2, Some(2)));
     assert_eq!(format!("{:?}", mat), "[['1', '2', '3'], ['4', '5', '6']]");
 
-    assert_eq!(mat.write_into_string(), "123\n456");
+    assert_eq!(unwrap!(mat.try_write_into_string()), "123\n456");
 
     assert!(<char>::try_read_m_n_from(&mut reader, 1, 1).is_err());
 }

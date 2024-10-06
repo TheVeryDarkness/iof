@@ -15,7 +15,7 @@ mod tests;
 ///
 /// # Examples
 ///
-/// ```rust,ignore
+/// ```rust,ignore "This function is no longer exported."
 /// use iof::array_try_from_fn;
 /// let array: Result<[String; 3], ()> = array_try_from_fn(|| Ok("hello".to_string()));
 /// assert_eq!(array, Ok(["hello", "hello", "hello"]));

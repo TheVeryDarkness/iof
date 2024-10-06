@@ -13,20 +13,19 @@
 /// [WriteInto]: crate::WriteInto
 #[macro_export(local_inner_macros)]
 macro_rules! show {
-    ($($expr:expr),* $(,)? ; $($opt:ident=$val:expr),* $(,)?) => {
+    ($expr:expr $(, $opt:ident=$val:expr)* $(,)? => $buf:expr) => {
         unwrap!(|| -> ::std::io::Result<()> {
             $crate::Writer::new()
-                $(.$opt($val))*
-                $(.write(&$expr)?)*
-                .finish()?;
+                $(.$opt(&$val))*
+                .write(&$expr, &mut $buf)?;
             Ok(())
         }())
     };
-    ($($expr:expr),* $(,)?) => {
+    ($expr:expr $(, $opt:ident=$val:expr)* $(,)?) => {
         unwrap!(|| -> ::std::io::Result<()> {
             $crate::Writer::new()
-                $(.write(&$expr)?)*
-                .finish()?;
+                $(.$opt(&$val))*
+                .write(&$expr, &mut $crate::stdout())?;
             Ok(())
         }())
     };
@@ -36,13 +35,17 @@ macro_rules! show {
 ///
 /// [WriteInto]: crate::WriteInto
 #[macro_export(local_inner_macros)]
-macro_rules! impl_write_into {
+macro_rules! impl_for_single {
     ($($ty:ty)*) => {
         $(
-            impl $crate::WriteOneInto for $ty {
-                fn try_write_one_into<S: ::std::io::Write + ?::std::marker::Sized>(&self, s: &mut S) -> ::std::io::Result<()> {
+            impl $crate::WriteInto for $ty {
+                fn try_write_into_with_sep<S: ::std::io::Write + ?::std::marker::Sized>(&self, s: &mut S, _sep: &[impl Separator]) -> ::std::io::Result<()> {
                     ::std::write!(s, "{}", self)
                 }
+            }
+            impl $crate::ranked::Rank for $ty {
+                const RANK: usize = 0;
+                const SPACE: bool = true;
             }
         )*
     };
