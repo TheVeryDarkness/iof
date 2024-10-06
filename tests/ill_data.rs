@@ -1,4 +1,4 @@
-use iof::{ranked::Rank, unwrap, Separator, WriteInto};
+use iof::{ranked::Rank, separator::Separator, unwrap, WriteInto};
 use std::io::{Result, Write};
 
 struct IllData(&'static [u8]);

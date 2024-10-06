@@ -3,7 +3,7 @@ use std::io::Cursor;
 
 #[allow(dead_code)]
 mod check_impl {
-    use iof::{ranked::Rank, GetDefaultSeparator};
+    use iof::{ranked::Rank, separator::GetDefaultSeparator};
     const fn check_impl<T: Rank + GetDefaultSeparator + ?Sized>() {}
     const STRING: () = check_impl::<String>();
     const STR: () = check_impl::<str>();

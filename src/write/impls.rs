@@ -60,11 +60,18 @@ macro_rules! impl_for_tuple {
 
                 let ($n0, $($n, )*) = self;
                 let (sep, residual) = sep.split_first().expect("Separator count mismatch.");
+
                 $n0.try_write_into_with_sep(s, residual)?;
+                let mut i = 0usize;
                 $(
-                    sep.write(s)?;
+                    sep.format(i, |args| s.write_fmt(args))?;
                     $n.try_write_into_with_sep(s, residual)?;
+                    #[allow(unused_assignments)]
+                    {
+                        i += 1
+                    }
                 )*
+
                 Ok(())
             }
         }

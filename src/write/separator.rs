@@ -1,51 +1,43 @@
+//! Separator and default separator.
 use super::ranked::Rank;
-use std::io;
+use std::fmt::Arguments;
+
+/// Position.
+///
+/// The index of the last item that has been written.
+pub type Position = usize;
 
 /// Separator.
-pub trait Separator: std::fmt::Debug {
-    /// Write the separator.
-    fn write<S: io::Write + ?Sized>(&self, s: &mut S) -> io::Result<()>;
+pub trait Separator {
+    /// Format the separator.
+    fn format<R>(&self, _: Position, f: impl FnOnce(Arguments<'_>) -> R) -> R;
 }
 
 impl Separator for char {
-    fn write<S: io::Write + ?Sized>(&self, s: &mut S) -> io::Result<()> {
-        write!(s, "{}", self)
+    #[inline]
+    fn format<R>(&self, _: Position, f: impl FnOnce(Arguments<'_>) -> R) -> R {
+        f(format_args!("{}", self))
     }
 }
 
 impl Separator for str {
-    fn write<S: io::Write + ?Sized>(&self, s: &mut S) -> io::Result<()> {
-        s.write_all(self.as_bytes())
+    #[inline]
+    fn format<R>(&self, _: Position, f: impl FnOnce(Arguments<'_>) -> R) -> R {
+        f(format_args!("{}", self))
     }
 }
 
 impl Separator for String {
-    fn write<S: io::Write + ?Sized>(&self, s: &mut S) -> io::Result<()> {
-        s.write_all(self.as_bytes())
+    #[inline]
+    fn format<R>(&self, _: Position, f: impl FnOnce(Arguments<'_>) -> R) -> R {
+        f(format_args!("{}", self))
     }
 }
 
-// impl Separator for [u8] {
-//     fn write<S: io::Write + ?Sized>(&self, s: &mut S) -> io::Result<()> {
-//         s.write_all(self)
-//     }
-// }
-
-// impl<const N: usize> Separator for [u8; N] {
-//     fn write<S: io::Write + ?Sized>(&self, s: &mut S) -> io::Result<()> {
-//         s.write_all(self)
-//     }
-// }
-
-// impl Separator for Vec<u8> {
-//     fn write<S: io::Write + ?Sized>(&self, s: &mut S) -> io::Result<()> {
-//         s.write_all(self)
-//     }
-// }
-
 impl<T: Separator + ?Sized> Separator for &T {
-    fn write<S: io::Write + ?Sized>(&self, s: &mut S) -> io::Result<()> {
-        <T as Separator>::write(*self, s)
+    #[inline]
+    fn format<R>(&self, pos: Position, f: impl FnOnce(Arguments<'_>) -> R) -> R {
+        T::format(*self, pos, f)
     }
 }
 
@@ -56,7 +48,7 @@ pub trait GetDefaultSeparator {
     /// Default separator.
     ///
     /// ```rust
-    /// use iof::*;
+    /// use iof::{separator::GetDefaultSeparator, Mat, Vec};
     /// assert_eq!(<Vec::<usize> as GetDefaultSeparator>::DEFAULT_SEPARATOR, &[" "]);
     /// assert_eq!(<Vec::<&str> as GetDefaultSeparator>::DEFAULT_SEPARATOR, &[" "]);
     /// assert_eq!(<Vec::<char> as GetDefaultSeparator>::DEFAULT_SEPARATOR, &[""]);

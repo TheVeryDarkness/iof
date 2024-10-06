@@ -7,7 +7,7 @@ mod impls;
 mod macros;
 pub mod ranked;
 pub(super) mod sep_by;
-pub(super) mod separator;
+pub mod separator;
 pub(super) mod writer;
 
 type Result<T = ()> = io::Result<T>;

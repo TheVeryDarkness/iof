@@ -1,5 +1,3 @@
-use crate::Separator;
-
 use super::WriteInto;
 use std::io::{self, Write};
 
@@ -44,6 +42,6 @@ impl<'sep, 'end> Writer<'sep, 'end> {
         } else {
             value.try_write_into(buf)?;
         }
-        self.end.write(buf)
+        buf.write_all(self.end.as_bytes())
     }
 }

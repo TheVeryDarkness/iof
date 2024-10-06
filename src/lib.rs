@@ -347,12 +347,8 @@ pub use {
     },
     stdio::{read_into::*, stdin, stdout, stream::*},
     stream::{input_stream::InputStream, traits::BufReadExt},
-    write::{
-        ranked,
-        separator::{GetDefaultSeparator, Separator},
-        writer::Writer,
-        WriteInto,
-    },
+    write::{ranked, separator, writer::Writer, WriteInto},
+    Vec,
 };
 
 mod array;

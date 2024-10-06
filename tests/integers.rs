@@ -3,7 +3,7 @@ use std::io::Cursor;
 
 #[test]
 fn check_separator() {
-    use iof::GetDefaultSeparator;
+    use iof::separator::GetDefaultSeparator;
     assert_eq!(<Vec<u32>>::DEFAULT_SEPARATOR, &[" "]);
     assert_eq!(<Vec<i32>>::DEFAULT_SEPARATOR, &[" "]);
 }

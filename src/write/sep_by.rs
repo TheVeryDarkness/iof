@@ -37,16 +37,17 @@ macro_rules! impl_for_sep_by {
         impl<'a, I: Iterator + Clone, S: Separator + ?Sized> $trait for SepBy<'a, I, S>
         where
             I::Item: $trait,
-            S: Display,
         {
             fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
                 let mut iter = self.iter.clone();
                 if let Some(first) = iter.next() {
                     $trait::fmt(&first, f)?;
                 }
+                let mut i = 0_usize;
                 for item in iter {
-                    Display::fmt(&self.sep, f)?;
+                    self.sep.format(i, |args| Display::fmt(&args, f))?;
                     $trait::fmt(&item, f)?;
+                    i += 1;
                 }
                 Ok(())
             }
@@ -82,9 +83,11 @@ impl<I: Iterator<Item = T> + Clone, T: WriteInto, S: Separator + ?Sized> WriteIn
         if let Some(first) = iter.next() {
             first.try_write_into_with_sep(s, residual)?;
         }
+        let mut i = 0_usize;
         for item in iter {
-            self.sep.write(s)?;
-            item.try_write_into_with_sep(s, residual)?
+            self.sep.format(i, |args| s.write_fmt(args))?;
+            item.try_write_into_with_sep(s, residual)?;
+            i += 1;
         }
         Ok(())
     }

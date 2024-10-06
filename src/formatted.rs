@@ -1,8 +1,10 @@
 use crate::write::{sep_by, separator::Separator};
 
-/// Create an object that implement [core::fmt::Display] using given separator.
+/// Create an object using given separator.
 ///
 /// Pass an iterator and several separators.
+/// 
+/// See [sep_by::SepBy] for more information.
 ///
 /// # Examples
 ///
