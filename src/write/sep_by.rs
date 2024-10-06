@@ -83,11 +83,9 @@ impl<I: Iterator<Item = T> + Clone, T: WriteInto, S: Separator + ?Sized> WriteIn
         if let Some(first) = iter.next() {
             first.try_write_into_with_sep(s, residual)?;
         }
-        let mut i = 0_usize;
-        for item in iter {
+        for (i, item) in iter.enumerate() {
             self.sep.format(i, |args| s.write_fmt(args))?;
             item.try_write_into_with_sep(s, residual)?;
-            i += 1;
         }
         Ok(())
     }
