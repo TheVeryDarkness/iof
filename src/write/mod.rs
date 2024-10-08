@@ -1,7 +1,10 @@
 use crate::{stdout, SepBy};
 use dimension::Dimension;
 use separator::{GetDefaultSeparator, Separator};
-use std::io::{self, Write};
+use std::{
+    collections::{BTreeSet, BinaryHeap, HashSet, LinkedList, VecDeque},
+    io::{self, Write},
+};
 
 pub mod dimension;
 mod impls;
@@ -100,14 +103,26 @@ impl<T: WriteInto, const N: usize> WriteInto for [T; N] {
         self.as_slice().try_write_into_with_sep(s, sep)
     }
 }
-impl<T: WriteInto> WriteInto for [T] {
-    #[inline]
-    fn try_write_into_with_sep<S: Write + ?Sized>(
-        &self,
-        s: &mut S,
-        sep: &[impl Separator],
-    ) -> Result<()> {
-        let (sep, residual) = sep.split_first().expect("Separator count mismatch.");
-        WriteInto::try_write_into_with_sep(&self.sep_by_write_into(sep), s, residual)
-    }
+
+macro_rules! impl_write_into {
+    ($ty:ty) => {
+        impl<T: WriteInto> WriteInto for $ty {
+            #[inline]
+            fn try_write_into_with_sep<S: Write + ?Sized>(
+                &self,
+                s: &mut S,
+                sep: &[impl Separator],
+            ) -> Result<()> {
+                let (sep, residual) = sep.split_first().expect("Separator count mismatch.");
+                WriteInto::try_write_into_with_sep(&self.sep_by_write_into(sep), s, residual)
+            }
+        }
+    };
 }
+
+impl_write_into!([T]);
+impl_write_into!(HashSet<T>);
+impl_write_into!(BTreeSet<T>);
+impl_write_into!(VecDeque<T>);
+impl_write_into!(BinaryHeap<T>);
+impl_write_into!(LinkedList<T>);

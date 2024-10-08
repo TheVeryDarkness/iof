@@ -30,7 +30,7 @@
 //! - **Compatible**: You can read and write data with types that implement [std::fmt::Display] and [std::str::FromStr].
 //! - **Human Readable**: You can read and write data in a human-readable format.
 //!
-//!   For types whose representation is longer than 1 character, the default separator is a space; otherwise, it is an empty string, which means that there is no separator.
+//!   For types whose representation does not a fixed length in characters, the default separator is a space; otherwise, such as for [char], it is an empty string.
 //!
 //! # In Short
 //!
@@ -247,37 +247,65 @@
 //!
 //! Some lower-level functions are provided to write a data sequence with customizing format to output:
 //!
-//! - [SepBy::sep_by()] writes a sequence of data items, which implements [IntoIterator], to output with a separator.
+//! - [SepBy::sep_by(iter, sep)](SepBy::sep_by) writes a sequence of data items from `iter`, which implements [IntoIterator], to output with a separator `sep`.
+//! - [sep_by!(iter, sep)](sep_by!) writes a sequence of data items from `iter`, which implements [IntoIterator], to output with a separator `sep`.
 //!
-//!   There won't be any separator before the first item or after the last item.
+//! There won't be any separator before the first item or after the last item.
 //!
-//!   For example:
+//! For example:
 //!
-//!   ```rust
-//!   use iof::{sep_by, SepBy};
-//!   use std::collections::{BTreeMap, BTreeSet};
+//! ```rust
+//! use iof::{sep_by, SepBy};
+//! use std::collections::{BTreeMap, BTreeSet};
 //!
-//!   let v = vec![1, 2, 3];
-//!   let s = v.sep_by(", ").to_string();
-//!   assert_eq!(s, "1, 2, 3");
+//! let v = vec![1, 2, 3];
+//! let s = sep_by!(&v, ", ");
+//! assert_eq!(s.to_string(), "1, 2, 3");
+//! // Equivalent form:
+//! let s = v.sep_by(", ");
+//! assert_eq!(s.to_string(), "1, 2, 3");
 //!
-//!   let v = vec![vec![1, 2, 3], vec![4, 5, 6]];
-//!   let s = sep_by!(v, "\n", ", ");
-//!   // Above line is equivalent to:
-//!   // let s = v.map(|e| e.sep_by("\n")).sep_by(" ");
-//!   assert_eq!(s.to_string(), "1, 2, 3\n4, 5, 6");
+//! let v = vec![vec![1, 2, 3], vec![4, 5, 6]];
+//! let s = sep_by!(&v, "\n", ", ");
+//! assert_eq!(s.to_string(), "1, 2, 3\n4, 5, 6");
+//! // Equivalent form:
+//! let s = v.iter().map(|e| e.sep_by(", ")).sep_by("\n");
+//! assert_eq!(s.to_string(), "1, 2, 3\n4, 5, 6");
 //!
-//!   let v = BTreeSet::from_iter([3, 1, 2, 4]);
-//!   let s = v.sep_by(", ").to_string();
-//!   assert_eq!(s, "1, 2, 3, 4");
+//! let v = BTreeSet::from_iter([3, 1, 2, 4]);
+//! let s = sep_by!(&v, ", ");
+//! assert_eq!(s.to_string(), "1, 2, 3, 4");
+//! // Equivalent form:
+//! let s = v.sep_by(", ");
+//! assert_eq!(s.to_string(), "1, 2, 3, 4");
 //!
-//!   let v = BTreeMap::from_iter([(3, "w"), (1, "x"), (2, "y"), (4, "z")]);
-//!   let s = v.iter().map(|(k, v)| format!("{} -> {}", k, v)).sep_by("\n").to_string();
-//!   assert_eq!(s, "1 -> x\n2 -> y\n3 -> w\n4 -> z");
-//!   ```
+//! let v = BTreeMap::from_iter([(3, "w"), (1, "x"), (2, "y"), (4, "z")]);
+//! let s = sep_by!(v.iter().map(|(k, v)| format!("{} -> {}", k, v)), "\n");
+//! assert_eq!(s.to_string(), "1 -> x\n2 -> y\n3 -> w\n4 -> z");
+//! // Equivalent form:
+//! let s = v.iter().map(|(k, v)| format!("{} -> {}", k, v)).sep_by("\n");
+//! assert_eq!(s.to_string(), "1 -> x\n2 -> y\n3 -> w\n4 -> z");
+//! ```
 //!
-//!   Note that the iterator must implement [Clone] trait to use the [SepBy] trait.
+//! Note that the iterator must implement [Clone] trait to use the [SepBy] trait. And due to this constraint, if you write a container directly as the argument of [sep_by!], you may need to use `&` to borrow it.
 //!
+//! And created objects can also be used in some formats other than [Display] format or [Debug] format.
+//! 
+//! ```rust
+//! use iof::{sep_by, SepBy};
+//! 
+//! let v = vec![1.0, 2.1, 3.2];
+//! let s = sep_by!(&v, ", ");
+//! assert_eq!(format!("{s:?}"), "1.0, 2.1, 3.2");
+//! 
+//! let v = vec![3735928559u32, 3405691582u32, 3405709037u32, 3435973836u32, 3452816845u32];
+//! let s = sep_by!(&v, " ");
+//! assert_eq!(format!("{s:x}"), "deadbeef cafebabe cafefeed cccccccc cdcdcdcd");
+//! ```
+//! 
+//! [Display]: std::fmt::Display
+//! [Debug]: std::fmt::Debug
+//! 
 //! ## [WriteInto]
 //!
 //! Some higher-level functions are provided to write data sequence with default format to output:

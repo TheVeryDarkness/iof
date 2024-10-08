@@ -14,7 +14,7 @@
 #[macro_export]
 macro_rules! show {
     ($expr:expr $(, $opt:ident=$val:expr)* $(,)? => $buf:expr) => {
-        unwrap!(|| -> ::std::io::Result<()> {
+        $crate::unwrap!(|| -> ::std::io::Result<()> {
             $crate::Writer::new()
                 $(.$opt(&$val))*
                 .write(&$expr, &mut $buf)?;

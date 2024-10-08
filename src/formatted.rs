@@ -9,8 +9,12 @@ use crate::write::{sep_by, separator::Separator};
 /// ```rust
 /// use iof::sep_by;
 /// let v = vec![1, 2, 3];
-/// let s = format!("{}", sep_by!(v.iter(), ", "));
+/// let s = format!("{}", sep_by!(&v, ", "));
 /// assert_eq!(s, "1, 2, 3");
+///
+/// let v = [[1, 2], [3, 4]];
+/// let s = format!("{}", sep_by!(&v, "\n", ", "));
+/// assert_eq!(s, "1, 2\n3, 4");
 /// ```
 #[macro_export]
 macro_rules! sep_by {

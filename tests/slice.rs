@@ -25,3 +25,24 @@ fn write_into() {
 fn show() {
     show!([1, 2, 3, 4].as_slice());
 }
+
+#[test]
+fn show_to_string() {
+    use std::str::from_utf8;
+    let mut buf = Vec::new();
+
+    show!([1, 2, 3, 4].as_slice() => buf);
+    assert_eq!(unwrap!(from_utf8(&buf)), "1 2 3 4\n");
+
+    buf.clear();
+    show!([[1, 2], [3, 4]].as_slice() => buf);
+    assert_eq!(unwrap!(from_utf8(&buf)), "1 2\n3 4\n");
+
+    buf.clear();
+    show!([[1, 2].as_slice(), [3, 4].as_slice()] => buf);
+    assert_eq!(unwrap!(from_utf8(&buf)), "1 2\n3 4\n");
+
+    buf.clear();
+    show!([[1, 2].as_slice(), [3, 4].as_slice()].as_slice() => buf);
+    assert_eq!(unwrap!(from_utf8(&buf)), "1 2\n3 4\n");
+}
