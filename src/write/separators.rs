@@ -93,19 +93,13 @@ impl Separators for char {
 }
 
 /// Use default separator.
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, Default)]
 pub struct DefaultSeparator;
 
 impl DefaultSeparator {
     /// Create a new default separator.
     pub const fn new() -> Self {
         Self
-    }
-}
-
-impl Default for DefaultSeparator {
-    fn default() -> Self {
-        Self::new()
     }
 }
 
