@@ -1,5 +1,5 @@
-use iof::{dimension::Dimension, show, Separators, WriteInto};
-use std::io;
+use iof::{dimension::Dimension, show, unwrap, Separators, WriteInto};
+use std::{io, str::from_utf8};
 
 /// A compact and sorted container.
 struct CustomContainer<U> {
@@ -23,9 +23,10 @@ impl<U: WriteInto> WriteInto for CustomContainer<U> {
     fn try_write_into_with_sep<S: io::Write + ?Sized>(
         &self,
         s: &mut S,
-        sep: impl Separators,
+        _sep: impl Separators,
     ) -> io::Result<()> {
-        self.data.try_write_into_with_sep(s, sep)
+        self.data
+            .try_write_into_with_sep(s, &[Self::get_default_separator()])
     }
 }
 
@@ -34,5 +35,5 @@ fn show() {
     let data = CustomContainer::from_iter([9, 8, 7, 6, 5, 4, 3, 2, 1, 0]);
     let mut buf = Vec::new();
     show!(data => buf);
-    assert_eq!(buf, b"0123456789\n");
+    assert_eq!(unwrap!(from_utf8(&buf)), "0123456789\n");
 }

@@ -1,11 +1,11 @@
+use dimension::Dimension;
 use iof::*;
 use std::io::Cursor;
 
 #[test]
 fn check_separator() {
-    use iof::separator::GetDefaultSeparator;
-    assert_eq!(<Vec<u32>>::DEFAULT_SEPARATOR, &[" "]);
-    assert_eq!(<Vec<i32>>::DEFAULT_SEPARATOR, &[" "]);
+    assert_eq!(<Vec<u32> as Dimension>::get_default_separator(), " ");
+    assert_eq!(<Vec<i32> as Dimension>::get_default_separator(), " ");
 }
 
 #[test]

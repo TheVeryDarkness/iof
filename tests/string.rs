@@ -3,8 +3,8 @@ use std::io::Cursor;
 
 #[allow(dead_code)]
 mod check_impl {
-    use iof::{dimension::Dimension, separator::GetDefaultSeparator};
-    const fn check_impl<T: Dimension + GetDefaultSeparator + ?Sized>() {}
+    use iof::dimension::Dimension;
+    const fn check_impl<T: Dimension + ?Sized>() {}
     const STRING: () = check_impl::<String>();
     const STR: () = check_impl::<str>();
     const STATIC_STR: () = check_impl::<&'static str>();

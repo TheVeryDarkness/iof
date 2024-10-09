@@ -12,6 +12,7 @@ pub trait Dimension {
     const SPACE: bool;
 
     /// Get the default separator.
+    #[inline]
     fn get_default_separator() -> &'static str {
         match (Self::DIMENSION, Self::SPACE) {
             (0, _) => "",

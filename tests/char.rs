@@ -1,19 +1,11 @@
-use iof::{InputStream, Mat, ReadInto, ReadOneInto};
+use iof::{dimension::Dimension, InputStream, Mat, ReadInto, ReadOneInto};
 use std::io::Cursor;
 
 #[test]
 fn check_separator() {
-    use iof::separator::GetDefaultSeparator;
-    assert_eq!(<char>::DEFAULT_SEPARATOR, &[""; 0]);
-    assert_eq!(<Vec<char>>::DEFAULT_SEPARATOR, &[""]);
-    assert_eq!(<Mat<char>>::DEFAULT_SEPARATOR, &["\n", ""]);
-}
-
-#[allow(dead_code)]
-mod check_impl {
-    use iof::{dimension::Dimension, separator::GetDefaultSeparator};
-    const fn check_impl<T: Dimension + GetDefaultSeparator>() {}
-    const CHAR: () = check_impl::<char>();
+    assert_eq!(<char as Dimension>::get_default_separator(), "");
+    assert_eq!(<Vec<char> as Dimension>::get_default_separator(), "");
+    assert_eq!(<Mat<char> as Dimension>::get_default_separator(), "\n");
 }
 
 #[test]

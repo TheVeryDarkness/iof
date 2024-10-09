@@ -1,6 +1,6 @@
 use crate::{stdout, SepBy, Separators};
 use dimension::Dimension;
-use separator::{GetDefaultSeparator, Separator};
+use separator::Separator;
 use separators::DefaultSeparator;
 use std::{
     collections::{BTreeSet, BinaryHeap, HashSet, LinkedList, VecDeque},
@@ -30,12 +30,9 @@ pub trait WriteInto: Dimension {
     /// Write into a stream with given separator.
     fn try_write_into_with_sep<S: Write + ?Sized>(&self, s: &mut S, sep: impl Separators)
         -> Result;
-    /// Write into a stream.
+    /// Write into a stream using the default separator.
     #[inline]
-    fn try_write_into<S: Write + ?Sized>(&self, s: &mut S) -> Result
-    where
-        Self: GetDefaultSeparator,
-    {
+    fn try_write_into<S: Write + ?Sized>(&self, s: &mut S) -> Result {
         self.try_write_into_with_sep(s, DefaultSeparator::new())
     }
     /// Write into a string with given separator.
@@ -46,12 +43,9 @@ pub trait WriteInto: Dimension {
         // What if the string is not valid UTF-8?
         String::from_utf8(s).map_err(|err| io::Error::new(io::ErrorKind::InvalidData, err))
     }
-    /// Write into a string.
+    /// Write into a string using the default separator.
     #[inline]
-    fn try_write_into_string(&self) -> Result<String>
-    where
-        Self: GetDefaultSeparator,
-    {
+    fn try_write_into_string(&self) -> Result<String> {
         self.try_write_into_string_with_sep(DefaultSeparator::new())
     }
     /// Write into [std::io::Stdout] with given separator.
@@ -59,12 +53,9 @@ pub trait WriteInto: Dimension {
     fn try_write_with_sep(&self, sep: impl Separators) -> Result {
         self.try_write_into_with_sep(&mut stdout(), sep)
     }
-    /// Write into [std::io::Stdout].
+    /// Write into [std::io::Stdout] using the default separator.
     #[inline]
-    fn try_write(&self) -> Result
-    where
-        Self: GetDefaultSeparator,
-    {
+    fn try_write(&self) -> Result {
         self.try_write_with_sep(DefaultSeparator::new())
     }
 }
