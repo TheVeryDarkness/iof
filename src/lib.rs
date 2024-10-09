@@ -290,22 +290,22 @@
 //! Note that the iterator must implement [Clone] trait to use the [SepBy] trait. And due to this constraint, if you write a container directly as the argument of [sep_by!], you may need to use `&` to borrow it.
 //!
 //! And created objects can also be used in some formats other than [Display] format or [Debug] format.
-//! 
+//!
 //! ```rust
 //! use iof::{sep_by, SepBy};
-//! 
+//!
 //! let v = vec![1.0, 2.1, 3.2];
 //! let s = sep_by!(&v, ", ");
 //! assert_eq!(format!("{s:?}"), "1.0, 2.1, 3.2");
-//! 
+//!
 //! let v = vec![3735928559u32, 3405691582u32, 3405709037u32, 3435973836u32, 3452816845u32];
 //! let s = sep_by!(&v, " ");
 //! assert_eq!(format!("{s:x}"), "deadbeef cafebabe cafefeed cccccccc cdcdcdcd");
 //! ```
-//! 
+//!
 //! [Display]: std::fmt::Display
 //! [Debug]: std::fmt::Debug
-//! 
+//!
 //! ## [WriteInto]
 //!
 //! Some higher-level functions are provided to write data sequence with default format to output:
@@ -391,7 +391,12 @@ pub use {
     },
     stdio::{read_into::*, stdin, stdout, stream::*},
     stream::{input_stream::InputStream, traits::BufReadExt},
-    write::{dimension, separator, writer::Writer, WriteInto},
+    write::{
+        dimension, separator,
+        separators::{DefaultSeparator, Separators},
+        writer::write,
+        WriteInto,
+    },
     Vec,
 };
 

@@ -1,5 +1,5 @@
 use super::{dimension::*, Separator, WriteInto};
-use crate::impl_for_single;
+use crate::{impl_for_single, Separators};
 use std::{io, num::*};
 
 impl_for_single!(
@@ -22,9 +22,8 @@ impl WriteInto for char {
     fn try_write_into_with_sep<S: io::Write + ?Sized>(
         &self,
         s: &mut S,
-        sep: &[impl Separator],
+        _sep: impl Separators,
     ) -> super::Result {
-        debug_assert_eq!(sep.len(), Self::DIMENSION);
         s.write_all(&[*self as u8])
     }
 }
@@ -36,7 +35,6 @@ impl Dimension for char {
 
 macro_rules! check_separators_count {
     ($sep:expr, $t0:ty $(, $t:ty)*) => {
-        debug_assert_eq!($sep.len(), Self::DIMENSION, "Separator count mismatch.");
         $(
             debug_assert_eq!(
                 <$t0 as Dimension>::DIMENSION,
@@ -48,23 +46,26 @@ macro_rules! check_separators_count {
         )*
     };
     ($sep:expr $(,)?) => {
-        debug_assert_eq!($sep.len(), Self::DIMENSION, "Separator count mismatch.");
     };
 }
 
 macro_rules! impl_for_tuple {
     ($n0:ident $t0:ident $(, $n:ident $t:ident)+ $(,)?) => {
         impl<$t0: WriteInto, $($t: WriteInto),*> WriteInto for ($t0, $($t,)*) {
-            fn try_write_into_with_sep<S: io::Write + ?Sized>(&self, s: &mut S, sep: &[impl Separator]) -> io::Result<()> {
+            fn try_write_into_with_sep<S: io::Write + ?Sized>(&self, s: &mut S, sep: impl Separators) -> io::Result<()> {
                 check_separators_count!(sep, $t0 $(, $t)*);
 
                 let ($n0, $($n, )*) = self;
-                let (sep, residual) = sep.split_first().expect("Separator count mismatch.");
+                let (sep, residual) = sep.split();
 
                 $n0.try_write_into_with_sep(s, residual)?;
                 let mut i = 0usize;
                 $(
-                    sep.format(i, |args| s.write_fmt(args))?;
+                    if let Some(sep) = &sep {
+                        sep.format(i, |args| s.write_fmt(args))?;
+                    } else {
+                        <Self as Dimension>::get_default_separator().format(i, |args| s.write_fmt(args))?;
+                    }
                     $n.try_write_into_with_sep(s, residual)?;
                     #[allow(unused_assignments)]
                     {
@@ -82,10 +83,10 @@ macro_rules! impl_for_tuple {
     };
     ($n0:ident $t0:ident $(,)?) => {
         impl<$t0: WriteInto> WriteInto for ($t0, ) {
-            fn try_write_into_with_sep<S: io::Write + ?Sized>(&self, s: &mut S, sep: &[impl Separator]) -> io::Result<()> {
+            fn try_write_into_with_sep<S: io::Write + ?Sized>(&self, s: &mut S, sep: impl Separators) -> io::Result<()> {
                 check_separators_count!(sep, $t0);
                 let ($n0, ) = self;
-                let (_sep, residual) = sep.split_first().expect("Separator count mismatch.");
+                let (_sep, residual) = sep.split();
                 $n0.try_write_into_with_sep(s, residual)?;
                 Ok(())
             }
@@ -97,7 +98,7 @@ macro_rules! impl_for_tuple {
     };
     () => {
         impl WriteInto for () {
-            fn try_write_into_with_sep<S: io::Write + ?Sized>(&self, _s: &mut S, _sep: &[impl Separator]) -> io::Result<()> {
+            fn try_write_into_with_sep<S: io::Write + ?Sized>(&self, _s: &mut S, _sep: impl Separators) -> io::Result<()> {
                 check_separators_count!(_sep, );
                 Ok(())
             }

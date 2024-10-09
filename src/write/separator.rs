@@ -67,7 +67,7 @@ const fn get_separator(dimension: usize, space: bool) -> &'static [&'static str]
         (2, true) => &["\n", " "],
         (2, false) => &["\n", ""],
         // Dimension > 2 is not supported.
-        // `unimplemented!()` would cause a compile-time error,
+        // `unimplemented!()` would cause a compile-time error even if the function is not called,
         // so we use an empty slice instead.
         (_, true) => &[],
         (_, false) => &[],

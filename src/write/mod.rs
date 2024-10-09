@@ -1,6 +1,7 @@
-use crate::{stdout, SepBy};
+use crate::{stdout, SepBy, Separators};
 use dimension::Dimension;
 use separator::{GetDefaultSeparator, Separator};
+use separators::DefaultSeparator;
 use std::{
     collections::{BTreeSet, BinaryHeap, HashSet, LinkedList, VecDeque},
     io::{self, Write},
@@ -11,6 +12,7 @@ mod impls;
 mod macros;
 pub(super) mod sep_by;
 pub mod separator;
+pub(super) mod separators;
 pub(super) mod writer;
 
 type Result<T = ()> = io::Result<T>;
@@ -26,22 +28,19 @@ type Result<T = ()> = io::Result<T>;
 /// [Mat]: crate::Mat
 pub trait WriteInto: Dimension {
     /// Write into a stream with given separator.
-    fn try_write_into_with_sep<S: Write + ?Sized>(
-        &self,
-        s: &mut S,
-        sep: &[impl Separator],
-    ) -> Result;
+    fn try_write_into_with_sep<S: Write + ?Sized>(&self, s: &mut S, sep: impl Separators)
+        -> Result;
     /// Write into a stream.
     #[inline]
     fn try_write_into<S: Write + ?Sized>(&self, s: &mut S) -> Result
     where
         Self: GetDefaultSeparator,
     {
-        self.try_write_into_with_sep(s, Self::DEFAULT_SEPARATOR)
+        self.try_write_into_with_sep(s, DefaultSeparator::new())
     }
     /// Write into a string with given separator.
     #[inline]
-    fn try_write_into_string_with_sep(&self, sep: &[impl Separator]) -> Result<String> {
+    fn try_write_into_string_with_sep(&self, sep: impl Separators) -> Result<String> {
         let mut s = Vec::new();
         self.try_write_into_with_sep(&mut s, sep)?;
         // What if the string is not valid UTF-8?
@@ -53,11 +52,11 @@ pub trait WriteInto: Dimension {
     where
         Self: GetDefaultSeparator,
     {
-        self.try_write_into_string_with_sep(Self::DEFAULT_SEPARATOR)
+        self.try_write_into_string_with_sep(DefaultSeparator::new())
     }
     /// Write into [std::io::Stdout] with given separator.
     #[inline]
-    fn try_write_with_sep(&self, sep: &[impl Separator]) -> Result {
+    fn try_write_with_sep(&self, sep: impl Separators) -> Result {
         self.try_write_into_with_sep(&mut stdout(), sep)
     }
     /// Write into [std::io::Stdout].
@@ -66,7 +65,7 @@ pub trait WriteInto: Dimension {
     where
         Self: GetDefaultSeparator,
     {
-        self.try_write_with_sep(Self::DEFAULT_SEPARATOR)
+        self.try_write_with_sep(DefaultSeparator::new())
     }
 }
 
@@ -75,7 +74,7 @@ impl<T: WriteInto + ?Sized> WriteInto for &T {
     fn try_write_into_with_sep<S: Write + ?Sized>(
         &self,
         s: &mut S,
-        sep: &[impl Separator],
+        sep: impl Separators,
     ) -> Result<()> {
         (*self).try_write_into_with_sep(s, sep)
     }
@@ -86,9 +85,8 @@ impl<T: WriteInto> WriteInto for Vec<T> {
     fn try_write_into_with_sep<S: Write + ?Sized>(
         &self,
         s: &mut S,
-        sep: &[impl Separator],
+        sep: impl Separators,
     ) -> Result<()> {
-        debug_assert_eq!(sep.len(), Self::DIMENSION);
         self.as_slice().try_write_into_with_sep(s, sep)
     }
 }
@@ -98,7 +96,7 @@ impl<T: WriteInto, const N: usize> WriteInto for [T; N] {
     fn try_write_into_with_sep<S: Write + ?Sized>(
         &self,
         s: &mut S,
-        sep: &[impl Separator],
+        sep: impl Separators,
     ) -> Result<()> {
         self.as_slice().try_write_into_with_sep(s, sep)
     }
@@ -111,10 +109,18 @@ macro_rules! impl_write_into {
             fn try_write_into_with_sep<S: Write + ?Sized>(
                 &self,
                 s: &mut S,
-                sep: &[impl Separator],
+                sep: impl Separators,
             ) -> Result<()> {
-                let (sep, residual) = sep.split_first().expect("Separator count mismatch.");
-                WriteInto::try_write_into_with_sep(&self.sep_by_write_into(sep), s, residual)
+                let (sep, residual) = sep.split();
+                if let Some(sep) = &sep {
+                    WriteInto::try_write_into_with_sep(&self.sep_by_write_into(sep), s, residual)
+                } else {
+                    WriteInto::try_write_into_with_sep(
+                        &self.sep_by_write_into(Self::get_default_separator()),
+                        s,
+                        residual,
+                    )
+                }
             }
         }
     };

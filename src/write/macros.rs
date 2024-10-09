@@ -13,21 +13,38 @@
 /// [WriteInto]: crate::WriteInto
 #[macro_export]
 macro_rules! show {
-    ($expr:expr $(, $opt:ident=$val:expr)* $(,)? => $buf:expr) => {
+    ($expr:expr $(, sep=$sep:expr)? $(, end=$end:expr)? $(,)? $(=> $buf:expr)?) => {
         $crate::unwrap!(|| -> ::std::io::Result<()> {
-            $crate::Writer::new()
-                $(.$opt(&$val))*
-                .write(&$expr, &mut $buf)?;
+            $crate::write(
+                &$expr,
+                &mut $crate::argument_or_default!($($buf)?, $crate::stdout()),
+                $crate::argument_or_default!($(&$sep)?, $crate::DefaultSeparator),
+                $crate::argument_or_default!($(&$end)?, "\n"),
+            )?;
             Ok(())
         }())
     };
-    ($expr:expr $(, $opt:ident=$val:expr)* $(,)?) => {
+    ($expr:expr, end=$end:expr $(, sep=$sep:expr)? $(,)? $(=> $buf:expr)?) => {
         $crate::unwrap!(|| -> ::std::io::Result<()> {
-            $crate::Writer::new()
-                $(.$opt(&$val))*
-                .write(&$expr, &mut $crate::stdout())?;
+            $crate::write(
+                &$expr,
+                &mut $crate::argument_or_default!($($buf)?, $crate::stdout()),
+                $crate::argument_or_default!($(&$sep)?, $crate::DefaultSeparator),
+                &$end,
+            )?;
             Ok(())
         }())
+    };
+}
+
+/// Return the given expression or the default value.
+#[macro_export]
+macro_rules! argument_or_default {
+    ($arg:expr, $default:expr $(,)?) => {
+        $arg
+    };
+    (, $default:expr $(,)?) => {
+        $default
     };
 }
 
@@ -39,7 +56,7 @@ macro_rules! impl_for_single {
     ($($ty:ty)*) => {
         $(
             impl $crate::WriteInto for $ty {
-                fn try_write_into_with_sep<S: ::std::io::Write + ?::std::marker::Sized>(&self, s: &mut S, _sep: &[impl Separator]) -> ::std::io::Result<()> {
+                fn try_write_into_with_sep<S: ::std::io::Write + ?::std::marker::Sized>(&self, s: &mut S, _sep: impl Separators) -> ::std::io::Result<()> {
                     ::std::write!(s, "{}", self)
                 }
             }

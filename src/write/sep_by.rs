@@ -1,3 +1,5 @@
+use crate::Separators;
+
 use super::{dimension::Dimension, separator::Separator, WriteInto};
 use std::{
     fmt::{self, Binary, Debug, Display, LowerExp, LowerHex, Octal, Pointer, UpperExp, UpperHex},
@@ -79,7 +81,7 @@ impl<I: Iterator<Item = T> + Clone, T: WriteInto, S: Separator + ?Sized> WriteIn
     fn try_write_into_with_sep<Stream: Write + ?Sized>(
         &self,
         s: &mut Stream,
-        residual: &[impl Separator],
+        residual: impl Separators,
     ) -> super::Result {
         let mut iter = self.iter.clone();
         if let Some(first) = iter.next() {

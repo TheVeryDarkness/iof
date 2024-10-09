@@ -1,6 +1,7 @@
-use iof::{dimension::Dimension, separator::Separator, show, WriteInto};
+use iof::{dimension::Dimension, show, Separators, WriteInto};
 use std::io;
 
+/// A compact and sorted container.
 struct CustomContainer<U> {
     data: Vec<U>,
 }
@@ -15,14 +16,14 @@ impl<U: Ord> FromIterator<U> for CustomContainer<U> {
 
 impl<U> Dimension for CustomContainer<U> {
     const DIMENSION: usize = 1;
-    const SPACE: bool = true;
+    const SPACE: bool = false;
 }
 
 impl<U: WriteInto> WriteInto for CustomContainer<U> {
     fn try_write_into_with_sep<S: io::Write + ?Sized>(
         &self,
         s: &mut S,
-        sep: &[impl Separator],
+        sep: impl Separators,
     ) -> io::Result<()> {
         self.data.try_write_into_with_sep(s, sep)
     }

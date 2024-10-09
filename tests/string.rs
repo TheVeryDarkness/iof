@@ -157,7 +157,7 @@ fn read_in_line_some_unicode() {
 #[test]
 fn string() {
     let mut buf = Cursor::new(Vec::new());
-    show!("Hello, World!", end = "" => &mut buf);
+    show!("Hello, World!", end = "" => buf);
     show!("🦀🦀🦀", => &mut buf);
     assert_eq!(
         unwrap!(String::from_utf8(buf.into_inner())),

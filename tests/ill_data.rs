@@ -1,4 +1,4 @@
-use iof::{dimension::Dimension, separator::Separator, unwrap, WriteInto};
+use iof::{dimension::Dimension, unwrap, Separators, WriteInto};
 use std::io::{Result, Write};
 
 struct IllData(&'static [u8]);
@@ -11,7 +11,7 @@ impl WriteInto for IllData {
     fn try_write_into_with_sep<S: Write + ?Sized>(
         &self,
         s: &mut S,
-        _sep: &[impl Separator],
+        _sep: impl Separators,
     ) -> Result<()> {
         s.write_all(self.0)?;
         Ok(())
