@@ -45,11 +45,9 @@ macro_rules! impl_for_sep_by {
                 if let Some(first) = iter.next() {
                     $trait::fmt(&first, f)?;
                 }
-                let mut i = 0_usize;
                 for item in iter {
-                    self.sep.format(i, |args| Display::fmt(&args, f))?;
+                    self.sep.write_fmt(f)?;
                     $trait::fmt(&item, f)?;
-                    i += 1;
                 }
                 Ok(())
             }
@@ -87,8 +85,8 @@ impl<I: Iterator<Item = T> + Clone, T: WriteInto, S: Separator + ?Sized> WriteIn
         if let Some(first) = iter.next() {
             first.try_write_into_with_sep(s, residual)?;
         }
-        for (i, item) in iter.enumerate() {
-            self.sep.format(i, |args| s.write_fmt(args))?;
+        for item in iter {
+            self.sep.write_io(s)?;
             item.try_write_into_with_sep(s, residual)?;
         }
         Ok(())

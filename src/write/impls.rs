@@ -59,18 +59,13 @@ macro_rules! impl_for_tuple {
                 let (sep, residual) = sep.split();
 
                 $n0.try_write_into_with_sep(s, residual)?;
-                let mut i = 0usize;
                 $(
                     if let Some(sep) = &sep {
-                        sep.format(i, |args| s.write_fmt(args))?;
+                        sep.write_io(s)?;
                     } else {
-                        <Self as Dimension>::get_default_separator().format(i, |args| s.write_fmt(args))?;
+                        <Self as Dimension>::get_default_separator().write_io(s)?;
                     }
                     $n.try_write_into_with_sep(s, residual)?;
-                    #[allow(unused_assignments)]
-                    {
-                        i += 1
-                    }
                 )*
 
                 Ok(())
