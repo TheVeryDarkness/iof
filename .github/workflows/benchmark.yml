@@ -20,6 +20,7 @@ jobs:
         uses: dtolnay/rust-toolchain@v1
         with:
           toolchain: "nightly"
+      - uses: bencherdev/bencher@main
       - name: Prepare for benchmark
         run: cargo run --example benchmark_integers
       - name: Track base branch benchmarks with Bencher
