@@ -56,9 +56,13 @@ fn template<B, R: BufRead>(
                 unwrap!(reader.read_to_end(&mut buf));
                 let results: Vec<Element> = buf
                     .split(|&b| matches!(b, b' ' | b'\n'))
-                    .map(|s| {
-                        let s = unwrap!(std::str::from_utf8(s));
-                        unwrap!(s.parse::<Element>())
+                    .filter_map(|s| {
+                        if s.is_empty() {
+                            None
+                        } else {
+                            let s = unwrap!(std::str::from_utf8(s));
+                            Some(unwrap!(s.parse::<Element>()))
+                        }
                     })
                     .collect();
                 assert_eq!(results.len(), COUNT);
