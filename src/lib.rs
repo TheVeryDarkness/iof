@@ -30,7 +30,7 @@
 //! - **Compatible**: You can read and write data with types that implement [std::fmt::Display] and [std::str::FromStr].
 //! - **Human Readable**: You can read and write data in a human-readable format.
 //!
-//!   For types whose representation does not a fixed length in characters, the default separator is a space; otherwise, such as for [char], it is an empty string.
+//!   For types whose representation does not have a fixed length in characters, the default separator is a space; otherwise, such as for [char], it is an empty string.
 //!
 //! # In Short
 //!
