@@ -3,7 +3,9 @@
 ///
 /// - `read!()` reads a single data item from input.
 /// - `read!(n)` reads `n` data items from input and stores them in a [Vec].
-/// - `read!(m, n)` reads `m * n` data items from input and stores them in a [Mat].
+/// - `read!(m, n)` reads `m * n` data items from input and stores them in a [Mat],
+///   
+///   which consists of `m` [Vec]s, each containing `n` data items.
 ///
 /// [Mat]: crate::Mat
 /// [ReadInto]: crate::ReadInto
@@ -15,6 +17,18 @@
 /// let a: usize = read!();
 /// let b: Vec<usize> = read!(3);
 /// let c: Vec<Vec<usize>> = read!(2, 3);
+/// ```
+///
+/// # Notes
+///
+/// This macro accepts even higher dimensions, such as `read!(m, n, o, p)`,
+/// but as this creates a nested [Vec], this may cause performance concerns.
+///
+/// What's more, you can pass a dynamic value to `read!` like `read!(m, f())`,
+/// which can create a nested [Vec] with a non-uniform length.
+///
+/// ```rust,no_run
+#[doc = include_str!("../../examples/doc_macro_read.rs")]
 /// ```
 macro_rules! read {
     () => {

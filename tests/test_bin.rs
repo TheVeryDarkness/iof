@@ -68,6 +68,16 @@ fn doc_read() {
 
 #[test]
 #[cfg_attr(miri, ignore)]
+fn doc_macro_read() {
+    test_example(
+        "doc_macro_read",
+        include_str!("../examples/doc_macro_read.txt"),
+        "",
+    );
+}
+
+#[test]
+#[cfg_attr(miri, ignore)]
 fn doc_fn_read() {
     test_example(
         "doc_fn_read",
