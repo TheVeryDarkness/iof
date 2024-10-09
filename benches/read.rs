@@ -98,7 +98,7 @@ fn cursor(c: &mut Criterion) {
 
 fn file(c: &mut Criterion) {
     (template(
-        "cursor",
+        "file",
         || (),
         |()| {
             let f = unwrap!(File::open("benches/integers.txt"));
