@@ -1,8 +1,8 @@
-use super::WriteOneInto;
-use crate::impl_write_into;
+use super::{dimension::*, Separator, WriteInto};
+use crate::{impl_for_single, Separators};
 use std::{io, num::*};
 
-impl_write_into!(
+impl_for_single!(
     f32 f64
     bool
     str String
@@ -18,51 +18,103 @@ impl_write_into!(
     NonZeroIsize NonZeroUsize
 );
 
-impl WriteOneInto for char {
-    const SEP_ITEM: &'static str = "";
-
-    fn try_write_one_into<S: io::Write + ?Sized>(&self, s: &mut S) -> io::Result<()> {
+impl WriteInto for char {
+    fn try_write_into_with_sep<S: io::Write + ?Sized>(
+        &self,
+        s: &mut S,
+        _sep: impl Separators,
+    ) -> super::Result {
         s.write_all(&[*self as u8])
     }
 }
 
-macro_rules! impl_write_one_into_for_tuple {
-    ($n0:ident $t0:ident $(, $n:ident $t:ident)* $(,)?) => {
-        impl<$t0: WriteOneInto, $($t: WriteOneInto),*> WriteOneInto for ($t0, $($t,)*) {
-            const SEP_ITEM: &'static str = " ";
+impl Dimension for char {
+    const DIMENSION: usize = 0;
+    const SPACE: bool = false;
+}
 
-            fn try_write_one_into<S: io::Write + ?Sized>(&self, s: &mut S) -> io::Result<()> {
+macro_rules! check_separators_count {
+    ($sep:expr, $t0:ty $(, $t:ty)*) => {
+        $(
+            debug_assert_eq!(
+                <$t0 as Dimension>::DIMENSION,
+                <$t as Dimension>::DIMENSION,
+                "Dimension mismatch: {} != {}",
+                <$t0 as Dimension>::DIMENSION,
+                <$t as Dimension>::DIMENSION,
+            );
+        )*
+    };
+    ($sep:expr $(,)?) => {
+    };
+}
+
+macro_rules! impl_for_tuple {
+    ($n0:ident $t0:ident $(, $n:ident $t:ident)+ $(,)?) => {
+        impl<$t0: WriteInto, $($t: WriteInto),*> WriteInto for ($t0, $($t,)*) {
+            fn try_write_into_with_sep<S: io::Write + ?Sized>(&self, s: &mut S, sep: impl Separators) -> io::Result<()> {
+                check_separators_count!(sep, $t0 $(, $t)*);
+
                 let ($n0, $($n, )*) = self;
-                $n0.try_write_one_into(s)?;
+                let (sep, residual) = sep.split();
+
+                $n0.try_write_into_with_sep(s, residual)?;
                 $(
-                    s.write_all(Self::SEP_ITEM.as_bytes())?;
-                    $n.try_write_one_into(s)?;
+                    if let Some(sep) = &sep {
+                        sep.write_io(s)?;
+                    } else {
+                        <Self as Dimension>::get_default_separator().write_io(s)?;
+                    }
+                    $n.try_write_into_with_sep(s, residual)?;
                 )*
+
                 Ok(())
             }
         }
+        impl<$t0: Dimension, $($t: Dimension,)*> Dimension for ($t0, $($t,)*) {
+            const DIMENSION: usize = 1 + $t0::DIMENSION;
+            const SPACE: bool = true;
+        }
     };
-    () => {
-        impl WriteOneInto for () {
-            const SEP_ITEM: &'static str = " ";
-
-            fn try_write_one_into<S: io::Write + ?Sized>(&self, _s: &mut S) -> io::Result<()> {
+    ($n0:ident $t0:ident $(,)?) => {
+        impl<$t0: WriteInto> WriteInto for ($t0, ) {
+            fn try_write_into_with_sep<S: io::Write + ?Sized>(&self, s: &mut S, sep: impl Separators) -> io::Result<()> {
+                check_separators_count!(sep, $t0);
+                let ($n0, ) = self;
+                let (_sep, residual) = sep.split();
+                $n0.try_write_into_with_sep(s, residual)?;
                 Ok(())
             }
+        }
+        impl<$t0: Dimension> Dimension for ($t0, ) {
+            const DIMENSION: usize = 1 + $t0::DIMENSION;
+            const SPACE: bool = true;
+        }
+    };
+    () => {
+        impl WriteInto for () {
+            fn try_write_into_with_sep<S: io::Write + ?Sized>(&self, _s: &mut S, _sep: impl Separators) -> io::Result<()> {
+                check_separators_count!(_sep, );
+                Ok(())
+            }
+        }
+        impl Dimension for () {
+            const DIMENSION: usize = 0;
+            const SPACE: bool = true;
         }
     };
 }
 
-impl_write_one_into_for_tuple!();
-impl_write_one_into_for_tuple!(t1 T1);
-impl_write_one_into_for_tuple!(t1 T1, t2 T2);
-impl_write_one_into_for_tuple!(t1 T1, t2 T2, t3 T3);
-impl_write_one_into_for_tuple!(t1 T1, t2 T2, t3 T3, t4 T4);
-impl_write_one_into_for_tuple!(t1 T1, t2 T2, t3 T3, t4 T4, t5 T5);
-impl_write_one_into_for_tuple!(t1 T1, t2 T2, t3 T3, t4 T4, t5 T5, t6 T6);
-impl_write_one_into_for_tuple!(t1 T1, t2 T2, t3 T3, t4 T4, t5 T5, t6 T6, t7 T7);
-impl_write_one_into_for_tuple!(t1 T1, t2 T2, t3 T3, t4 T4, t5 T5, t6 T6, t7 T7, t8 T8);
-impl_write_one_into_for_tuple!(t1 T1, t2 T2, t3 T3, t4 T4, t5 T5, t6 T6, t7 T7, t8 T8, t9 T9);
-impl_write_one_into_for_tuple!(t1 T1, t2 T2, t3 T3, t4 T4, t5 T5, t6 T6, t7 T7, t8 T8, t9 T9, t10 T10);
-impl_write_one_into_for_tuple!(t1 T1, t2 T2, t3 T3, t4 T4, t5 T5, t6 T6, t7 T7, t8 T8, t9 T9, t10 T10, t11 T11);
-impl_write_one_into_for_tuple!(t1 T1, t2 T2, t3 T3, t4 T4, t5 T5, t6 T6, t7 T7, t8 T8, t9 T9, t10 T10, t11 T11, t12 T12);
+impl_for_tuple!();
+impl_for_tuple!(t1 T1);
+impl_for_tuple!(t1 T1, t2 T2);
+impl_for_tuple!(t1 T1, t2 T2, t3 T3);
+impl_for_tuple!(t1 T1, t2 T2, t3 T3, t4 T4);
+impl_for_tuple!(t1 T1, t2 T2, t3 T3, t4 T4, t5 T5);
+impl_for_tuple!(t1 T1, t2 T2, t3 T3, t4 T4, t5 T5, t6 T6);
+impl_for_tuple!(t1 T1, t2 T2, t3 T3, t4 T4, t5 T5, t6 T6, t7 T7);
+impl_for_tuple!(t1 T1, t2 T2, t3 T3, t4 T4, t5 T5, t6 T6, t7 T7, t8 T8);
+impl_for_tuple!(t1 T1, t2 T2, t3 T3, t4 T4, t5 T5, t6 T6, t7 T7, t8 T8, t9 T9);
+impl_for_tuple!(t1 T1, t2 T2, t3 T3, t4 T4, t5 T5, t6 T6, t7 T7, t8 T8, t9 T9, t10 T10);
+impl_for_tuple!(t1 T1, t2 T2, t3 T3, t4 T4, t5 T5, t6 T6, t7 T7, t8 T8, t9 T9, t10 T10, t11 T11);
+impl_for_tuple!(t1 T1, t2 T2, t3 T3, t4 T4, t5 T5, t6 T6, t7 T7, t8 T8, t9 T9, t10 T10, t11 T11, t12 T12);

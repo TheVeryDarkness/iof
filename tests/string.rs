@@ -1,5 +1,14 @@
-use iof::{show, InputStream, ReadFrom, ReadInto, ReadOneFrom, ReadOneInto};
+use iof::{show, unwrap, InputStream, ReadFrom, ReadInto, ReadOneFrom, ReadOneInto};
 use std::io::Cursor;
+
+#[allow(dead_code)]
+mod check_impl {
+    use iof::dimension::Dimension;
+    const fn check_impl<T: Dimension + ?Sized>() {}
+    const STRING: () = check_impl::<String>();
+    const STR: () = check_impl::<str>();
+    const STATIC_STR: () = check_impl::<&'static str>();
+}
 
 #[test]
 fn read_strings() {
@@ -148,6 +157,10 @@ fn read_in_line_some_unicode() {
 #[test]
 fn string() {
     let mut buf = Cursor::new(Vec::new());
-    show!("Hello, World!"; end = "", buf = &mut buf);
-    show!("🦀🦀🦀"; buf = &mut buf);
+    show!("Hello, World!", end = "" => buf);
+    show!("🦀🦀🦀", => &mut buf);
+    assert_eq!(
+        unwrap!(String::from_utf8(buf.into_inner())),
+        "Hello, World!🦀🦀🦀\n",
+    );
 }

@@ -1,6 +1,6 @@
 [package]
 name = "iof"
-version = "0.2.1"
+version = "0.3.0-alpha.3"
 edition = "2021"
 description = "Read from and write data to console or file in simple formats."
 keywords = ["input", "oj", "stream", "formatted"]
@@ -22,4 +22,13 @@ default = []
 
 [dev-dependencies]
 anyhow = "1.0.86"
+criterion = "0.5.1"
 ntest = "0.9.3"
+
+[[bench]]
+name = "read"
+harness = false
+
+[[bench]]
+name = "show"
+harness = false

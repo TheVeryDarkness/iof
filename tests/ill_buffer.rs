@@ -1,5 +1,5 @@
-use iof::{BufReadExt, InputStream, ReadInto, ReadOneInto, WriteInto, WriteOneInto};
-use std::io;
+use iof::{show, unwrap, BufReadExt, InputStream, ReadInto, ReadOneInto, WriteInto};
+use std::io::{self, Cursor};
 
 struct IllBuffer;
 
@@ -113,14 +113,36 @@ fn try_write() {
 
 #[test]
 #[should_panic = "ill buffer"]
-fn write_into() {
-    [1, 2, 3].write_into(&mut IllBuffer);
+fn write_error_error() {
+    use std::io::Write;
+    let mut buf = InputStream::new(Cursor::new("-1 -2 -3".as_bytes()));
+    let vec: Result<[u32; 3], iof::ReadError<_>> = buf.try_read();
+    let err = vec.unwrap_err();
+    unwrap!(write!(&mut IllBuffer, "{}", err));
 }
 
 #[test]
 #[should_panic = "ill buffer"]
-fn write_one_into() {
-    42_usize.write_one_into(&mut IllBuffer);
+fn write_array() {
+    unwrap!([1, 2, 3].try_write_into(&mut IllBuffer));
+}
+
+#[test]
+#[should_panic = "ill buffer"]
+fn write_tuple() {
+    unwrap!((1, 2, 3).try_write_into(&mut IllBuffer));
+}
+
+#[test]
+#[should_panic = "ill buffer"]
+fn show_array() {
+    show!([1, 2, 3] => IllBuffer);
+}
+
+#[test]
+#[should_panic = "ill buffer"]
+fn show_tuple() {
+    show!((1, 2, 3), sep = [", "] => IllBuffer);
 }
 
 #[test]

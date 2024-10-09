@@ -1,5 +1,17 @@
-use iof::{InputStream, ReadInto, ReadOneInto};
+use iof::{dimension::Dimension, InputStream, Mat, ReadInto, ReadOneInto};
 use std::io::Cursor;
+
+#[test]
+fn check_separator() {
+    assert_eq!(<Vec<char> as Dimension>::get_default_separator(), "");
+    assert_eq!(<Mat<char> as Dimension>::get_default_separator(), "\n");
+}
+
+#[test]
+#[should_panic = "not implemented: Default separator for dimension 0 is not supported."]
+fn check_separator_scalar() {
+    let _ = <char as Dimension>::get_default_separator();
+}
 
 #[test]
 #[should_panic = "expect more characters before EOF"]

@@ -1,5 +1,28 @@
+use dimension::Dimension;
 use iof::*;
 use std::io::Cursor;
+
+#[test]
+fn check_separator() {
+    assert_eq!(<Vec<u32> as Dimension>::get_default_separator(), " ");
+    assert_eq!(<Vec<i32> as Dimension>::get_default_separator(), " ");
+    assert_eq!(<Vec<f64> as Dimension>::get_default_separator(), " ");
+    assert_eq!(<Mat<u32> as Dimension>::get_default_separator(), "\n");
+    assert_eq!(<Mat<i32> as Dimension>::get_default_separator(), "\n");
+    assert_eq!(<Mat<f64> as Dimension>::get_default_separator(), "\n");
+}
+
+#[test]
+#[should_panic = "not implemented: Default separator for dimension 0 is not supported."]
+fn check_separator_scalar() {
+    let _ = <f64 as Dimension>::get_default_separator();
+}
+
+#[test]
+#[should_panic = "not implemented: Default separator for dimension 3 is not supported."]
+fn check_separator_3_dim_tensor() {
+    let _ = <Vec<Vec<Vec<f64>>> as Dimension>::get_default_separator();
+}
 
 #[test]
 fn try_read_single_3() {
@@ -199,15 +222,7 @@ fn try_read_char_only_sign() {
 #[test]
 fn try_write_one_into() {
     let mut s = Vec::new();
-    42.try_write_one_into(&mut s).unwrap();
-    let s = String::from_utf8(s).unwrap();
-    assert_eq!(s, "42");
-}
-
-#[test]
-fn write_one_into() {
-    let mut s = Vec::new();
-    42.write_one_into(&mut s);
+    42.try_write_into(&mut s).unwrap();
     let s = String::from_utf8(s).unwrap();
     assert_eq!(s, "42");
 }

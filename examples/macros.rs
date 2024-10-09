@@ -27,8 +27,8 @@ fn main() {
     show!(b);
     show!(c);
 
-    show!(a, b, c; sep = "\n");
-    show!(a; end = "");
-    show!(", ", a, " "; sep = "", end = "");
-    show!(a, b, c; sep = " :: ");
+    show!((", ", a, " "), sep = [""], end = "\n");
+    show!(a, end = "\n");
+    show!(b, sep = [" :: "]);
+    show!(c, sep = [" :: ", " | "]);
 }

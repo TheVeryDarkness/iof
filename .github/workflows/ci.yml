@@ -4,6 +4,7 @@ name: Lint and Test
 
 env:
   RUSTFLAGS: "-Dwarnings"
+  RUST_BACKTRACE: 1
 
 jobs:
   check:

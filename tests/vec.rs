@@ -1,5 +1,5 @@
 use iof::*;
-use std::{collections::BTreeSet, io::Cursor};
+use std::{collections::BTreeSet, io::Cursor, str::from_utf8};
 
 #[test]
 fn read_n() {
@@ -8,7 +8,7 @@ fn read_n() {
 
     let vec: Vec<u32> = reader.read_n(3);
     assert_eq!(vec, &[1, 2, 3]);
-    assert_eq!(vec.sep_by(" ").to_string(), "1 2 3");
+    assert_eq!(vec.sep_by(&" ").to_string(), "1 2 3");
 
     assert!(<u32>::try_read_n_from(&mut reader, 1).is_err());
 }
@@ -113,7 +113,7 @@ fn read_all() -> anyhow::Result<()> {
     let set: BTreeSet<u32> = reader.read_all().into_iter().collect();
 
     assert_eq!(set, BTreeSet::from([1, 2, 3]));
-    assert_eq!(set.iter().sep_by(" ").to_string(), "1 2 3");
+    assert_eq!(set.iter().sep_by(&" ").to_string(), "1 2 3");
 
     Ok(())
 }
@@ -140,15 +140,15 @@ fn read_all_digit_error() {
 fn display() {
     let s = Vec::from([1, 2, 3]);
     assert_eq!(s.try_write_into_string().unwrap(), "1 2 3");
-    assert_eq!(s.write_into_string(), "1 2 3");
+    assert_eq!(unwrap!(s.try_write_into_string()), "1 2 3");
 
     let s = Vec::from([1]);
     assert_eq!(s.try_write_into_string().unwrap(), "1");
-    assert_eq!(s.write_into_string(), "1");
+    assert_eq!(unwrap!(s.try_write_into_string()), "1");
 
     let s: Vec<i32> = Vec::from([]);
     assert_eq!(s.try_write_into_string().unwrap(), "");
-    assert_eq!(s.write_into_string(), "");
+    assert_eq!(unwrap!(s.try_write_into_string()), "");
 }
 
 #[test]
@@ -157,4 +157,21 @@ fn show() {
     show!(vec![vec![1, 2], vec![3, 4]]);
     show!(vec![] as Vec<usize>);
     show!(vec![vec![1, 2, 3], vec![4, 5, 6], vec![7, 8, 9]]);
+
+    let mut buf = Vec::new();
+    let s = format!(" :: ");
+    show!(vec![1, 2, 3], sep = [&s], end = "" => buf);
+    assert_eq!(unwrap!(from_utf8(&buf)), "1 :: 2 :: 3");
+
+    buf.clear();
+    show!(vec![1, 2, 3], sep = &" ++ ", end = "" => buf);
+    assert_eq!(unwrap!(from_utf8(&buf)), "1 ++ 2 ++ 3");
+
+    buf.clear();
+    show!(vec![vec![1, 2, 3], vec![4, 5, 6]], sep = [&";", &","], end = "\n\n" => buf);
+    assert_eq!(unwrap!(from_utf8(&buf)), "1,2,3;4,5,6\n\n");
+
+    buf.clear();
+    show!(vec![vec![1, 2, 3], vec![4, 5, 6]], sep = [&';', &','], end = "\n\n" => buf);
+    assert_eq!(unwrap!(from_utf8(&buf)), "1,2,3;4,5,6\n\n");
 }

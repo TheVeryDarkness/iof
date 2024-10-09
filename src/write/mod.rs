@@ -1,37 +1,21 @@
-use crate::{stdout, unwrap, Mat, SepBy};
-use std::io::{self, Write};
+use crate::{stdout, SepBy, Separators};
+use dimension::Dimension;
+use separator::Separator;
+use separators::DefaultSeparator;
+use std::{
+    collections::{BTreeSet, BinaryHeap, HashSet, LinkedList, VecDeque},
+    io::{self, Write},
+};
 
+pub mod dimension;
 mod impls;
 mod macros;
+pub(super) mod sep_by;
+pub mod separator;
+pub(super) mod separators;
 pub(super) mod writer;
 
 type Result<T = ()> = io::Result<T>;
-
-/// Write an element into a stream.
-///
-/// Most types that implement [Display] also implement this.
-///
-/// [Display]: std::fmt::Display
-pub trait WriteOneInto {
-    /// Separator between items.
-    const SEP_ITEM: &'static str = " ";
-    /// Separator between lines.
-    const SEP_LINE: &'static str = "\n";
-    /// Write into a stream.
-    fn try_write_one_into<S: Write + ?Sized>(&self, s: &mut S) -> Result;
-    /// Unwrapping version of [WriteOneInto::try_write_one_into].
-    #[track_caller]
-    #[inline]
-    fn write_one_into<S: Write + ?Sized>(&self, s: &mut S) {
-        unwrap!(self.try_write_one_into(s))
-    }
-}
-
-impl<T: WriteOneInto + ?Sized> WriteOneInto for &T {
-    fn try_write_one_into<S: Write + ?Sized>(&self, s: &mut S) -> Result {
-        (*self).try_write_one_into(s)
-    }
-}
 
 /// Write into a stream.
 ///
@@ -42,77 +26,100 @@ impl<T: WriteOneInto + ?Sized> WriteOneInto for &T {
 ///   They write each row separated by a newline, and each item in a row separated by a space.
 ///
 /// [Mat]: crate::Mat
-pub trait WriteInto {
-    /// Write into a stream.
-    fn try_write_into<S: Write + ?Sized>(&self, s: &mut S) -> Result;
-    /// Unwrapping version of [WriteInto::try_write_into].
-    #[track_caller]
+pub trait WriteInto: Dimension {
+    /// Write into a stream with given separator.
+    fn try_write_into_with_sep<S: Write + ?Sized>(&self, s: &mut S, sep: impl Separators)
+        -> Result;
+    /// Write into a stream using the default separator.
     #[inline]
-    fn write_into<S: Write + ?Sized>(&self, s: &mut S) {
-        unwrap!(self.try_write_into(s))
+    fn try_write_into<S: Write + ?Sized>(&self, s: &mut S) -> Result {
+        self.try_write_into_with_sep(s, DefaultSeparator::new())
     }
-    /// Write into a string.
-    fn try_write_into_string(&self) -> Result<String> {
+    /// Write into a string with given separator.
+    #[inline]
+    fn try_write_into_string_with_sep(&self, sep: impl Separators) -> Result<String> {
         let mut s = Vec::new();
-        self.try_write_into(&mut s)?;
+        self.try_write_into_with_sep(&mut s, sep)?;
         // What if the string is not valid UTF-8?
         String::from_utf8(s).map_err(|err| io::Error::new(io::ErrorKind::InvalidData, err))
     }
-    /// Unwrapping version of [WriteInto::try_write_into_string].
-    #[track_caller]
+    /// Write into a string using the default separator.
     #[inline]
-    fn write_into_string(&self) -> String {
-        unwrap!(self.try_write_into_string())
+    fn try_write_into_string(&self) -> Result<String> {
+        self.try_write_into_string_with_sep(DefaultSeparator::new())
     }
-    /// Write into [std::io::Stdout].
+    /// Write into [std::io::Stdout] with given separator.
+    #[inline]
+    fn try_write_with_sep(&self, sep: impl Separators) -> Result {
+        self.try_write_into_with_sep(&mut stdout(), sep)
+    }
+    /// Write into [std::io::Stdout] using the default separator.
+    #[inline]
     fn try_write(&self) -> Result {
-        self.try_write_into(&mut stdout())
+        self.try_write_with_sep(DefaultSeparator::new())
     }
-    /// Unwrapping version of [WriteInto::try_write].
-    #[track_caller]
+}
+
+impl<T: WriteInto + ?Sized> WriteInto for &T {
     #[inline]
-    fn write(&self) {
-        unwrap!(self.try_write())
+    fn try_write_into_with_sep<S: Write + ?Sized>(
+        &self,
+        s: &mut S,
+        sep: impl Separators,
+    ) -> Result<()> {
+        (*self).try_write_into_with_sep(s, sep)
     }
 }
 
-impl<T: WriteOneInto> WriteInto for T {
-    fn try_write_into<S: Write + ?Sized>(&self, s: &mut S) -> Result<()> {
-        self.try_write_one_into(s)
+impl<T: WriteInto> WriteInto for Vec<T> {
+    #[inline]
+    fn try_write_into_with_sep<S: Write + ?Sized>(
+        &self,
+        s: &mut S,
+        sep: impl Separators,
+    ) -> Result<()> {
+        self.as_slice().try_write_into_with_sep(s, sep)
     }
 }
 
-impl<T: WriteOneInto> WriteInto for Vec<T> {
-    fn try_write_into<S: Write + ?Sized>(&self, s: &mut S) -> Result<()> {
-        self.as_slice().try_write_into(s)
+impl<T: WriteInto, const N: usize> WriteInto for [T; N] {
+    #[inline]
+    fn try_write_into_with_sep<S: Write + ?Sized>(
+        &self,
+        s: &mut S,
+        sep: impl Separators,
+    ) -> Result<()> {
+        self.as_slice().try_write_into_with_sep(s, sep)
     }
 }
 
-impl<T: WriteOneInto, const N: usize> WriteInto for [T; N] {
-    fn try_write_into<S: Write + ?Sized>(&self, s: &mut S) -> Result<()> {
-        self.as_slice().try_write_into(s)
-    }
-}
-impl<T: WriteOneInto> WriteInto for [T] {
-    fn try_write_into<S: Write + ?Sized>(&self, s: &mut S) -> Result<()> {
-        WriteInto::try_write_into(&self.sep_by(T::SEP_ITEM), s)
-    }
+macro_rules! impl_write_into {
+    ($ty:ty) => {
+        impl<T: WriteInto> WriteInto for $ty {
+            #[inline]
+            fn try_write_into_with_sep<S: Write + ?Sized>(
+                &self,
+                s: &mut S,
+                sep: impl Separators,
+            ) -> Result<()> {
+                let (sep, residual) = sep.split();
+                if let Some(sep) = &sep {
+                    WriteInto::try_write_into_with_sep(&self.sep_by_write_into(sep), s, residual)
+                } else {
+                    WriteInto::try_write_into_with_sep(
+                        &self.sep_by_write_into(Self::get_default_separator()),
+                        s,
+                        residual,
+                    )
+                }
+            }
+        }
+    };
 }
 
-impl<T: WriteOneInto> WriteInto for Mat<T> {
-    fn try_write_into<S: Write + ?Sized>(&self, s: &mut S) -> Result<()> {
-        self.iter()
-            .map(|row| row.iter().sep_by(T::SEP_ITEM))
-            .sep_by(T::SEP_LINE)
-            .try_write_into(s)
-    }
-}
-
-impl<T: WriteOneInto, const M: usize, const N: usize> WriteInto for [[T; N]; M] {
-    fn try_write_into<S: Write + ?Sized>(&self, s: &mut S) -> Result<()> {
-        self.iter()
-            .map(|row| row.iter().sep_by(T::SEP_ITEM))
-            .sep_by(T::SEP_LINE)
-            .try_write_into(s)
-    }
-}
+impl_write_into!([T]);
+impl_write_into!(HashSet<T>);
+impl_write_into!(BTreeSet<T>);
+impl_write_into!(VecDeque<T>);
+impl_write_into!(BinaryHeap<T>);
+impl_write_into!(LinkedList<T>);

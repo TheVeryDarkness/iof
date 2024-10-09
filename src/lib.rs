@@ -19,6 +19,19 @@
 
 //! A utility library for reading data from input and writing data to output.
 //!
+//! # Principles
+//!
+//! - **Simple**: You can read and write data with a single line of code.
+//! - **Flexible**: You can customize the format of data if the default format does not meet your needs.
+//! - **Efficient**: You can read and write data with minimal overhead.
+//! - **Safe**: You can read and write data without worrying about buffer overflow or other security issues.
+//! - **Easy to Learn**: You can read and write data with a similar interface to Python3 and C++.
+//! - **Extensible**: You can implement your own types to read and write data.
+//! - **Compatible**: You can read and write data with types that implement [std::fmt::Display] and [std::str::FromStr].
+//! - **Human Readable**: You can read and write data in a human-readable format.
+//!
+//!   For types whose representation does not a fixed length in characters, the default separator is a space; otherwise, such as for [char], it is an empty string.
+//!
 //! # In Short
 //!
 //! ## [read!]
@@ -53,7 +66,7 @@
 #![doc = include_str!("../examples/doc_get_line.rs")]
 //! ```
 //!
-//! *You may have noticed that the [get_line] function is similar to the [`input`](https://docs.python.org/zh-cn/3/library/functions.html#input) function in Python and [`std::get_line`](https://zh.cppreference.com/w/cpp/string/basic_string/getline) in cpp.*
+//! *You may have noticed that the [get_line] function is similar to the [`input`](https://docs.python.org/zh-cn/3/library/functions.html#input) function in Python3 and [`std::get_line`](https://zh.cppreference.com/w/cpp/string/basic_string/getline) in C++.*
 //!
 //! Sometimes you may want to ensure that the line is not empty. You can use [get_line_some] functions to read a non-empty line of string from the position of next non-whitespace character to the end of the line.
 //!
@@ -71,14 +84,15 @@
 //!
 //! ## [show!]
 //!
-//! You can use [show!] macro to write a single data item, a [Vec] or a [Mat] to output.
+//! You can use [show!] macro to write something to output.
 //!
-//! - `show!(e)` writes a single data item `e` to output.
-//! - `show!(e1, e2, ...)` writes several data items `e1, e2, ...` to output. They are separated by a space.
-//! - `show!(e1, e2, ...; sep=", ")` writes several data items `e1, e2, ...` to output. They are separated by a comma and a space, as specified in the `sep` parameter.
-//! - `show!(e1, e2, ...; sep=", ", end="!")` writes several data items `e1, e2, ...` to output. They are separated by a comma and a space, as specified in the `sep` parameter, and ended with an exclamation mark, as specified in the `end` parameter.
+//! - `show!(e)` writes `e` to output. They are formatted with default format.
+//! - `show!([a, b], sep = [", "])` writes `[a, b]` like a [`Vec`] to output. They are separated by a comma and a space, as specified in the `sep` parameter.
+//! - `show!([[a, b], [c, d]], sep = ["\n", " "])` writes `e` like a [`Mat`] to output. Rows of them are separated by LF, and columns are separated by a space, as specified in the `sep` parameter.
 //!
-//! Note that all parameter are optional and placed after a semicolon, and the order of parameters does not matter. The default value of `sep` is a space (`' '`), and the default value of `end` is a newline (`'\n'`).
+//! Also, you can append a `=>` and a buffer to write to a buffer instead of [standard output](std::io::Stdout), such as `show!(e => buf)` and `show!([a, b], sep = [", "] => buf)`.
+//!
+//! Note that all parameters are optional and placed after a comma, and the order of parameters does not matter. The default value of `sep` and the default value of `end` are from the [get_default_separator] function. See [Separator](#separator) for more details.
 //!
 //! *You may have noticed that the `show!` macro is similar to the [`print`](https://docs.python.org/zh-cn/3/library/functions.html#print) function in Python.*
 //!
@@ -88,15 +102,24 @@
 #![doc = include_str!("../examples/doc_show.rs")]
 //! ```
 //!
+//! And code above generates the output below:
+//!
+//! ```txt
+#![doc = include_str!("../examples/doc_show.txt")]
+//! ```
+//!
+//! [Separator]: crate::separator::Separator
+//! [get_default_separator]: crate::write::dimension::Dimension::get_default_separator
+//!
 //! # Input
 //!
 //! ## [ReadInto]
 //!
 //! Some higher-level functions are provided to read data sequence (a single item is also a sequence) from input:
 //!
-//! - [`read<T>()`] (or [`try_read<T>()`]) reads a single sequence from input and converts it to a value of `T`.
-//! - [`read_n<T>(n)`] (or [`try_read_n<T>(n)`]) reads `n` sequences from input and converts them to a value of [Vec].
-//! - [`read_m_n<T>(m, n)`] (or [`try_read_m_n<T>(m, n)`]) reads `m * n` sequences from input and converts them to a value of [`Mat<T>`].
+//! - [`read<T>()`](read()) (or [`try_read<T>()`](try_read())) reads a single sequence from input and converts it to a value of `T`.
+//! - [`read_n<T>(n)`](read_n()) (or [`try_read_n<T>(n)`](try_read_n())) reads `n` sequences from input and converts them to a value of [Vec].
+//! - [`read_m_n<T>(m, n)`](read_m_n()) (or [`try_read_m_n<T>(m, n)`](try_read_m_n())) reads `m * n` sequences from input and converts them to a value of [`Mat<T>`].
 //!
 //! These functions are implemented for types that implement [ReadInto] trait. Currently, the following types implement [ReadInto] trait:
 //!
@@ -220,30 +243,76 @@
 //!
 //! # Output
 //!
-//! ## [SepBy]
+//! ## [SepBy] and [sep_by!]
 //!
 //! Some lower-level functions are provided to write a data sequence with customizing format to output:
 //!
-//! - [SepBy::sep_by()] writes a sequence of data items, which implements [IntoIterator], to output with a separator.
+//! - [SepBy::sep_by(iter, sep)](SepBy::sep_by) writes a sequence of data items from `iter`, which implements [IntoIterator], to output with a separator `sep`.
+//! - [sep_by!(iter, sep)](sep_by!) writes a sequence of data items from `iter`, which implements [IntoIterator], to output with a separator `sep`.
 //!
-//!   There won't be any separator before the first item or after the last item.
+//! There won't be any separator before the first item or after the last item.
 //!
-//!   For example:
+//! For example:
 //!
-//!   ```rust
-//!   use iof::SepBy;
-//!   let v = vec![1, 2, 3];
-//!   let s = format!("{}", v.sep_by(", "));
-//!   assert_eq!(s, "1, 2, 3");
-//!   ```
+//! ```rust
+//! use iof::{sep_by, SepBy};
+//! use std::collections::{BTreeMap, BTreeSet};
+//!
+//! let v = vec![1, 2, 3];
+//! let s = sep_by!(&v, ", ");
+//! assert_eq!(s.to_string(), "1, 2, 3");
+//! // Equivalent form:
+//! let s = v.sep_by(", ");
+//! assert_eq!(s.to_string(), "1, 2, 3");
+//!
+//! let v = vec![vec![1, 2, 3], vec![4, 5, 6]];
+//! let s = sep_by!(&v, "\n", ", ");
+//! assert_eq!(s.to_string(), "1, 2, 3\n4, 5, 6");
+//! // Equivalent form:
+//! let s = v.iter().map(|e| e.sep_by(", ")).sep_by("\n");
+//! assert_eq!(s.to_string(), "1, 2, 3\n4, 5, 6");
+//!
+//! let v = BTreeSet::from_iter([3, 1, 2, 4]);
+//! let s = sep_by!(&v, ", ");
+//! assert_eq!(s.to_string(), "1, 2, 3, 4");
+//! // Equivalent form:
+//! let s = v.sep_by(", ");
+//! assert_eq!(s.to_string(), "1, 2, 3, 4");
+//!
+//! let v = BTreeMap::from_iter([(3, "w"), (1, "x"), (2, "y"), (4, "z")]);
+//! let s = sep_by!(v.iter().map(|(k, v)| format!("{} -> {}", k, v)), "\n");
+//! assert_eq!(s.to_string(), "1 -> x\n2 -> y\n3 -> w\n4 -> z");
+//! // Equivalent form:
+//! let s = v.iter().map(|(k, v)| format!("{} -> {}", k, v)).sep_by("\n");
+//! assert_eq!(s.to_string(), "1 -> x\n2 -> y\n3 -> w\n4 -> z");
+//! ```
+//!
+//! Note that the iterator must implement [Clone] trait to use the [SepBy] trait. And due to this constraint, if you write a container directly as the argument of [sep_by!], you may need to use `&` to borrow it.
+//!
+//! And created objects can also be used in some formats other than [Display] format or [Debug] format.
+//!
+//! ```rust
+//! use iof::{sep_by, SepBy};
+//!
+//! let v = vec![1.0, 2.1, 3.2];
+//! let s = sep_by!(&v, ", ");
+//! assert_eq!(format!("{s:?}"), "1.0, 2.1, 3.2");
+//!
+//! let v = vec![3735928559u32, 3405691582u32, 3405709037u32, 3435973836u32, 3452816845u32];
+//! let s = sep_by!(&v, " ");
+//! assert_eq!(format!("{s:x}"), "deadbeef cafebabe cafefeed cccccccc cdcdcdcd");
+//! ```
+//!
+//! [Display]: std::fmt::Display
+//! [Debug]: std::fmt::Debug
 //!
 //! ## [WriteInto]
 //!
 //! Some higher-level functions are provided to write data sequence with default format to output:
 //!
-//! - [WriteInto::write()] (or [WriteInto::try_write()]) writes to [standard output](std::io::Stdout) with default format.
-//! - [WriteInto::write_into()] (or [WriteInto::try_write_into()]) writes to given buffer that implements [std::io::Write] with default format.
-//! - [WriteInto::write_into_string()] (or [WriteInto::try_write_into_string()]) writes to a new string with default format.
+//! - [WriteInto::try_write()] writes to [standard output](std::io::Stdout) with default format.
+//! - [WriteInto::try_write_into()] writes to given buffer that implements [std::io::Write] with default format.
+//! - [WriteInto::try_write_into_string()] writes to a new string with default format.
 //!   
 //! The default format is defined as follows:
 //!
@@ -258,12 +327,6 @@
 //! [Display]: std::fmt::Display
 //! [Display::fmt]: std::fmt::Display::fmt
 //!
-//! ## [WriteOneInto]
-//!
-//! Some lower-level functions are provided to write a single data item to output:
-//!
-//! - [WriteOneInto::write_one_into()] (or [WriteOneInto::try_write_one_into()]) writes to given buffer that implements [std::io::Write].
-//!
 //! [NonZeroU8]: std::num::NonZeroU8
 //! [NonZeroU16]: std::num::NonZeroU16
 //! [NonZeroU32]: std::num::NonZeroU32
@@ -277,7 +340,22 @@
 //! [NonZeroI128]: std::num::NonZeroI128
 //! [NonZeroIsize]: std::num::NonZeroIsize
 //!
-//! # Warning
+//! ## Separator
+//!
+//! The [separator] is a string that separates data items. It can be a single character, a string, or a slice of strings.
+//!
+//! The default separator from [get_default_separator] is defined as follows:
+//!
+//! - For all types whose dimension is 0, it uses `[]`;
+//! - For all types whose dimension is 1 and `T` must be separated by a space, it uses `[" "]`;
+//! - For all types whose dimension is 1 and `T` need not be separated by a space, it uses `[""]`;
+//! - For all types whose dimension is 2 and `T` must be separated by a space, it uses `["\n", " "]`;
+//! - For all types whose dimension is 2 and `T` need not be separated by a space, it uses `["\n", ""]`.
+//! - ...
+//!
+//! The dimension of a type is the number of dimensions of the data sequence. For example, the dimension of a primitive type `T` is 0, the dimension of [`Vec<T>`] is 1, and the dimension of [`Mat<T>`] is 2.
+//!
+//! # Notes
 //!
 //! ## Concurrency
 //!
@@ -313,20 +391,25 @@ pub use {
     },
     stdio::{read_into::*, stdin, stdout, stream::*},
     stream::{input_stream::InputStream, traits::BufReadExt},
-    write::{writer::Writer, WriteInto, WriteOneInto},
+    write::{
+        dimension, separator,
+        separators::{DefaultSeparator, Separators},
+        writer::write,
+        WriteInto,
+    },
+    Vec,
 };
 
 mod array;
 mod formatted;
 mod mat;
 mod read;
-mod sep_by;
 mod stdio;
 mod stream;
 mod write;
 
 /// Unwrap a result or panic with the error message.
-#[macro_export(local_inner_macros)]
+#[macro_export]
 macro_rules! unwrap {
     ($result:expr) => {
         $result.unwrap_or_else(|err| ::std::panic!("{err}"))
