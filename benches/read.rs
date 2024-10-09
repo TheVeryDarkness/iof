@@ -64,7 +64,7 @@ fn template<B, R: BufRead>(
                 assert_eq!(results.len(), COUNT);
             })
         })
-        .bench_function(&format!("{case} - read_to_end split"), |b| {
+        .bench_function(&format!("{case} - bytes split"), |b| {
             b.iter(|| {
                 let reader = create_reader(&buf);
                 let mut buf = Vec::new();
