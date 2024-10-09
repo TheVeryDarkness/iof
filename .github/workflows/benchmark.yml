@@ -20,7 +20,7 @@ jobs:
       - name: Prepare for benchmark
         run: cargo run --example benchmark_integers
       - name: Run benchmark
-        run: cargo bench | tee output.json
+        run: cargo bench -- -Z format json | tee output.json
       - name: Store benchmark result - separate results repo
         uses: benchmark-action/github-action-benchmark@v1
         with:
