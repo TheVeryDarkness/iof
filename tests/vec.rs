@@ -159,7 +159,7 @@ fn show() {
     show!(vec![vec![1, 2, 3], vec![4, 5, 6], vec![7, 8, 9]]);
 
     let mut buf = Vec::new();
-    let s = format!(" :: ");
+    let s = " :: ".to_string();
     show!(vec![1, 2, 3], sep = [&s], end = "" => buf);
     assert_eq!(unwrap!(from_utf8(&buf)), "1 :: 2 :: 3");
 
