@@ -1,5 +1,5 @@
 use iof::*;
-use std::{collections::BTreeSet, io::Cursor};
+use std::{collections::BTreeSet, io::Cursor, str::from_utf8};
 
 #[test]
 fn read_n() {
@@ -157,4 +157,21 @@ fn show() {
     show!(vec![vec![1, 2], vec![3, 4]]);
     show!(vec![] as Vec<usize>);
     show!(vec![vec![1, 2, 3], vec![4, 5, 6], vec![7, 8, 9]]);
+
+    let mut buf = Vec::new();
+    let s = format!(" :: ");
+    show!(vec![1, 2, 3], sep = [&s], end = "" => buf);
+    assert_eq!(unwrap!(from_utf8(&buf)), "1 :: 2 :: 3");
+
+    buf.clear();
+    show!(vec![1, 2, 3], sep = &" ++ ", end = "" => buf);
+    assert_eq!(unwrap!(from_utf8(&buf)), "1 ++ 2 ++ 3");
+
+    buf.clear();
+    show!(vec![vec![1, 2, 3], vec![4, 5, 6]], sep = [&";", &","], end = "\n\n" => buf);
+    assert_eq!(unwrap!(from_utf8(&buf)), "1,2,3;4,5,6\n\n");
+
+    buf.clear();
+    show!(vec![vec![1, 2, 3], vec![4, 5, 6]], sep = [&";", &","], end = "\n\n" => buf);
+    assert_eq!(unwrap!(from_utf8(&buf)), "1,2,3;4,5,6\n\n");
 }

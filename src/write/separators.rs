@@ -14,19 +14,19 @@ pub trait Separators: Copy {
     fn split(self) -> (Option<Self::Separator>, Self::Residual);
 }
 
-impl<T: Separators> Separators for &T {
-    type Separator = T::Separator;
-    type Residual = T::Residual;
+impl<T: Separator + Copy> Separators for T {
+    type Separator = Self;
+    type Residual = Self;
 
     #[inline]
     fn split(self) -> (Option<Self::Separator>, Self::Residual) {
-        (*self).split()
+        (Some(self), self)
     }
 }
 
-impl<'r, 'a, const N: usize> Separators for &'r [&'a str; N] {
-    type Separator = &'a str;
-    type Residual = &'r [&'a str];
+impl<'r, T: Separator, const N: usize> Separators for &'r [T; N] {
+    type Separator = &'r T;
+    type Residual = &'r [T];
 
     #[inline]
     fn split(self) -> (Option<Self::Separator>, Self::Residual) {
@@ -34,61 +34,17 @@ impl<'r, 'a, const N: usize> Separators for &'r [&'a str; N] {
     }
 }
 
-impl<'a> Separators for &[&'a str] {
-    type Separator = &'a str;
-    type Residual = Self;
-
-    #[inline]
-    fn split(self) -> (Option<Self::Separator>, Self) {
-        if let Some((first, residual)) = self.split_first() {
-            (Some(*first), residual)
-        } else {
-            (None, self)
-        }
-    }
-}
-
-impl<'a> Separators for &'a str {
-    type Separator = &'a str;
-    type Residual = Self;
-
-    #[inline]
-    fn split(self) -> (Option<Self::Separator>, Self) {
-        (Some(self), self)
-    }
-}
-
-impl<'r, const N: usize> Separators for &'r [char; N] {
-    type Separator = char;
-    type Residual = &'r [char];
+impl<'r, T: Separator> Separators for &'r [T] {
+    type Separator = &'r T;
+    type Residual = &'r [T];
 
     #[inline]
     fn split(self) -> (Option<Self::Separator>, Self::Residual) {
-        Separators::split(self.as_slice())
-    }
-}
-
-impl Separators for &[char] {
-    type Separator = char;
-    type Residual = Self;
-
-    #[inline]
-    fn split(self) -> (Option<Self::Separator>, Self) {
         if let Some((first, residual)) = self.split_first() {
-            (Some(*first), residual)
+            (Some(first), residual)
         } else {
             (None, self)
         }
-    }
-}
-
-impl Separators for char {
-    type Separator = char;
-    type Residual = Self;
-
-    #[inline]
-    fn split(self) -> (Option<Self::Separator>, Self) {
-        (Some(self), self)
     }
 }
 
