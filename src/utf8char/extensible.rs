@@ -1,4 +1,4 @@
-use std::{borrow::Borrow, mem::transmute};
+use std::mem::transmute;
 
 /// A UTF-8 character that is fixed in size.
 ///
@@ -15,15 +15,15 @@ pub struct Utf8Char {
     bytes: [u8],
 }
 
-impl Borrow<[u8]> for Utf8Char {
-    fn borrow(&self) -> &[u8] {
+impl AsRef<[u8]> for Utf8Char {
+    fn as_ref(&self) -> &[u8] {
         self.as_bytes()
     }
 }
 
-impl Borrow<str> for Utf8Char {
-    fn borrow(&self) -> &str {
-        let bytes = self.borrow();
+impl AsRef<str> for Utf8Char {
+    fn as_ref(&self) -> &str {
+        let bytes = self.as_ref();
         debug_assert!(std::str::from_utf8(bytes).is_ok());
         unsafe { std::str::from_utf8_unchecked(bytes) }
     }
@@ -32,7 +32,7 @@ impl Borrow<str> for Utf8Char {
 impl Utf8Char {
     /// Create a new `Utf8Char` from a byte array.
     pub const unsafe fn from_bytes_unchecked(bytes: &[u8]) -> &Self {
-        debug_assert!(std::str::from_utf8(&bytes).is_ok());
+        debug_assert!(std::str::from_utf8(bytes).is_ok());
         transmute(bytes)
     }
     /// Get the length in bytes of the UTF-8 character.
@@ -50,7 +50,7 @@ impl Utf8Char {
     }
     /// Get the string of the UTF-8 character.
     pub fn as_str(&self) -> &str {
-        let bytes = self.borrow();
+        let bytes = self.as_bytes();
         debug_assert!(std::str::from_utf8(bytes).is_ok());
         unsafe { std::str::from_utf8_unchecked(bytes) }
     }

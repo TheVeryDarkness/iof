@@ -29,6 +29,10 @@ pub trait BufReadExt {
     fn get_cur_line(&self) -> &str;
 
     /// Skip `n` bytes.
+    ///
+    /// # Safety
+    ///
+    /// The caller must ensure that `n` is a valid UTF-8 character boundary.
     unsafe fn skip(&mut self, n: usize);
 
     /// Try to fill the buffer with a new line, ignoring the current line.
@@ -182,8 +186,8 @@ pub trait BufReadExt {
             }
             cursor += c.len();
         }
-        let selected = line.get(0..cursor).unwrap_or_default();
-        let selected = unsafe { transmute(selected) };
+        let selected: &str = line.get(0..cursor).unwrap_or_default();
+        let selected: &str = unsafe { transmute(selected) };
         unsafe { self.skip(cursor) };
         Ok(selected)
     }

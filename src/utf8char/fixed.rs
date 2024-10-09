@@ -1,5 +1,3 @@
-use std::borrow::Borrow;
-
 /// A UTF-8 character that is fixed in size.
 ///
 /// 10xxxxxx: continuation byte
@@ -15,14 +13,14 @@ pub struct FixedUtf8Char {
     bytes: [u8; 4],
 }
 
-impl Borrow<[u8]> for FixedUtf8Char {
-    fn borrow(&self) -> &[u8] {
+impl AsRef<[u8]> for FixedUtf8Char {
+    fn as_ref(&self) -> &[u8] {
         self.as_bytes()
     }
 }
 
-impl Borrow<str> for FixedUtf8Char {
-    fn borrow(&self) -> &str {
+impl AsRef<str> for FixedUtf8Char {
+    fn as_ref(&self) -> &str {
         self.as_str()
     }
 }
@@ -56,7 +54,7 @@ impl FixedUtf8Char {
     }
     /// Get the string of the UTF-8 character.
     pub fn as_str(&self) -> &str {
-        let bytes = self.borrow();
+        let bytes = self.as_bytes();
         debug_assert!(std::str::from_utf8(bytes).is_ok());
         unsafe { std::str::from_utf8_unchecked(bytes) }
     }

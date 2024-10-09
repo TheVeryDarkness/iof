@@ -1,7 +1,6 @@
 //! Locale trait and default locale.
 
 use crate::utf8char::FixedUtf8Char;
-use std::borrow::Borrow;
 
 /// Locale trait.
 pub trait Locale {
@@ -14,7 +13,7 @@ pub trait Locale {
         while self
             .whitespace_chars()
             .iter()
-            .any(|c| bytes.starts_with(c.borrow()))
+            .any(|c| bytes.starts_with(c.as_bytes()))
         {
             count += 1;
             bytes = &bytes[count..];
