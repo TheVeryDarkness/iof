@@ -2,15 +2,16 @@
 ///
 /// You can configure the writer using the following options:
 ///
-/// - `sep`: Separator between values. Default is `" "`.
-/// - `end`: End of the output. Default is `"\n"`.
-/// - `buf`: Buffer to write into. Default is [standard output](crate::stdout).
+/// - `sep`: Separator between values. Default is `" "`. Provide an instance of [Separators] to use custom separators, and if it has mismatched dimensions, it may use the default separator (if there is one) or panic.
+/// - `end`: End of the output. Default is `"\n"`. Provide a string to use a custom end.
+/// - `buf`: Buffer to write into. Default is [standard output](crate::stdout). Provide a mutable reference to a buffer that implements [std::io::Write] to write into it.
 ///
 /// ```rust
 #[doc = include_str!("../../examples/doc_macro_show.rs")]
 /// ```
 ///
 /// [WriteInto]: crate::WriteInto
+/// [Separators]: crate::Separators
 #[macro_export]
 macro_rules! show {
     ($expr:expr $(, sep=$sep:expr)? $(, end=$end:expr)? $(,)? $(=> $buf:expr)?) => {

@@ -12,5 +12,5 @@ fn main() {
     // This will write "1, 2\n3, 4\n" to the standard output.
     show!([[1, 2], [3, 4]], sep = ["\n", ", "]);
     // This will write "1, 2\n3, 4!" to the standard output.
-    show!([[1, 2], [3, 4]], sep = ["\n", ", "], end = "!");
+    show!([[1, 2], [3, 4]], sep = ["\n", ", "], end = "!\n");
 }
