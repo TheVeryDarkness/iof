@@ -68,7 +68,7 @@ impl<'r, const N: usize> Separators for &'r [char; N] {
     }
 }
 
-impl<'a> Separators for &[char] {
+impl Separators for &[char] {
     type Separator = char;
     type Residual = Self;
 
@@ -82,7 +82,7 @@ impl<'a> Separators for &[char] {
     }
 }
 
-impl<'a> Separators for char {
+impl Separators for char {
     type Separator = char;
     type Residual = Self;
 
@@ -95,10 +95,17 @@ impl<'a> Separators for char {
 /// Use default separator.
 #[derive(Clone, Copy)]
 pub struct DefaultSeparator;
+
 impl DefaultSeparator {
     /// Create a new default separator.
     pub const fn new() -> Self {
         Self
+    }
+}
+
+impl Default for DefaultSeparator {
+    fn default() -> Self {
+        Self::new()
     }
 }
 
