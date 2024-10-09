@@ -15,16 +15,16 @@ pub trait Dimension {
     #[inline]
     fn get_default_separator() -> &'static str {
         match (Self::DIMENSION, Self::SPACE) {
-            (0, _) => "",
             (1, true) => " ",
             (1, false) => "",
             (2, true | false) => "\n",
-            // Implemented but not encouraged to use.
-            (3, true | false) => "\n\n",
             // Dimension > 2 is not supported.
-            // `unimplemented!()` would cause a compile-time error even if the function is not called,
-            // so we use an empty slice instead.
-            (3.., true | false) => "",
+            (0 | 3.., _) => {
+                unimplemented!(
+                    "Default separator for dimension {} is not supported.",
+                    Self::DIMENSION,
+                )
+            }
         }
     }
 }
