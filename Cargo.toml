@@ -26,11 +26,7 @@ criterion = "0.5.1"
 ntest = "0.9.3"
 
 [[bench]]
-name = "read_cursor"
-harness = false
-
-[[bench]]
-name = "read_file"
+name = "read"
 harness = false
 
 [[bench]]
