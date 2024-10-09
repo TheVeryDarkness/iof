@@ -72,9 +72,11 @@ fn template<B, R: BufRead>(
                 for byte in reader.bytes() {
                     let byte = unwrap!(byte);
                     if byte == b' ' || byte == b'\n' {
-                        let s = unwrap!(std::str::from_utf8(&buf));
-                        results.push(unwrap!(s.parse::<Element>()));
-                        buf.clear();
+                        if !buf.is_empty() {
+                            let s = unwrap!(std::str::from_utf8(&buf));
+                            results.push(unwrap!(s.parse::<Element>()));
+                            buf.clear();
+                        }
                     } else {
                         buf.push(byte);
                     }
