@@ -11,31 +11,49 @@ fn create_reader() -> InputStream<BufReader<File>> {
 }
 
 fn many_integers(c: &mut Criterion) {
-    c.bench_function("read_all", |_| {
-        let mut reader = create_reader();
-        let _: Vec<i32> = reader.read_all();
+    c.bench_function("read_all", |b| {
+        b.iter(|| {
+            let mut reader = create_reader();
+            let results: Vec<i32> = reader.read_all();
+            assert_eq!(results.len(), COUNT);
+        })
     })
-    .bench_function("read_n", |_| {
-        let mut reader = create_reader();
-        let _: Vec<i32> = reader.read_n(COUNT);
+    .bench_function("read_n", |b| {
+        b.iter(|| {
+            let mut reader = create_reader();
+            let results: Vec<i32> = reader.read_n(COUNT);
+            assert_eq!(results.len(), COUNT);
+        })
     })
-    .bench_function("read", |_| {
-        let mut reader = create_reader();
-        let _: Vec<i32> = reader.read();
+    .bench_function("read", |b| {
+        b.iter(|| {
+            let mut reader = create_reader();
+            // Three lines in total.
+            let mut results: Vec<i32> = reader.read();
+            results.append(&mut reader.read());
+            results.append(&mut reader.read());
+            assert_eq!(results.len(), COUNT);
+        })
     })
-    .bench_function("read while let", |_| {
-        let mut reader = create_reader();
-        let mut results: Vec<i64> = Vec::new();
-        while let Ok(a) = reader.try_read_one() {
-            results.push(a);
-        }
+    .bench_function("read while let", |b| {
+        b.iter(|| {
+            let mut reader = create_reader();
+            let mut results: Vec<i64> = Vec::new();
+            while let Ok(a) = reader.try_read_one() {
+                results.push(a);
+            }
+            assert_eq!(results.len(), COUNT);
+        })
     })
-    .bench_function("read for in", |_| {
-        let mut reader = create_reader();
-        let mut results: Vec<i64> = Vec::new();
-        for _ in 0..COUNT {
-            results.push(reader.read());
-        }
+    .bench_function("read for in", |b| {
+        b.iter(|| {
+            let mut reader = create_reader();
+            let mut results: Vec<i64> = Vec::new();
+            for _ in 0..COUNT {
+                results.push(reader.read());
+            }
+            assert_eq!(results.len(), COUNT);
+        })
     });
 }
 
