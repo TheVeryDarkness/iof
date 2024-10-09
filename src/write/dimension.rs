@@ -11,7 +11,7 @@ pub trait Dimension {
     /// Need space between every two items?
     const SPACE: bool;
 
-    /// Get the default separator.
+    /// Get the default separator according to the dimension and space.
     #[inline]
     fn get_default_separator() -> &'static str {
         match (Self::DIMENSION, Self::SPACE) {

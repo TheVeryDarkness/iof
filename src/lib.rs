@@ -92,7 +92,7 @@
 //!
 //! Also, you can append a `=>` and a buffer to write to a buffer instead of [standard output](std::io::Stdout), such as `show!(e => buf)` and `show!([a, b], sep = [", "] => buf)`.
 //!
-//! Note that all parameters are optional and placed after a comma, and the order of parameters does not matter. The default value of `sep` and the default value of `end` are from the [GetDefaultSeparator] trait. See [Separator](#separator) for more details.
+//! Note that all parameters are optional and placed after a comma, and the order of parameters does not matter. The default value of `sep` and the default value of `end` are from the [get_default_separator] function. See [Separator](#separator) for more details.
 //!
 //! *You may have noticed that the `show!` macro is similar to the [`print`](https://docs.python.org/zh-cn/3/library/functions.html#print) function in Python.*
 //!
@@ -108,8 +108,8 @@
 #![doc = include_str!("../examples/doc_show.txt")]
 //! ```
 //!
-//! [GetDefaultSeparator]: crate::separator::GetDefaultSeparator
 //! [Separator]: crate::separator::Separator
+//! [get_default_separator]: crate::write::dimension::Dimension::get_default_separator
 //!
 //! # Input
 //!
@@ -344,7 +344,7 @@
 //!
 //! The [separator] is a string that separates data items. It can be a single character, a string, or a slice of strings.
 //!
-//! The default separator from [GetDefaultSeparator] is defined as follows:
+//! The default separator from [get_default_separator] is defined as follows:
 //!
 //! - For all types whose dimension is 0, it uses `[]`;
 //! - For all types whose dimension is 1 and `T` must be separated by a space, it uses `[" "]`;
