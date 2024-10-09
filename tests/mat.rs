@@ -1,4 +1,5 @@
 use iof::*;
+use locale::ASCII;
 use std::{io::Cursor, vec};
 
 #[test]
@@ -40,7 +41,7 @@ fn read_m_n() {
 
     assert_eq!(unwrap!(mat.try_write_into_string()), "1 2 3\n4 5 6");
 
-    assert!(<u32>::try_read_n_from(&mut reader, 1).is_err());
+    assert!(<u32>::try_read_n_from(&mut reader, 1, &ASCII).is_err());
 }
 
 #[test]
@@ -63,7 +64,7 @@ fn read_same_rows() {
 
     assert_eq!(unwrap!(mat.try_write_into_string()), "2 3 2\n2 3 2\n2 3 2");
 
-    assert!(<u32>::try_read_m_n_from(&mut reader, 1, 1).is_err());
+    assert!(<u32>::try_read_m_n_from(&mut reader, 1, 1, &ASCII).is_err());
 }
 
 #[test]
@@ -80,7 +81,7 @@ fn read_all_same() {
 
     assert_eq!(unwrap!(mat.try_write_into_string()), "2 2 2\n2 2 2");
 
-    assert!(<u32>::try_read_m_n_from(&mut reader, 1, 1).is_err());
+    assert!(<u32>::try_read_m_n_from(&mut reader, 1, 1, &ASCII).is_err());
 }
 
 #[test]
@@ -97,7 +98,7 @@ fn read_char_mat() {
 
     assert_eq!(unwrap!(mat.try_write_into_string()), "123\n456");
 
-    assert!(<char>::try_read_m_n_from(&mut reader, 1, 1).is_err());
+    assert!(<char>::try_read_m_n_from(&mut reader, 1, 1, &ASCII).is_err());
 }
 
 #[test]

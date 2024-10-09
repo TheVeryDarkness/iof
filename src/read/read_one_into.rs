@@ -1,5 +1,7 @@
 use crate::{stream, unwrap, BufReadExt, ReadOneFrom, ReadOneFromError};
 
+use super::locale::ASCII;
+
 /// The opposite of [ReadOneFrom].
 pub trait ReadOneInto<T> {
     /// Errors that come from [ReadOneFrom].
@@ -77,30 +79,30 @@ impl<T: ReadOneFrom, U: BufReadExt> ReadOneInto<T> for U {
     type Error = ReadOneFromError<T>;
 
     fn try_read_one(&mut self) -> Result<T, Self::Error> {
-        T::try_read_one_from(self)
+        T::try_read_one_from(self, &ASCII)
     }
 
     fn try_read_in_char(&mut self) -> Result<T, Self::Error> {
-        T::try_read_in_char_from(self)
+        T::try_read_in_char_from(self, &ASCII)
     }
 
     fn try_read_in_line_trimmed(&mut self) -> Result<T, Self::Error> {
-        T::try_read_in_line_trimmed_from(self)
+        T::try_read_in_line_trimmed_from(self, &ASCII)
     }
 
     fn try_read_in_line_some_trimmed(&mut self) -> Result<T, Self::Error> {
-        T::try_read_in_line_some_trimmed_from(self)
+        T::try_read_in_line_some_trimmed_from(self, &ASCII)
     }
 
     fn try_read_all(&mut self) -> Result<Vec<T>, Self::Error> {
-        T::try_read_all_from(self)
+        T::try_read_all_from(self, &ASCII)
     }
 
     fn try_read_any_in_line(&mut self) -> Result<Vec<T>, Self::Error> {
-        T::try_read_any_in_line_from(self)
+        T::try_read_any_in_line_from(self, &ASCII)
     }
 
     fn try_read_some_in_line(&mut self) -> Result<Vec<T>, Self::Error> {
-        T::try_read_some_in_line_from(self)
+        T::try_read_some_in_line_from(self, &ASCII)
     }
 }

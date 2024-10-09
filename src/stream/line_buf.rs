@@ -1,6 +1,4 @@
-use super::{
-    as_slice_from, as_slice_to, err_eol, error::StreamError, is_eol, traits::BufReadExt, WHITE,
-};
+use super::{as_slice_from, err_eol, error::StreamError, traits::BufReadExt};
 
 pub(crate) struct LineBuf<'a> {
     buf: &'a str,
@@ -15,95 +13,39 @@ impl<'a> LineBuf<'a> {
 }
 
 impl<'a> BufReadExt for LineBuf<'a> {
-    fn try_get(&mut self) -> Result<char, StreamError> {
-        let remaining = as_slice_from(self.buf, self.cursor);
-        if let Some(c) = remaining.chars().next() {
-            self.cursor += c.len_utf8();
-            debug_assert!(self.buf.is_char_boundary(self.cursor));
-            Ok(c)
-        } else {
-            Err(err_eol())
-        }
+    #[inline]
+    fn get_cur_line(&self) -> &str {
+        let line = as_slice_from(self.buf, self.cursor);
+        line
     }
-
-    fn try_peek(&mut self) -> Result<char, StreamError> {
-        let remaining = as_slice_from(self.buf, self.cursor);
-        if let Some(c) = remaining.chars().next() {
-            Ok(c)
-        } else {
-            Err(err_eol())
-        }
-    }
-
-    fn try_get_if(&mut self, pattern: &[char]) -> Result<Option<char>, StreamError> {
-        let remaining = as_slice_from(self.buf, self.cursor);
-        if let Some(c) = remaining.chars().next() {
-            if pattern.contains(&c) {
-                self.cursor += c.len_utf8();
-                debug_assert!(self.buf.is_char_boundary(self.cursor));
-                Ok(Some(c))
-            } else {
-                Ok(None)
-            }
-        } else {
-            Err(err_eol())
-        }
-    }
-
-    fn try_skip_eol(&mut self) -> Result<(), StreamError> {
-        let remaining = as_slice_from(self.buf, self.cursor);
-        for c in remaining.chars() {
-            if is_eol(c) {
-                self.cursor += c.len_utf8();
-                debug_assert!(self.buf.is_char_boundary(self.cursor));
-            } else {
-                break;
-            }
-        }
-        Ok(())
-    }
-
-    fn try_skip_all(&mut self, skipped: &[char]) -> Result<usize, StreamError> {
-        let mut count = 0;
-        let s = as_slice_from(self.buf, self.cursor);
-        for c in s.chars() {
-            if skipped.contains(&c) {
-                self.cursor += c.len_utf8();
-                debug_assert!(self.buf.is_char_boundary(self.cursor));
-                count += c.len_utf8();
-            } else {
-                break;
-            }
-        }
-        Ok(count)
-    }
-
-    fn try_get_until_in_line(&mut self, pattern: &[char]) -> Result<&str, StreamError> {
-        let s = as_slice_from(self.buf, self.cursor);
-        let i = s.find(pattern).unwrap_or(s.len());
-        let frag: &str = as_slice_to(s, i);
-        self.cursor += i;
+    #[inline]
+    unsafe fn skip(&mut self, n: usize) {
+        self.cursor += n;
         debug_assert!(self.buf.is_char_boundary(self.cursor));
-        Ok(frag)
     }
-
-    fn try_get_string_some(&mut self) -> Result<&str, StreamError> {
-        let _: usize = self.try_skip_all_ws()?;
-        let s = as_slice_from(self.buf, self.cursor);
-        let i = s.find(WHITE).unwrap_or(s.len());
-        if i == 0 {
-            Err(err_eol())?
+    #[inline]
+    fn read_buf(&mut self) -> Result<bool, StreamError> {
+        if self.cursor < self.buf.len() {
+            self.cursor = self.buf.len();
+            Ok(true)
+        } else {
+            Ok(false)
         }
-        let frag: &str = as_slice_to(s, i);
-        self.cursor += i;
-        debug_assert!(self.buf.is_char_boundary(self.cursor));
-        Ok(frag)
+    }
+    #[inline]
+    fn fill_buf(&mut self) -> Result<(), StreamError> {
+        if self.read_buf()? {
+            Ok(())
+        } else {
+            Err(err_eol())
+        }
     }
 }
 
 #[cfg(test)]
 mod tests {
     use crate::{
+        read::locale::WHITE_SPACES,
         stream::{error::StreamError, line_buf::LineBuf},
         BufReadExt,
     };
@@ -127,7 +69,10 @@ mod tests {
         assert_eq!(stream.try_get().unwrap(), '!');
         assert!(matches!(stream.try_get().unwrap_err(), StreamError::Eol));
         assert_eq!(
-            stream.try_get_string_some().unwrap_err().to_string(),
+            stream
+                .try_get_string_some(&WHITE_SPACES)
+                .unwrap_err()
+                .to_string(),
             StreamError::Eol.to_string(),
         );
     }
@@ -136,14 +81,17 @@ mod tests {
     fn try_get_string() {
         let s = "Hello, world!";
         let mut stream = LineBuf::new(s);
-        assert_eq!(stream.try_get_string_some().unwrap(), "Hello,");
-        assert_eq!(stream.try_get_string_some().unwrap(), "world!");
+        assert_eq!(stream.try_get_string_some(&WHITE_SPACES).unwrap(), "Hello,");
+        assert_eq!(stream.try_get_string_some(&WHITE_SPACES).unwrap(), "world!");
         assert!(matches!(
-            stream.try_get_string_some().unwrap_err(),
+            stream.try_get_string_some(&WHITE_SPACES).unwrap_err(),
             StreamError::Eol,
         ));
         assert_eq!(
-            stream.try_get_string_some().unwrap_err().to_string(),
+            stream
+                .try_get_string_some(&WHITE_SPACES)
+                .unwrap_err()
+                .to_string(),
             StreamError::Eol.to_string(),
         );
     }
@@ -152,9 +100,15 @@ mod tests {
     fn try_get_until_in_line() {
         let s = "Hello, world!";
         let mut stream = LineBuf::new(s);
-        assert_eq!(stream.try_get_until_in_line(&[',']).unwrap(), "Hello");
-        assert_eq!(stream.try_get_until_in_line(&['!']).unwrap(), ", world");
-        assert_eq!(stream.try_get_until_in_line(&['!']).unwrap(), "");
+        assert_eq!(
+            stream.try_get_until_in_line(&[','.into()]).unwrap(),
+            "Hello",
+        );
+        assert_eq!(
+            stream.try_get_until_in_line(&['!'.into()]).unwrap(),
+            ", world",
+        );
+        assert_eq!(stream.try_get_until_in_line(&['!'.into()]).unwrap(), "");
         assert_eq!(stream.try_get_until_in_line(&[]).unwrap(), "!");
         assert_eq!(stream.try_get_until_in_line(&[]).unwrap(), "");
     }

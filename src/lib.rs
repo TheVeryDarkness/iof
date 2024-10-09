@@ -384,6 +384,7 @@ pub use {
     mat::Mat,
     read::{
         error::ReadError,
+        locale,
         read_from::{ReadFrom, ReadFromError},
         read_into::ReadInto,
         read_one_from::{ReadOneFrom, ReadOneFromError},
@@ -406,6 +407,7 @@ mod mat;
 mod read;
 mod stdio;
 mod stream;
+mod utf8char;
 mod write;
 
 /// Unwrap a result or panic with the error message.

@@ -31,12 +31,15 @@
 /// ```
 #[macro_export]
 macro_rules! read {
-    () => {
-        $crate::unwrap!($crate::try_read())
+    ($(; source = $source:expr)? $(; locale = $locale:expr)?) => {
+        $crate::unwrap!($crate::ReadFrom::try_read_from(
+            &mut $crate::argument_or_default!($($source)?, &mut *$crate::stdin()),
+            $crate::argument_or_default!($($locale)?, &$crate::locale::ASCII)
+        ))
     };
-    ($dim0:expr $(, $dims:expr)* $(,)?) => {{
+    ($dim0:expr $(, $dims:expr)* $(,)? $(; source = $source:expr)? $(; locale = $locale:expr)?) => {{
         let range = 0usize..$dim0;
-        ::std::vec::Vec::<_>::from_iter(range.map(|_| $crate::read!($($dims, )*)))
+        ::std::vec::Vec::<_>::from_iter(range.map(|_| $crate::read!($($dims, )* $(; source = $source)? $(; locale = $locale)?)))
     }};
 }
 
@@ -56,8 +59,8 @@ macro_rules! impl_read_into_single {
                 s.parse().map_err(|err| $crate::ReadError::FromStrError(err, s.to_owned(), ::std::any::type_name::<char>()))
             }
 
-            fn try_read_one_from<S: $crate::BufReadExt>(stream: &mut S) -> Result<char, $crate::ReadOneFromError<Self>> {
-                <Self as $crate::ReadOneFrom>::try_read_in_char_from(stream)
+            fn try_read_one_from<L: $crate::locale::Locale, S: $crate::BufReadExt>(stream: &mut S, locale: &L) -> Result<char, $crate::ReadOneFromError<Self>> {
+                <Self as $crate::ReadOneFrom>::try_read_in_char_from(stream, locale)
             }
         }
         $crate::impl_read_into_single!($($tys)*);
