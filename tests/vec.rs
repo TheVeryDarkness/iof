@@ -172,6 +172,6 @@ fn show() {
     assert_eq!(unwrap!(from_utf8(&buf)), "1,2,3;4,5,6\n\n");
 
     buf.clear();
-    show!(vec![vec![1, 2, 3], vec![4, 5, 6]], sep = [&";", &","], end = "\n\n" => buf);
+    show!(vec![vec![1, 2, 3], vec![4, 5, 6]], sep = [&';', &','], end = "\n\n" => buf);
     assert_eq!(unwrap!(from_utf8(&buf)), "1,2,3;4,5,6\n\n");
 }
