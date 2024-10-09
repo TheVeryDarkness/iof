@@ -6,6 +6,22 @@ use std::io::Cursor;
 fn check_separator() {
     assert_eq!(<Vec<u32> as Dimension>::get_default_separator(), " ");
     assert_eq!(<Vec<i32> as Dimension>::get_default_separator(), " ");
+    assert_eq!(<Vec<f64> as Dimension>::get_default_separator(), " ");
+    assert_eq!(<Mat<u32> as Dimension>::get_default_separator(), "\n");
+    assert_eq!(<Mat<i32> as Dimension>::get_default_separator(), "\n");
+    assert_eq!(<Mat<f64> as Dimension>::get_default_separator(), "\n");
+}
+
+#[test]
+#[should_panic = "not implemented: Default separator for dimension 0 is not supported."]
+fn check_separator_scalar() {
+    let _ = <f64 as Dimension>::get_default_separator();
+}
+
+#[test]
+#[should_panic = "not implemented: Default separator for dimension 3 is not supported."]
+fn check_separator_3_dim_tensor() {
+    let _ = <Vec<Vec<Vec<f64>>> as Dimension>::get_default_separator();
 }
 
 #[test]
