@@ -48,9 +48,9 @@ impl FixedUtf8Char {
     pub const unsafe fn from_bytes_unchecked(bytes: [u8; 4]) -> Self {
         debug_assert!(std::str::from_utf8(&bytes).is_ok());
         debug_assert!(bytes[0] > 0);
-        debug_assert!(utf8_len_from_first_byte(bytes[0]) <= 1 || bytes[1] == 0);
-        debug_assert!(utf8_len_from_first_byte(bytes[0]) <= 2 || bytes[2] == 0);
-        debug_assert!(utf8_len_from_first_byte(bytes[0]) <= 3 || bytes[3] == 0);
+        debug_assert!(utf8_len_from_first_byte(bytes[0]) > 1 || bytes[1] == 0);
+        debug_assert!(utf8_len_from_first_byte(bytes[0]) > 2 || bytes[2] == 0);
+        debug_assert!(utf8_len_from_first_byte(bytes[0]) > 3 || bytes[3] == 0);
         Self { bytes }
     }
     /// Get the length in bytes of the UTF-8 character.
