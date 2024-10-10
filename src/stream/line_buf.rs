@@ -12,7 +12,7 @@ impl<'a> LineBuf<'a> {
     }
 }
 
-impl<'a> BufReadExt for LineBuf<'a> {
+impl<'a> BufReadExt<char> for LineBuf<'a> {
     #[inline]
     fn get_cur_line(&self) -> &str {
         let line = as_slice_from(self.buf, self.cursor);
@@ -45,7 +45,7 @@ impl<'a> BufReadExt for LineBuf<'a> {
 #[cfg(test)]
 mod tests {
     use crate::{
-        read::locale::WHITE_SPACES,
+        locale::{Locale, ASCII},
         stream::{error::StreamError, line_buf::LineBuf},
         BufReadExt,
     };
@@ -70,7 +70,7 @@ mod tests {
         assert!(matches!(stream.try_get().unwrap_err(), StreamError::Eol));
         assert_eq!(
             stream
-                .try_get_string_some(&WHITE_SPACES)
+                .try_get_string_some(ASCII.whitespace_chars())
                 .unwrap_err()
                 .to_string(),
             StreamError::Eol.to_string(),
@@ -81,15 +81,27 @@ mod tests {
     fn try_get_string() {
         let s = "Hello, world!";
         let mut stream = LineBuf::new(s);
-        assert_eq!(stream.try_get_string_some(&WHITE_SPACES).unwrap(), "Hello,");
-        assert_eq!(stream.try_get_string_some(&WHITE_SPACES).unwrap(), "world!");
+        assert_eq!(
+            stream
+                .try_get_string_some(ASCII.whitespace_chars())
+                .unwrap(),
+            "Hello,"
+        );
+        assert_eq!(
+            stream
+                .try_get_string_some(ASCII.whitespace_chars())
+                .unwrap(),
+            "world!"
+        );
         assert!(matches!(
-            stream.try_get_string_some(&WHITE_SPACES).unwrap_err(),
+            stream
+                .try_get_string_some(ASCII.whitespace_chars())
+                .unwrap_err(),
             StreamError::Eol,
         ));
         assert_eq!(
             stream
-                .try_get_string_some(&WHITE_SPACES)
+                .try_get_string_some(ASCII.whitespace_chars())
                 .unwrap_err()
                 .to_string(),
             StreamError::Eol.to_string(),
@@ -100,15 +112,9 @@ mod tests {
     fn try_get_until_in_line() {
         let s = "Hello, world!";
         let mut stream = LineBuf::new(s);
-        assert_eq!(
-            stream.try_get_until_in_line(&[','.into()]).unwrap(),
-            "Hello",
-        );
-        assert_eq!(
-            stream.try_get_until_in_line(&['!'.into()]).unwrap(),
-            ", world",
-        );
-        assert_eq!(stream.try_get_until_in_line(&['!'.into()]).unwrap(), "");
+        assert_eq!(stream.try_get_until_in_line(&[',']).unwrap(), "Hello",);
+        assert_eq!(stream.try_get_until_in_line(&['!']).unwrap(), ", world",);
+        assert_eq!(stream.try_get_until_in_line(&['!']).unwrap(), "");
         assert_eq!(stream.try_get_until_in_line(&[]).unwrap(), "!");
         assert!(stream.try_get_until_in_line(&[]).is_err());
     }

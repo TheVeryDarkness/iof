@@ -25,7 +25,7 @@ impl<B: BufRead> InputStream<B> {
     }
 }
 
-impl<B: BufRead> BufReadExt for InputStream<B> {
+impl<B: BufRead> BufReadExt<char> for InputStream<B> {
     #[inline]
     fn get_cur_line(&self) -> &str {
         as_slice_from(&self.line_buf, self.cursor)
@@ -56,7 +56,7 @@ impl<B: BufRead> BufReadExt for InputStream<B> {
 #[cfg(test)]
 mod tests {
     use crate::{
-        read::locale::WHITE_SPACES,
+        locale::{Locale, ASCII},
         stream::{error::StreamError, input_stream::InputStream},
         BufReadExt,
     };
@@ -103,12 +103,34 @@ mod tests {
     fn try_get_string() {
         let s = "Hello, world!\nHello, Rust!";
         let mut stream = InputStream::new(Cursor::new(s));
-        assert_eq!(stream.try_get_string_some(&WHITE_SPACES).unwrap(), "Hello,");
-        assert_eq!(stream.try_get_string_some(&WHITE_SPACES).unwrap(), "world!");
-        assert_eq!(stream.try_get_string_some(&WHITE_SPACES).unwrap(), "Hello,");
-        assert_eq!(stream.try_get_string_some(&WHITE_SPACES).unwrap(), "Rust!");
+        assert_eq!(
+            stream
+                .try_get_string_some(ASCII.whitespace_chars())
+                .unwrap(),
+            "Hello,"
+        );
+        assert_eq!(
+            stream
+                .try_get_string_some(ASCII.whitespace_chars())
+                .unwrap(),
+            "world!"
+        );
+        assert_eq!(
+            stream
+                .try_get_string_some(ASCII.whitespace_chars())
+                .unwrap(),
+            "Hello,"
+        );
+        assert_eq!(
+            stream
+                .try_get_string_some(ASCII.whitespace_chars())
+                .unwrap(),
+            "Rust!"
+        );
         assert!(matches!(
-            stream.try_get_string_some(&WHITE_SPACES).unwrap_err(),
+            stream
+                .try_get_string_some(ASCII.whitespace_chars())
+                .unwrap_err(),
             StreamError::Eof
         ),);
         assert_eq!(

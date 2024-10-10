@@ -1,30 +1,9 @@
-use super::{error::StreamError, is_eol, CHAR_EOL};
-use crate::utf8char::{iter_fixed::IterFixedUtf8Char, FixedUtf8Char};
+use super::{
+    error::StreamError,
+    ext::{CharExt, Pattern, StrExt},
+    CHAR_EOL,
+};
 use std::mem::transmute;
-
-fn trim_end_matches<'s>(s: &'s str, white: &[FixedUtf8Char]) -> &'s str {
-    let mut line = s;
-    while let Some(c) = white.iter().find(|c| line.ends_with(c.as_str())) {
-        let cursor = line.len() - c.len_utf8();
-        debug_assert!(line.is_char_boundary(cursor));
-        line = unsafe { line.get_unchecked(..cursor) };
-    }
-    line
-}
-
-fn trim_start_matches<'s>(s: &'s str, white: &[FixedUtf8Char]) -> &'s str {
-    let mut line = s;
-    while let Some(c) = white.iter().find(|c| line.starts_with(c.as_str())) {
-        let cursor = c.len_utf8();
-        debug_assert!(line.is_char_boundary(cursor));
-        line = unsafe { line.get_unchecked(cursor..) };
-    }
-    line
-}
-
-fn trim_matches<'s>(s: &'s str, white: &[FixedUtf8Char]) -> &'s str {
-    trim_end_matches(trim_start_matches(s, white), white)
-}
 
 /// Extension trait for [BufRead].
 ///
@@ -39,7 +18,13 @@ fn trim_matches<'s>(s: &'s str, white: &[FixedUtf8Char]) -> &'s str {
 /// ASCII whitespace characters here are `' '`, `'\t'`, `'\n'`, and `'\r'`.
 ///
 /// [BufRead]: std::io::BufRead
-pub trait BufReadExt {
+#[allow(private_bounds)]
+pub trait BufReadExt<Char = char>
+where
+    Char: CharExt + Into<char> + Copy,
+    for<'a> &'a [Char]: Pattern<Item = Char>,
+    for<'a> &'a str: StrExt<'a, Char>,
+{
     /// Get the current line whatever state it is.
     fn get_cur_line(&self) -> &str;
 
@@ -83,8 +68,8 @@ pub trait BufReadExt {
 
     /// Get the next character in current line, if any.
     #[inline]
-    fn get_in_cur_line_utf8(&mut self) -> Result<Option<FixedUtf8Char>, StreamError> {
-        if let Some(c) = FixedUtf8Char::from_first_char(self.get_line()?) {
+    fn get_in_cur_line_utf8(&mut self) -> Result<Option<Char>, StreamError> {
+        if let Some(c) = self.get_line()?.first_char() {
             unsafe { self.skip(c.len_utf8()) };
             Ok(Some(c))
         } else {
@@ -101,8 +86,8 @@ pub trait BufReadExt {
 
     /// Get the next character in current line, if any.
     #[inline]
-    fn peek_in_cur_line_utf8(&self) -> Result<Option<FixedUtf8Char>, StreamError> {
-        Ok(FixedUtf8Char::from_first_char(self.get_cur_line()))
+    fn peek_in_cur_line_utf8(&self) -> Result<Option<Char>, StreamError> {
+        Ok(self.get_cur_line().first_char())
     }
 
     /// Fill the buffer with a new line, ignoring the current line.
@@ -150,55 +135,55 @@ pub trait BufReadExt {
     }
 
     /// Get a single character if it is in `pattern`, otherwise leave it in the buffer.
+    ///
+    /// - Returns `Ok(Some(c))` if a character is read.
+    /// - Returns `Ok(None)` if no character is read.
+    /// - Returns `Err` if the buffer is empty and cannot be filled with a new line.
     #[inline]
-    fn try_get_if(&mut self, pattern: &[FixedUtf8Char]) -> Result<Option<char>, StreamError> {
-        loop {
-            if let Some(c) = self.peek_in_cur_line_utf8()? {
-                if pattern.contains(&c) {
-                    unsafe { self.skip(c.len_utf8()) };
-                    return Ok(Some(From::from(c)));
-                } else {
-                    return Ok(None);
-                }
+    fn try_get_if(&mut self, pattern: &[Char]) -> Result<Option<char>, StreamError> {
+        let line = self.get_line()?;
+        if let Some(c) = line.first_char() {
+            if pattern.matches(c) {
+                unsafe { self.skip(c.len_utf8()) };
+                Ok(Some(c.into()))
             } else {
-                self.fill_buf()?;
+                Ok(None)
             }
+        } else {
+            Ok(None)
         }
     }
 
     /// Get a single non-`skipped` character.
     #[inline]
-    fn try_get_non(&mut self, skipped: &[FixedUtf8Char]) -> Result<char, StreamError> {
+    fn try_get_non(&mut self, skipped: &[Char]) -> Result<char, StreamError> {
         loop {
-            if let Some(c) = self.get_in_cur_line_utf8()? {
-                if !skipped.contains(&c) {
-                    return Ok(From::from(c));
-                }
+            if let Some(n) = skipped.find_first_not_matching(self.get_cur_line()) {
+                unsafe { self.skip(n) }
+                return self.try_get();
             } else {
                 self.fill_buf()?;
             }
         }
     }
 
-    /// Skip all `skipped` characters until a non-`skipped` character is found or end of line.
+    /// Skip all `skipped` characters until a non-`skipped` character is found or end of file.
     #[inline]
-    fn try_skip_all(&mut self, skipped: &[FixedUtf8Char]) -> Result<usize, StreamError> {
+    fn try_skip_all(&mut self, skipped: &[Char]) -> Result<usize, StreamError> {
         let mut count = 0;
-        'lines: loop {
+        loop {
             let line = self.get_cur_line();
-            let mut cursor = 0usize;
-            for c in IterFixedUtf8Char::new(line) {
-                if skipped.contains(&c) {
-                    count += c.len_utf8();
-                    cursor += c.len_utf8();
-                } else {
-                    unsafe { self.skip(cursor) };
-                    break 'lines;
-                }
-            }
-            unsafe { self.skip(cursor) };
-            if !self.read_buf()? {
+            if let Some(cursor) = skipped.find_first_not_matching(line) {
+                unsafe { self.skip(cursor) };
+                count += cursor;
                 break;
+            } else {
+                let cursor = line.len();
+                unsafe { self.skip(cursor) };
+                count += cursor;
+                if !self.read_buf()? {
+                    break;
+                }
             }
         }
         Ok(count)
@@ -219,13 +204,8 @@ pub trait BufReadExt {
     #[must_use = "This method returns whether a new line is read, and should be checked."]
     fn try_skip_eol(&mut self) -> Result<Option<bool>, StreamError> {
         let _: bool = self.fill_buf_if_eol()?;
-        let mut count = 0usize;
-        for c in IterFixedUtf8Char::new(self.get_cur_line()) {
-            if !is_eol(c) {
-                break;
-            }
-            count += c.len_utf8();
-        }
+        let line = self.get_cur_line();
+        let count = <&[Char] as Pattern>::EOL.find_first_not_matching_or_whole_length(line);
         unsafe { self.skip(count) };
         if self.is_eol() {
             return Ok(Some(self.read_buf()?));
@@ -235,16 +215,11 @@ pub trait BufReadExt {
 
     /// Read until a character in `pattern` is found or end of line.
     #[inline]
-    fn try_get_until_in_line(&mut self, pattern: &[FixedUtf8Char]) -> Result<&str, StreamError> {
+    fn try_get_until_in_line(&mut self, pattern: &[Char]) -> Result<&str, StreamError> {
         let line = self.get_line()?;
-        let mut cursor = 0;
-        for c in IterFixedUtf8Char::new(line) {
-            if pattern.contains(&c) {
-                break;
-            }
-            cursor += c.len_utf8();
-        }
-        let selected: &str = line.get(0..cursor).unwrap_or_default();
+        let cursor = pattern.find_first_matching_or_whole_length(line);
+        debug_assert!(line.is_char_boundary(cursor));
+        let selected: &str = unsafe { line.get_unchecked(0..cursor) };
         let selected: &str = unsafe { transmute(selected) };
         unsafe { self.skip(cursor) };
         Ok(selected)
@@ -253,7 +228,7 @@ pub trait BufReadExt {
     /// Get a single `skipped`-separated string.
     /// If current line is empty or all `skipped`, it will read a new line.
     #[inline]
-    fn try_get_string_some(&mut self, skipped: &[FixedUtf8Char]) -> Result<&str, StreamError> {
+    fn try_get_string_some(&mut self, skipped: &[Char]) -> Result<&str, StreamError> {
         let _ = self.try_skip_all(skipped)?;
         self.try_get_until_in_line(skipped)
     }
@@ -272,9 +247,9 @@ pub trait BufReadExt {
     ///
     /// It can returns an empty string.
     #[inline]
-    fn try_get_line_trimmed(&mut self, white: &[FixedUtf8Char]) -> Result<&str, StreamError> {
+    fn try_get_line_trimmed(&mut self, white: &[Char]) -> Result<&str, StreamError> {
         let line = self.try_get_line()?;
-        Ok(trim_end_matches(line, white))
+        Ok(white.trim_end(line))
     }
 
     /// Get a single not-empty line. The trailing newline will be consumed and trimmed.
@@ -296,10 +271,10 @@ pub trait BufReadExt {
     ///
     /// Repeatedly read a new line if current line is empty.
     #[inline]
-    fn try_get_line_some_trimmed(&mut self, white: &[FixedUtf8Char]) -> Result<&str, StreamError> {
+    fn try_get_line_some_trimmed(&mut self, white: &[Char]) -> Result<&str, StreamError> {
         loop {
             let line = self.try_get_line_some()?;
-            let line: &str = trim_matches(line, white);
+            let line: &str = white.trim(line);
             let line: &str = unsafe { transmute(line) };
             if !line.is_empty() {
                 return Ok(line);
@@ -308,7 +283,12 @@ pub trait BufReadExt {
     }
 }
 
-impl<S: ?Sized + BufReadExt> BufReadExt for &mut S {
+impl<S: ?Sized + BufReadExt<Char>, Char> BufReadExt<Char> for &mut S
+where
+    Char: CharExt + Into<char> + Copy,
+    for<'a> &'a [Char]: Pattern<Item = Char>,
+    for<'a> &'a str: StrExt<'a, Char>,
+{
     #[inline]
     fn get_cur_line(&self) -> &str {
         S::get_cur_line(self)

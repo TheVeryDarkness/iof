@@ -1,11 +1,14 @@
 use super::line_buf::LineBuf;
-use crate::{read::locale::WHITE_SPACES, unwrap, BufReadExt, InputStream};
+use crate::{
+    locale::{Locale, ASCII},
+    unwrap, BufReadExt, InputStream,
+};
 use std::io::Cursor;
 
 /// Test all methods.
 ///
 /// Pass "Hello, world!\r\n" to the stream and test all methods.
-fn all_1(stream: &mut impl BufReadExt) {
+fn all_1(stream: &mut impl BufReadExt<char>) {
     let c = unwrap!(stream.try_get());
     assert_eq!(c, 'H');
 
@@ -29,7 +32,7 @@ fn all_1(stream: &mut impl BufReadExt) {
     let s = unwrap!(stream.try_get_until_in_line(&['!'].map(Into::into)));
     assert_eq!(s, ", world");
 
-    let s = unwrap!(stream.try_get_string_some(&WHITE_SPACES));
+    let s = unwrap!(stream.try_get_string_some(ASCII.whitespace_chars()));
     assert_eq!(s, "!");
 
     let c = unwrap!(stream.try_peek());

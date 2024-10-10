@@ -6,29 +6,15 @@ use crate::{
 };
 
 /// Locale trait.
-pub trait Locale {
+pub trait Locale<Char = char> {
     /// Get the list of whitespace characters.
-    fn whitespace_chars(&self) -> &[FixedUtf8Char];
-    /// Get the length of the leading whitespace in `bytes`.
-    #[inline]
-    fn prefix_whitespace_utf8(&self, mut string: &str) -> usize {
-        let mut count = 0;
-        while let Some(c) = self
-            .whitespace_chars()
-            .iter()
-            .find(|c| string.as_bytes().starts_with(c.as_bytes()))
-        {
-            count += 1;
-            string = &string[c.len_utf8()..];
-        }
-        count
-    }
+    fn whitespace_chars(&self) -> &[Char];
 }
 
-impl<L: Locale + ?Sized> Locale for &L {
+impl<L: Locale<Char> + ?Sized, Char> Locale<Char> for &L {
     #[inline]
-    fn whitespace_chars(&self) -> &[FixedUtf8Char] {
-        <L as Locale>::whitespace_chars(self)
+    fn whitespace_chars(&self) -> &[Char] {
+        <L as Locale<Char>>::whitespace_chars(self)
     }
 }
 
@@ -37,12 +23,19 @@ impl<L: Locale + ?Sized> Locale for &L {
 /// ASCII whitespace characters here are `' '`, `'\t'`, `'\n'`, and `'\r'`.
 pub struct ASCII;
 
-pub(crate) const WHITE_SPACES: [FixedUtf8Char; 4] = [SP, HT, LF, CR];
+const WHITE_SPACES: [FixedUtf8Char; 4] = [SP, HT, LF, CR];
 
-impl Locale for ASCII {
+impl Locale<FixedUtf8Char> for ASCII {
     #[inline]
     fn whitespace_chars(&self) -> &[FixedUtf8Char] {
         &WHITE_SPACES
+    }
+}
+
+impl Locale<char> for ASCII {
+    #[inline]
+    fn whitespace_chars(&self) -> &[char] {
+        &[' ', '\t', '\n', '\r']
     }
 }
 
@@ -51,55 +44,51 @@ impl Locale for ASCII {
 /// ASCII whitespace characters here are `' '`, `'\t'`, `','`, `'\n'`, and `'\r'`.
 pub struct CSV;
 
-pub(crate) const CSV_SEP: [FixedUtf8Char; 5] = [SP, HT, COMMA, LF, CR];
+const CSV_SEP: [FixedUtf8Char; 5] = [SP, HT, COMMA, LF, CR];
 
-impl Locale for CSV {
+impl Locale<FixedUtf8Char> for CSV {
     #[inline]
     fn whitespace_chars(&self) -> &[FixedUtf8Char] {
         &CSV_SEP
     }
 }
 
-/// Specific locale for whitespace characters.
-pub struct WS(Vec<FixedUtf8Char>);
+impl Locale<char> for CSV {
+    #[inline]
+    fn whitespace_chars(&self) -> &[char] {
+        &[' ', '\t', ',', '\n', '\r']
+    }
+}
 
-impl FromIterator<FixedUtf8Char> for WS {
+/// Specific locale for whitespace characters.
+pub struct WS<Char = char>(Vec<Char>);
+
+impl<Char: From<FixedUtf8Char> + Ord> FromIterator<FixedUtf8Char> for WS<Char> {
     fn from_iter<T: IntoIterator<Item = FixedUtf8Char>>(iter: T) -> Self {
-        let mut v: Vec<_> = iter.into_iter().collect();
+        let mut v: Vec<_> = iter.into_iter().map(From::from).collect();
         v.sort();
         v.dedup();
         Self(v)
     }
 }
 
-impl FromIterator<char> for WS {
+impl<Char: From<char> + Ord> FromIterator<char> for WS<Char> {
     fn from_iter<T: IntoIterator<Item = char>>(iter: T) -> Self {
-        Self::from_iter(iter.into_iter().map(FixedUtf8Char::from))
+        let mut v: Vec<_> = iter.into_iter().map(From::from).collect();
+        v.sort();
+        v.dedup();
+        Self(v)
     }
 }
 
-impl Locale for WS {
+impl Locale<FixedUtf8Char> for WS<FixedUtf8Char> {
     fn whitespace_chars(&self) -> &[FixedUtf8Char] {
         &self.0
     }
 }
 
-#[cfg(test)]
-mod tests {
-    use crate::locale::{Locale, WS};
-    use crate::read::locale::ASCII;
-
-    #[test]
-    fn prefix_whitespace_utf8() {
-        let locale = ASCII;
-        let s = "  \t\n\rHello, world!";
-        assert_eq!(locale.prefix_whitespace_utf8(s), 5);
-    }
-
-    #[test]
-    fn prefix_comma_utf8() {
-        let locale = WS::from_iter([',', ' ']);
-        let s = " , ,";
-        assert_eq!(locale.prefix_whitespace_utf8(s), 4);
+impl Locale<char> for WS<char> {
+    fn whitespace_chars(&self) -> &[char] {
+        &self.0
     }
 }

@@ -76,7 +76,7 @@ impl<'l, 's, L: Locale, T: ReadOneFrom> Iterator for ReadAllIn<'l, 's, L, T> {
 mod tests {
     use super::ReadAll;
     use crate::{
-        read::locale::{ASCII, WHITE_SPACES},
+        locale::{Locale, ASCII},
         stream::line_buf::LineBuf,
         unwrap, BufReadExt, InputStream, ReadInto,
     };
@@ -107,7 +107,7 @@ mod tests {
     fn line_buf_string() {
         let s = "\n";
         let mut buf = LineBuf::new(s);
-        let _: &str = unwrap!(buf.try_get_string_some(&WHITE_SPACES));
+        let _: &str = unwrap!(buf.try_get_string_some(ASCII.whitespace_chars()));
     }
 
     #[test]
@@ -115,7 +115,7 @@ mod tests {
     fn input_stream_string() {
         let s = "\n";
         let mut buf = InputStream::new(Cursor::new(s));
-        let _: &str = unwrap!(buf.try_get_string_some(&WHITE_SPACES));
+        let _: &str = unwrap!(buf.try_get_string_some(ASCII.whitespace_chars()));
     }
 
     #[test]
