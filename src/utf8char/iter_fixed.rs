@@ -28,6 +28,6 @@ impl<'a> Iterator for IterFixedUtf8Char<'a> {
 
     fn next(&mut self) -> Option<Self::Item> {
         FixedUtf8Char::from_first_char(unsafe { from_utf8_unchecked(self.bytes) })
-            .inspect(|c| self.bytes = &self.bytes[c.len()..])
+            .inspect(|c| self.bytes = &self.bytes[c.len_utf8()..])
     }
 }

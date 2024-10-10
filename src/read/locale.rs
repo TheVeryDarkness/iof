@@ -19,7 +19,7 @@ pub trait Locale {
             .find(|c| string.as_bytes().starts_with(c.as_bytes()))
         {
             count += 1;
-            string = &string[c.len()..];
+            string = &string[c.len_utf8()..];
         }
         count
     }

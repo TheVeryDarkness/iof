@@ -47,14 +47,8 @@ impl Utf8Char {
         transmute(bytes)
     }
     /// Get the length in bytes of the UTF-8 character.
-    pub const fn len(&self) -> usize {
+    pub const fn len_utf8(&self) -> usize {
         self.bytes.len()
-    }
-    /// Check if the UTF-8 character is empty.
-    ///
-    /// This function always returns `false`.
-    pub const fn is_empty(&self) -> bool {
-        false
     }
     /// Get the bytes of the UTF-8 character.
     pub const fn as_bytes(&self) -> &[u8] {

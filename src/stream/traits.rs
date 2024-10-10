@@ -5,7 +5,7 @@ use std::mem::transmute;
 fn trim_end_matches<'s>(s: &'s str, white: &[FixedUtf8Char]) -> &'s str {
     let mut line = s;
     while let Some(c) = white.iter().find(|c| line.ends_with(c.as_str())) {
-        let cursor = line.len() - c.len();
+        let cursor = line.len() - c.len_utf8();
         debug_assert!(line.is_char_boundary(cursor));
         line = unsafe { line.get_unchecked(..cursor) };
     }
@@ -15,7 +15,7 @@ fn trim_end_matches<'s>(s: &'s str, white: &[FixedUtf8Char]) -> &'s str {
 fn trim_start_matches<'s>(s: &'s str, white: &[FixedUtf8Char]) -> &'s str {
     let mut line = s;
     while let Some(c) = white.iter().find(|c| line.starts_with(c.as_str())) {
-        let cursor = c.len();
+        let cursor = c.len_utf8();
         debug_assert!(line.is_char_boundary(cursor));
         line = unsafe { line.get_unchecked(cursor..) };
     }
@@ -85,7 +85,7 @@ pub trait BufReadExt {
     #[inline]
     fn get_in_cur_line_utf8(&mut self) -> Result<Option<FixedUtf8Char>, StreamError> {
         if let Some(c) = FixedUtf8Char::from_first_char(self.get_line()?) {
-            unsafe { self.skip(c.len()) };
+            unsafe { self.skip(c.len_utf8()) };
             Ok(Some(c))
         } else {
             Ok(None)
@@ -155,7 +155,7 @@ pub trait BufReadExt {
         loop {
             if let Some(c) = self.peek_in_cur_line_utf8()? {
                 if pattern.contains(&c) {
-                    unsafe { self.skip(c.len()) };
+                    unsafe { self.skip(c.len_utf8()) };
                     return Ok(Some(From::from(c)));
                 } else {
                     return Ok(None);
@@ -189,8 +189,8 @@ pub trait BufReadExt {
             let mut cursor = 0usize;
             for c in IterFixedUtf8Char::new(line) {
                 if skipped.contains(&c) {
-                    count += c.len();
-                    cursor += c.len();
+                    count += c.len_utf8();
+                    cursor += c.len_utf8();
                 } else {
                     unsafe { self.skip(cursor) };
                     break 'lines;
@@ -224,7 +224,7 @@ pub trait BufReadExt {
             if !is_eol(c) {
                 break;
             }
-            count += c.len();
+            count += c.len_utf8();
         }
         unsafe { self.skip(count) };
         if self.is_eol() {
@@ -242,7 +242,7 @@ pub trait BufReadExt {
             if pattern.contains(&c) {
                 break;
             }
-            cursor += c.len();
+            cursor += c.len_utf8();
         }
         let selected: &str = line.get(0..cursor).unwrap_or_default();
         let selected: &str = unsafe { transmute(selected) };

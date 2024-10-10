@@ -49,8 +49,8 @@ fn iter_fixed_utf8_char() {
         assert_eq!(&f, u);
         assert_eq!(u, &f);
 
-        assert_eq!(u.len(), c.len_utf8());
-        assert_eq!(f.len(), c.len_utf8());
+        assert_eq!(u.len_utf8(), c.len_utf8());
+        assert_eq!(f.len_utf8(), c.len_utf8());
 
         assert_eq!(u, unsafe { Utf8Char::from_bytes_unchecked(u.as_bytes()) });
         assert_eq!(f, unsafe { Utf8Char::from_bytes_unchecked(f.as_bytes()) });

@@ -54,18 +54,12 @@ impl FixedUtf8Char {
         Self { bytes }
     }
     /// Get the length in bytes of the UTF-8 character.
-    pub const fn len(&self) -> usize {
+    pub const fn len_utf8(&self) -> usize {
         unsafe { utf8_len_from_first_byte(self.bytes[0]) }
-    }
-    /// Check if the UTF-8 character is empty.
-    ///
-    /// This function always returns `false`.
-    pub const fn is_empty(&self) -> bool {
-        false
     }
     /// Get the bytes of the UTF-8 character.
     pub fn as_bytes(&self) -> &[u8] {
-        &self.bytes[0..self.len()]
+        &self.bytes[0..self.len_utf8()]
     }
     /// Get the string of the UTF-8 character.
     pub fn as_str(&self) -> &str {
