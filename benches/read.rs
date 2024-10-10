@@ -5,53 +5,50 @@ use std::{
     io::{BufRead, BufReader, Cursor},
 };
 
-const COUNT: usize = 0x10000 * 4;
-
-fn template<B, R: BufRead>(
+fn template<R: BufRead>(
     case: &'static str,
-    create_buffer: impl Fn() -> B,
-    create_reader: impl Fn(&B) -> R,
+    count: usize,
+    create_reader: impl Fn() -> R,
 ) -> impl FnMut(&mut Criterion) {
     type Element = i32;
     move |c| {
-        let buf = create_buffer();
         c.bench_function(&format!("{case} - read_all"), |b| {
             b.iter(|| {
-                let mut reader = InputStream::new(create_reader(&buf));
+                let mut reader = InputStream::new(create_reader());
                 let results: Vec<Element> = reader.read_all();
-                assert_eq!(results.len(), COUNT);
+                assert_eq!(results.len(), count);
             })
         })
         .bench_function(&format!("{case} - read_n"), |b| {
             b.iter(|| {
-                let mut reader = InputStream::new(create_reader(&buf));
-                let results: Vec<Element> = reader.read_n(COUNT);
-                assert_eq!(results.len(), COUNT);
+                let mut reader = InputStream::new(create_reader());
+                let results: Vec<Element> = reader.read_n(count);
+                assert_eq!(results.len(), count);
             })
         })
         .bench_function(&format!("{case} - read while let"), |b| {
             b.iter(|| {
-                let mut reader = InputStream::new(create_reader(&buf));
+                let mut reader = InputStream::new(create_reader());
                 let mut results: Vec<Element> = Vec::new();
                 while let Ok(a) = reader.try_read_one() {
                     results.push(a);
                 }
-                assert_eq!(results.len(), COUNT);
+                assert_eq!(results.len(), count);
             })
         })
         .bench_function(&format!("{case} - read for in"), |b| {
             b.iter(|| {
-                let mut reader = InputStream::new(create_reader(&buf));
+                let mut reader = InputStream::new(create_reader());
                 let mut results: Vec<Element> = Vec::new();
-                for _ in 0..COUNT {
+                for _ in 0..count {
                     results.push(reader.read());
                 }
-                assert_eq!(results.len(), COUNT);
+                assert_eq!(results.len(), count);
             })
         })
         .bench_function(&format!("{case} - read_to_end split"), |b| {
             b.iter(|| {
-                let mut reader = create_reader(&buf);
+                let mut reader = create_reader();
                 let mut buf = Vec::new();
                 unwrap!(reader.read_to_end(&mut buf));
                 let results: Vec<Element> = buf
@@ -65,14 +62,14 @@ fn template<B, R: BufRead>(
                         }
                     })
                     .collect();
-                assert_eq!(results.len(), COUNT);
+                assert_eq!(results.len(), count);
             })
         })
         .bench_function(&format!("{case} - bytes split"), |b| {
             b.iter(|| {
-                let reader = create_reader(&buf);
+                let reader = create_reader();
                 let mut buf = Vec::new();
-                let mut results: Vec<Element> = Vec::with_capacity(COUNT);
+                let mut results: Vec<Element> = Vec::with_capacity(count);
                 for byte in reader.bytes() {
                     let byte = unwrap!(byte);
                     if byte == b' ' || byte == b'\n' {
@@ -85,26 +82,34 @@ fn template<B, R: BufRead>(
                         buf.push(byte);
                     }
                 }
-                assert_eq!(results.len(), COUNT);
+                assert_eq!(results.len(), count);
             })
         });
     }
 }
 
+const COUNT: usize = 0x10000 * 4;
+
 fn cursor(c: &mut Criterion) {
-    let s = unwrap!(read_to_string("benches/integers.txt"));
-    (template("cursor", || Cursor::new(&s), |s| s.clone()))(c);
+    {
+        let s = unwrap!(read_to_string("benches/long.txt"));
+        (template("cursor - long", COUNT, || Cursor::new(&s)))(c);
+    }
+    {
+        let s = unwrap!(read_to_string("benches/short.txt"));
+        (template("cursor - short", COUNT, || Cursor::new(&s)))(c);
+    }
 }
 
 fn file(c: &mut Criterion) {
-    (template(
-        "file",
-        || (),
-        |()| {
-            let f = unwrap!(File::open("benches/integers.txt"));
-            BufReader::new(f)
-        },
-    ))(c);
+    (template("file - long", COUNT, || {
+        let f = unwrap!(File::open("benches/long.txt"));
+        BufReader::new(f)
+    }))(c);
+    (template("file - short", COUNT, || {
+        let f = unwrap!(File::open("benches/short.txt"));
+        BufReader::new(f)
+    }))(c);
 }
 
 criterion_group!(benches, cursor, file);
