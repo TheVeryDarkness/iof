@@ -8,7 +8,7 @@ fn many_integers(c: &mut Criterion) {
         -0x80000000..-0x7fff0000,
         0x70000000..0x70010000,
     ];
-    let s = unwrap!(std::fs::read_to_string("benches/integers.txt"));
+    let s = unwrap!(std::fs::read_to_string("benches/long.txt"));
     c.bench_function("default_separator", |b| {
         b.iter(|| {
             let mut buf = Vec::new();
