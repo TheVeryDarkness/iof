@@ -14,6 +14,10 @@ impl<'a> IterUtf8Char<'a> {
         Self { bytes }
     }
     /// Create a new `IterUtf8Char` from a byte slice.
+    ///
+    /// # Safety
+    ///
+    /// This function is unsafe because it does not check if the byte slice is a valid UTF-8 string.
     pub const unsafe fn new_from_bytes_unchecked(bytes: &'a [u8]) -> Self {
         Self { bytes }
     }
@@ -23,9 +27,9 @@ impl<'a> Iterator for IterUtf8Char<'a> {
     type Item = &'a Utf8Char;
 
     fn next(&mut self) -> Option<Self::Item> {
-        let byte = self.bytes.get(0)?;
+        let byte = self.bytes.first()?;
         let l = unsafe { super::utf8_len_from_first_byte(*byte) };
-        let c = unsafe { transmute(self.bytes.get(0..l)?) };
+        let c: &Utf8Char = unsafe { transmute(self.bytes.get(0..l)?) };
         self.bytes = &self.bytes[l..];
         Some(c)
     }

@@ -1,3 +1,5 @@
+use crate::utf8char::utf8_len_from_first_byte;
+
 /// A UTF-8 character that is fixed in size.
 ///
 /// 10xxxxxx: continuation byte
@@ -8,6 +10,10 @@
 /// - `11110000..=11110111`: 4 bytes
 /// - `11111000..=11111011`: 5 bytes (not valid)
 /// - `11111100..=11111101`: 6 bytes (not valid)
+///
+/// # Invariants
+///
+/// - The byte array is a single valid UTF-8 character.
 #[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Debug)]
 pub struct FixedUtf8Char {
     bytes: [u8; 4],
@@ -35,13 +41,27 @@ impl From<char> for FixedUtf8Char {
 
 impl FixedUtf8Char {
     /// Create a new `FixedUtf8Char` from a byte array.
+    ///
+    /// # Safety
+    ///
+    /// This function is unsafe because it does not check if the byte array is a valid UTF-8 character.
     pub const unsafe fn from_bytes_unchecked(bytes: [u8; 4]) -> Self {
         debug_assert!(std::str::from_utf8(&bytes).is_ok());
+        debug_assert!(bytes[0] > 0);
+        debug_assert!(utf8_len_from_first_byte(bytes[0]) <= 1 || bytes[1] == 0);
+        debug_assert!(utf8_len_from_first_byte(bytes[0]) <= 2 || bytes[2] == 0);
+        debug_assert!(utf8_len_from_first_byte(bytes[0]) <= 3 || bytes[3] == 0);
         Self { bytes }
     }
     /// Get the length in bytes of the UTF-8 character.
     pub const fn len(&self) -> usize {
-        unsafe { super::utf8_len_from_first_byte(self.bytes[0]) }
+        unsafe { utf8_len_from_first_byte(self.bytes[0]) }
+    }
+    /// Check if the UTF-8 character is empty.
+    ///
+    /// This function always returns `false`.
+    pub const fn is_empty(&self) -> bool {
+        false
     }
     /// Get the bytes of the UTF-8 character.
     pub fn as_bytes(&self) -> &[u8] {
@@ -58,8 +78,8 @@ impl FixedUtf8Char {
     /// Returns `None` if the string is empty.
     pub fn from_first_char(s: &str) -> Option<Self> {
         let mut bytes = [0; 4];
-        let byte = s.as_bytes().get(0)?;
-        let l = unsafe { super::utf8_len_from_first_byte(*byte) };
+        let byte = s.as_bytes().first()?;
+        let l = unsafe { utf8_len_from_first_byte(*byte) };
         bytes[0..l].copy_from_slice(s.as_bytes().get(0..l)?);
         Some(Self { bytes })
     }
@@ -75,7 +95,7 @@ impl PartialEq<char> for FixedUtf8Char {
 
 impl PartialEq<FixedUtf8Char> for char {
     fn eq(&self, other: &FixedUtf8Char) -> bool {
-        <FixedUtf8Char as PartialEq<char>>::eq(other, &self)
+        <FixedUtf8Char as PartialEq<char>>::eq(other, self)
     }
 }
 

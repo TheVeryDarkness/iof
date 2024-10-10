@@ -14,6 +14,10 @@ impl<'a> IterFixedUtf8Char<'a> {
         Self { bytes }
     }
     /// Create a new `IterFixedUtf8Char` from a byte slice.
+    ///
+    /// # Safety
+    ///
+    /// This function is unsafe because it does not check if the byte slice is a valid UTF-8 string.
     pub const unsafe fn new_from_bytes_unchecked(bytes: &'a [u8]) -> Self {
         Self { bytes }
     }
@@ -23,9 +27,7 @@ impl<'a> Iterator for IterFixedUtf8Char<'a> {
     type Item = FixedUtf8Char;
 
     fn next(&mut self) -> Option<Self::Item> {
-        FixedUtf8Char::from_first_char(unsafe { from_utf8_unchecked(self.bytes) }).map(|c| {
-            self.bytes = &self.bytes[c.len()..];
-            c
-        })
+        FixedUtf8Char::from_first_char(unsafe { from_utf8_unchecked(self.bytes) })
+            .inspect(|c| self.bytes = &self.bytes[c.len()..])
     }
 }

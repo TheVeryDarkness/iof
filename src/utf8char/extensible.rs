@@ -11,6 +11,10 @@ use std::mem::transmute;
 /// - `11110000..=11110111`: 4 bytes
 /// - `11111000..=11111011`: 5 bytes (not valid)
 /// - `11111100..=11111101`: 6 bytes (not valid)
+///
+/// # Invariants
+///
+/// - The byte slice is a single valid UTF-8 character.
 #[derive(PartialEq, Eq, PartialOrd, Ord, Hash, Debug)]
 pub struct Utf8Char {
     bytes: [u8],
@@ -32,13 +36,25 @@ impl AsRef<str> for Utf8Char {
 
 impl Utf8Char {
     /// Create a new `Utf8Char` from a byte array.
+    ///
+    /// # Safety
+    ///
+    /// This function is unsafe because it does not check if the byte array is a valid UTF-8 character.
     pub const unsafe fn from_bytes_unchecked(bytes: &[u8]) -> &Self {
         debug_assert!(std::str::from_utf8(bytes).is_ok());
+        debug_assert!(!bytes.is_empty());
+        debug_assert!(utf8_len_from_first_byte(bytes[0]) == bytes.len());
         transmute(bytes)
     }
     /// Get the length in bytes of the UTF-8 character.
     pub const fn len(&self) -> usize {
         self.bytes.len()
+    }
+    /// Check if the UTF-8 character is empty.
+    ///
+    /// This function always returns `false`.
+    pub const fn is_empty(&self) -> bool {
+        false
     }
     /// Get the bytes of the UTF-8 character.
     pub const fn as_bytes(&self) -> &[u8] {
@@ -54,7 +70,7 @@ impl Utf8Char {
     ///
     /// Returns `None` if the string is empty.
     pub fn from_first_char(s: &str) -> Option<&Self> {
-        let byte = s.as_bytes().get(0)?;
+        let byte = s.as_bytes().first()?;
         let l = unsafe { utf8_len_from_first_byte(*byte) };
         let bytes: &Self = unsafe { transmute(s.as_bytes().get(0..l)?) };
         Some(bytes)

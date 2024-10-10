@@ -30,10 +30,11 @@ fn trim_matches<'s>(s: &'s str, white: &[FixedUtf8Char]) -> &'s str {
 ///
 /// It provides a way to read:
 ///
-/// - A single non-ASCII-whitespace character ([BufReadExt::try_get_non_ws]),
-/// - A single ASCII-white-space-separated string ([BufReadExt::try_get_string_some]),
+/// - A single non-`skipped` character ([BufReadExt::try_get_non]),
+/// - A single string separated by `skipped` ([BufReadExt::try_get_string_some]),
 /// - A single non-empty line ([BufReadExt::try_get_line_some]),
 /// - Or just the remained line ([BufReadExt::try_get_line]).
+/// - ...
 ///
 /// ASCII whitespace characters here are `' '`, `'\t'`, `'\n'`, and `'\r'`.
 ///
