@@ -2,7 +2,7 @@ use crate::utf8char::{FixedUtf8Char, Utf8Char};
 
 use super::{iter_extensible::IterUtf8Char, iter_fixed::IterFixedUtf8Char};
 
-const S: &'static str = "aHello🦀🦀🦀：【中文字符串】？烫烫烫。";
+const S: &str = "aHello🦀🦀🦀：【中文字符串】？烫烫烫。";
 
 #[test]
 fn iter_fixed_utf8_char() {
