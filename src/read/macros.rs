@@ -48,7 +48,7 @@ macro_rules! read {
     ($(; src = $src:expr)? $(; loc = $loc:expr)?) => {
         $crate::unwrap!($crate::ReadFrom::try_read_from(
             $crate::argument_or_default!($(&mut $src)?, &mut *$crate::stdin()),
-            $crate::argument_or_default!($($loc)?, &$crate::locale::ASCII)
+            $crate::argument_or_default!($(&$loc)?, &$crate::locale::ASCII)
         ))
     };
     ($dim0:expr $(, $dims:expr)* $(,)? $(; src = $src:expr)? $(; loc = $loc:expr)?) => {{

@@ -25,6 +25,13 @@ pub trait Locale {
     }
 }
 
+impl<L: Locale + ?Sized> Locale for &L {
+    #[inline]
+    fn whitespace_chars(&self) -> &[FixedUtf8Char] {
+        <L as Locale>::whitespace_chars(self)
+    }
+}
+
 /// Default locale.
 ///
 /// ASCII whitespace characters here are `' '`, `'\t'`, `'\n'`, and `'\r'`.
