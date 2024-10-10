@@ -32,7 +32,7 @@ jobs:
           --project iof \
           --token '${{ secrets.BENCHER_API_TOKEN }}' \
           --branch main \
-          --testbed ${{ matrix.os }} \
+          --testbed '${{ matrix.os }}' \
           --threshold-measure latency \
           --threshold-test t_test \
           --threshold-max-sample-size 64 \
