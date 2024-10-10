@@ -10,12 +10,14 @@ pub trait CharExt {
 }
 
 impl CharExt for FixedUtf8Char {
+    #[inline]
     fn len_utf8(&self) -> usize {
         Self::len_utf8(self)
     }
 }
 
 impl CharExt for char {
+    #[inline]
     fn len_utf8(&self) -> usize {
         Self::len_utf8(*self)
     }
@@ -36,10 +38,12 @@ pub trait StrExt<'s, C: CharExt> {
 impl<'s> StrExt<'s, FixedUtf8Char> for &'s str {
     type Iterator = IterFixedUtf8Char<'s>;
 
+    #[inline]
     fn chars_ext(self) -> Self::Iterator {
         IterFixedUtf8Char::new(self)
     }
 
+    #[inline]
     fn first_char(self) -> Option<FixedUtf8Char> {
         FixedUtf8Char::from_first_char(self)
     }
@@ -48,10 +52,12 @@ impl<'s> StrExt<'s, FixedUtf8Char> for &'s str {
 impl<'s> StrExt<'s, char> for &'s str {
     type Iterator = std::str::Chars<'s>;
 
+    #[inline]
     fn chars_ext(self) -> Self::Iterator {
         self.chars()
     }
 
+    #[inline]
     fn first_char(self) -> Option<char> {
         self.chars().next()
     }
@@ -83,6 +89,7 @@ pub trait Pattern: Sized {
     fn find_first_matching(self, s: &str) -> Option<usize>;
 
     /// Find the first matching character or the whole length.
+    #[inline]
     fn find_first_matching_or_whole_length(self, s: &str) -> usize {
         self.find_first_matching(s).unwrap_or(s.len())
     }
@@ -91,6 +98,7 @@ pub trait Pattern: Sized {
     fn find_first_not_matching(self, s: &str) -> Option<usize>;
 
     /// Find the first not matching character or the whole length.
+    #[inline]
     fn find_first_not_matching_or_whole_length(self, s: &str) -> usize {
         self.find_first_not_matching(s).unwrap_or(s.len())
     }
@@ -101,10 +109,12 @@ impl Pattern for &[FixedUtf8Char] {
 
     const EOL: [Self::Item; 2] = [LF, CR];
 
+    #[inline]
     fn matches(&self, c: Self::Item) -> bool {
         self.contains(&c)
     }
 
+    #[inline]
     fn trim_end(self, s: &str) -> &str {
         let mut line = s;
         while let Some(c) = self.iter().find(|&&c| line.ends_with(c.as_str())) {
@@ -115,6 +125,7 @@ impl Pattern for &[FixedUtf8Char] {
         line
     }
 
+    #[inline]
     fn trim_start(self, s: &str) -> &str {
         let mut line = s;
         while let Some(c) = self.iter().find(|&&c| line.starts_with(c.as_str())) {
@@ -125,10 +136,12 @@ impl Pattern for &[FixedUtf8Char] {
         line
     }
 
+    #[inline]
     fn trim(self, s: &str) -> &str {
         self.trim_end(self.trim_start(s))
     }
 
+    #[inline]
     fn find_first_matching(self, s: &str) -> Option<usize> {
         let mut cursor = 0;
         for c in <&str as StrExt<FixedUtf8Char>>::chars_ext(s) {
@@ -140,6 +153,7 @@ impl Pattern for &[FixedUtf8Char] {
         None
     }
 
+    #[inline]
     fn find_first_not_matching(self, s: &str) -> Option<usize> {
         let mut cursor = 0;
         for c in <&str as StrExt<FixedUtf8Char>>::chars_ext(s) {
@@ -157,26 +171,32 @@ impl Pattern for &[char] {
 
     const EOL: [Self::Item; 2] = ['\n', '\r'];
 
+    #[inline]
     fn matches(&self, c: Self::Item) -> bool {
         self.contains(&c)
     }
 
+    #[inline]
     fn trim_start(self, s: &str) -> &str {
         s.trim_start_matches(self)
     }
 
+    #[inline]
     fn trim_end(self, s: &str) -> &str {
         s.trim_end_matches(self)
     }
 
+    #[inline]
     fn trim(self, s: &str) -> &str {
         s.trim_matches(self)
     }
 
+    #[inline]
     fn find_first_matching(self, s: &str) -> Option<usize> {
         s.find(self)
     }
 
+    #[inline]
     fn find_first_not_matching(self, s: &str) -> Option<usize> {
         let l = s.trim_start_matches(self).len();
         if l == 0 {

@@ -48,6 +48,7 @@ where
     }
 
     /// Get the current line. Read a new line if current line is empty.
+    #[inline]
     fn get_line(&mut self) -> Result<&str, StreamError> {
         let _: bool = self.fill_buf_if_eol()?;
         let line: &str = self.get_cur_line();
@@ -101,6 +102,7 @@ where
     /// - Returns `Ok(true)` if a new line is read.
     /// - Returns `Ok(false)` if the current line is not empty.
     /// - Returns `Err` if the buffer cannot be filled with a new line.
+    #[inline]
     fn fill_buf_if_eol(&mut self) -> Result<bool, StreamError> {
         if self.is_eol() {
             self.fill_buf()?;
@@ -245,7 +247,7 @@ where
 
     /// Get a single line. The trailing white spaces will be consumed and trimmed.
     ///
-    /// It can returns an empty string.
+    /// It can return an empty string.
     #[inline]
     fn try_get_line_trimmed(&mut self, white: &[Char]) -> Result<&str, StreamError> {
         let line = self.try_get_line()?;
