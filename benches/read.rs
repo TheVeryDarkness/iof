@@ -72,7 +72,7 @@ fn template<B, R: BufRead>(
             b.iter(|| {
                 let reader = create_reader(&buf);
                 let mut buf = Vec::new();
-                let mut results: Vec<Element> = Vec::new();
+                let mut results: Vec<Element> = Vec::with_capacity(COUNT);
                 for byte in reader.bytes() {
                     let byte = unwrap!(byte);
                     if byte == b' ' || byte == b'\n' {
