@@ -8,8 +8,16 @@ pub(super) mod line_buf;
 mod tests;
 pub(super) mod traits;
 
-const LF: FixedUtf8Char = unsafe { FixedUtf8Char::from_bytes_unchecked([b'\n', 0, 0, 0]) };
-const CR: FixedUtf8Char = unsafe { FixedUtf8Char::from_bytes_unchecked([b'\r', 0, 0, 0]) };
+pub(crate) const SP: FixedUtf8Char =
+    unsafe { FixedUtf8Char::from_bytes_unchecked([b' ', 0, 0, 0]) };
+pub(crate) const HT: FixedUtf8Char =
+    unsafe { FixedUtf8Char::from_bytes_unchecked([b'\t', 0, 0, 0]) };
+pub(crate) const COMMA: FixedUtf8Char =
+    unsafe { FixedUtf8Char::from_bytes_unchecked([b',', 0, 0, 0]) };
+pub(crate) const LF: FixedUtf8Char =
+    unsafe { FixedUtf8Char::from_bytes_unchecked([b'\n', 0, 0, 0]) };
+pub(crate) const CR: FixedUtf8Char =
+    unsafe { FixedUtf8Char::from_bytes_unchecked([b'\r', 0, 0, 0]) };
 
 /// End of line characters.
 // const EOL: [FixedUtf8Char; 2] = [LF, CR];

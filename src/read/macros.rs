@@ -29,17 +29,31 @@
 /// ```rust,no_run
 #[doc = include_str!("../../examples/doc_macro_read.rs")]
 /// ```
+///
+/// Also, you can specify the source and locale for reading.
+///
+/// ```rust,no_run
+/// use iof::{InputStream, locale, read};
+/// let a: usize = read!(; src = InputStream::new(b"42".as_slice()));
+/// assert_eq!(a, 42);
+///
+/// let b: Vec<usize> = read!(3; src = InputStream::new(b"1 2 3".as_slice()));
+/// assert_eq!(b, vec![1, 2, 3]);
+///
+/// let b: Vec<usize> = read!(3; src = InputStream::new(b"1, 2, 3".as_slice()); loc = locale::CSV);
+/// assert_eq!(b, vec![1, 2, 3]);
+/// ```
 #[macro_export]
 macro_rules! read {
-    ($(; source = $source:expr)? $(; locale = $locale:expr)?) => {
+    ($(; src = $src:expr)? $(; loc = $loc:expr)?) => {
         $crate::unwrap!($crate::ReadFrom::try_read_from(
-            &mut $crate::argument_or_default!($($source)?, &mut *$crate::stdin()),
-            $crate::argument_or_default!($($locale)?, &$crate::locale::ASCII)
+            $crate::argument_or_default!($(&mut $src)?, &mut *$crate::stdin()),
+            $crate::argument_or_default!($($loc)?, &$crate::locale::ASCII)
         ))
     };
-    ($dim0:expr $(, $dims:expr)* $(,)? $(; source = $source:expr)? $(; locale = $locale:expr)?) => {{
+    ($dim0:expr $(, $dims:expr)* $(,)? $(; src = $src:expr)? $(; loc = $loc:expr)?) => {{
         let range = 0usize..$dim0;
-        ::std::vec::Vec::<_>::from_iter(range.map(|_| $crate::read!($($dims, )* $(; source = $source)? $(; locale = $locale)?)))
+        ::std::vec::Vec::<_>::from_iter(range.map(|_| $crate::read!($($dims, )* $(; src = $src)? $(; loc = $loc)?)))
     }};
 }
 
