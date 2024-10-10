@@ -45,15 +45,23 @@
 /// ```
 #[macro_export]
 macro_rules! read {
-    ($(; src = $src:expr)? $(; loc = $loc:expr)?) => {
-        $crate::unwrap!($crate::ReadFrom::try_read_from(
-            $crate::argument_or_default!($(&mut $src)?, &mut *$crate::stdin()),
-            $crate::argument_or_default!($(&$loc)?, &$crate::locale::ASCII)
-        ))
+    (@; src = $src:expr; loc = $loc:expr) => {
+        $crate::unwrap!($crate::ReadFrom::try_read_from($src, $loc))
     };
+    (@ $dim0:expr $(, $dims:expr)* $(,)?; src = $src:expr; loc = $loc:expr) => {{
+        let range = 0usize..$dim0;
+        ::std::vec::Vec::<_>::from_iter(range.map(|_| $crate::read!(@ $($dims, )* ; src = $src ; loc = $loc)))
+    }};
+    ($(; src = $src:expr)? $(; loc = $loc:expr)?) => {{
+        let src = $crate::argument_or_default!($(&mut $src)?, &mut *$crate::stdin());
+        let loc = $crate::argument_or_default!($(&$loc)?, &$crate::locale::ASCII);
+        $crate::unwrap!($crate::ReadFrom::try_read_from(src, loc))
+    }};
     ($dim0:expr $(, $dims:expr)* $(,)? $(; src = $src:expr)? $(; loc = $loc:expr)?) => {{
         let range = 0usize..$dim0;
-        ::std::vec::Vec::<_>::from_iter(range.map(|_| $crate::read!($($dims, )* $(; src = $src)? $(; loc = $loc)?)))
+        let src = $crate::argument_or_default!($(&mut $src)?, &mut *$crate::stdin());
+        let loc = $crate::argument_or_default!($(&$loc)?, &$crate::locale::ASCII);
+        ::std::vec::Vec::<_>::from_iter(range.map(|_| $crate::read!(@ $($dims, )*; src = src; loc = loc)))
     }};
 }
 
