@@ -8,15 +8,15 @@ pub trait Locale {
     fn whitespace_chars(&self) -> &[FixedUtf8Char];
     /// Get the length of the leading whitespace in `bytes`.
     #[inline]
-    fn prefix_whitespace_utf8(&self, mut bytes: &[u8]) -> usize {
+    fn prefix_whitespace_utf8(&self, mut string: &str) -> usize {
         let mut count = 0;
-        while self
+        while let Some(c) = self
             .whitespace_chars()
             .iter()
-            .any(|c| bytes.starts_with(c.as_bytes()))
+            .find(|c| string.as_bytes().starts_with(c.as_bytes()))
         {
             count += 1;
-            bytes = &bytes[count..];
+            string = &string[c.len()..];
         }
         count
     }
@@ -39,5 +39,18 @@ pub(crate) const WHITE_SPACES: [FixedUtf8Char; 4] = unsafe {
 impl Locale for ASCII {
     fn whitespace_chars(&self) -> &[FixedUtf8Char] {
         &WHITE_SPACES
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::locale::Locale;
+    use crate::read::locale::ASCII;
+
+    #[test]
+    fn prefix_whitespace_utf8() {
+        let locale = ASCII;
+        let s = "  \t\n\rHello, world!";
+        assert_eq!(locale.prefix_whitespace_utf8(s), 5);
     }
 }

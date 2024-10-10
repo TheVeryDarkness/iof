@@ -14,7 +14,7 @@ pub(crate) mod read_into;
 pub(crate) mod stream;
 
 /// Standard input stream.
-pub static STDIN: LazyLock<Mutex<InputStream<BufReader<Stdin>>>> =
+pub(crate) static STDIN: LazyLock<Mutex<InputStream<BufReader<Stdin>>>> =
     LazyLock::new(|| Mutex::new(InputStream::new(BufReader::new(io::stdin()))));
 
 /// Get an exclusive handle to the standard input stream.

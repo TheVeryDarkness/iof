@@ -4,7 +4,10 @@
     unused_imports,
     unused_qualifications,
     unused_results,
-    unused_comparisons
+    unused_comparisons,
+    unconditional_panic,
+    unconditional_recursion,
+    unreachable_pub
 )]
 #![forbid(
     clippy::correctness,
@@ -407,7 +410,7 @@ mod mat;
 mod read;
 mod stdio;
 mod stream;
-mod utf8char;
+pub mod utf8char;
 mod write;
 
 /// Unwrap a result or panic with the error message.

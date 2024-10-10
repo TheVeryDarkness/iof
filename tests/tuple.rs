@@ -1,6 +1,6 @@
 use iof::*;
 use locale::ASCII;
-use std::io::Cursor;
+use std::{io::Cursor, str::from_utf8};
 
 #[test]
 fn read_tuple_3() {
@@ -70,27 +70,37 @@ fn write() {
     let mut buf = Vec::new();
     let vec = (1, 2, 3);
     unwrap!(vec.try_write_into(&mut buf));
-    assert_eq!(String::from_utf8(buf).unwrap(), "1 2 3");
+    assert_eq!(from_utf8(&buf).unwrap(), "1 2 3");
 
-    let mut buf = Vec::new();
+    buf.clear();
     let vec = (1,);
     unwrap!(vec.try_write_into(&mut buf));
-    assert_eq!(String::from_utf8(buf).unwrap(), "1");
+    assert_eq!(from_utf8(&buf).unwrap(), "1");
 
-    let mut buf = Vec::new();
+    buf.clear();
     let vec = ((1, 2), (3, 4));
     unwrap!(vec.try_write_into(&mut buf));
-    assert_eq!(String::from_utf8(buf).unwrap(), "1 2\n3 4");
+    assert_eq!(from_utf8(&buf).unwrap(), "1 2\n3 4");
 
-    let mut buf = Vec::new();
+    buf.clear();
     let vec = ();
     unwrap!(vec.try_write_into(&mut buf));
-    assert_eq!(String::from_utf8(buf).unwrap(), "");
+    assert_eq!(from_utf8(&buf).unwrap(), "");
 
-    let mut buf = Vec::new();
+    buf.clear();
     let vec = ((1, 2, 3), (4, 5, 6), (7, 8, 9));
     unwrap!(vec.try_write_into(&mut buf));
-    assert_eq!(String::from_utf8(buf).unwrap(), "1 2 3\n4 5 6\n7 8 9");
+    assert_eq!(from_utf8(&buf).unwrap(), "1 2 3\n4 5 6\n7 8 9");
+
+    buf.clear();
+    let vec = ((1, 2, 3), (4, 5, 6), (7, 8, 9));
+    unwrap!(vec.try_write_into_with_sep(&mut buf, &[' '; 0]));
+    assert_eq!(from_utf8(&buf).unwrap(), "1 2 3\n4 5 6\n7 8 9");
+
+    buf.clear();
+    let vec = ((1, 2, 3), (4, 5, 6), (7, 8, 9));
+    unwrap!(vec.try_write_into_with_sep(&mut buf, ' '));
+    assert_eq!(from_utf8(&buf).unwrap(), "1 2 3 4 5 6 7 8 9");
 }
 
 #[test]

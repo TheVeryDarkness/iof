@@ -41,12 +41,7 @@ impl FixedUtf8Char {
     }
     /// Get the length in bytes of the UTF-8 character.
     pub const fn len(&self) -> usize {
-        match self.bytes[0] {
-            0..=0x7F => 1,
-            0xC0..=0xDF => 2,
-            0xE0..=0xEF => 3,
-            _ => 4,
-        }
+        unsafe { super::utf8_len_from_first_byte(self.bytes[0]) }
     }
     /// Get the bytes of the UTF-8 character.
     pub fn as_bytes(&self) -> &[u8] {
@@ -63,15 +58,8 @@ impl FixedUtf8Char {
     /// Returns `None` if the string is empty.
     pub fn from_first_char(s: &str) -> Option<Self> {
         let mut bytes = [0; 4];
-        if s.is_empty() {
-            return None;
-        }
-        let l = match s.as_bytes()[0] {
-            0..=0x7F => 1,
-            0xC0..=0xDF => 2,
-            0xE0..=0xEF => 3,
-            _ => 4,
-        };
+        let byte = s.as_bytes().get(0)?;
+        let l = unsafe { super::utf8_len_from_first_byte(*byte) };
         bytes[0..l].copy_from_slice(s.as_bytes().get(0..l)?);
         Some(Self { bytes })
     }
@@ -87,7 +75,7 @@ impl PartialEq<char> for FixedUtf8Char {
 
 impl PartialEq<FixedUtf8Char> for char {
     fn eq(&self, other: &FixedUtf8Char) -> bool {
-        other == self
+        <FixedUtf8Char as PartialEq<char>>::eq(other, &self)
     }
 }
 

@@ -1,3 +1,4 @@
+use super::utf8_len_from_first_byte;
 use std::mem::transmute;
 
 /// A UTF-8 character that is fixed in size.
@@ -37,19 +38,14 @@ impl Utf8Char {
     }
     /// Get the length in bytes of the UTF-8 character.
     pub const fn len(&self) -> usize {
-        match self.bytes[0] {
-            0..=0x7F => 1,
-            0xC0..=0xDF => 2,
-            0xE0..=0xEF => 3,
-            _ => 4,
-        }
+        self.bytes.len()
     }
     /// Get the bytes of the UTF-8 character.
-    pub fn as_bytes(&self) -> &[u8] {
+    pub const fn as_bytes(&self) -> &[u8] {
         &self.bytes
     }
     /// Get the string of the UTF-8 character.
-    pub fn as_str(&self) -> &str {
+    pub const fn as_str(&self) -> &str {
         let bytes = self.as_bytes();
         debug_assert!(std::str::from_utf8(bytes).is_ok());
         unsafe { std::str::from_utf8_unchecked(bytes) }
@@ -58,15 +54,8 @@ impl Utf8Char {
     ///
     /// Returns `None` if the string is empty.
     pub fn from_first_char(s: &str) -> Option<&Self> {
-        if s.is_empty() {
-            return None;
-        }
-        let l = match s.as_bytes()[0] {
-            0..=0x7F => 1,
-            0xC0..=0xDF => 2,
-            0xE0..=0xEF => 3,
-            _ => 4,
-        };
+        let byte = s.as_bytes().get(0)?;
+        let l = unsafe { utf8_len_from_first_byte(*byte) };
         let bytes: &Self = unsafe { transmute(s.as_bytes().get(0..l)?) };
         Some(bytes)
     }
@@ -76,12 +65,22 @@ impl PartialEq<char> for Utf8Char {
     fn eq(&self, other: &char) -> bool {
         let mut bytes = [0; 4];
         let _ = other.encode_utf8(&mut bytes);
-        self.bytes == bytes
+        self.bytes == bytes[0..other.len_utf8()]
+    }
+}
+impl PartialEq<Utf8Char> for char {
+    fn eq(&self, other: &Utf8Char) -> bool {
+        <Utf8Char as PartialEq<char>>::eq(other, self)
     }
 }
 
-impl PartialEq<Utf8Char> for char {
-    fn eq(&self, other: &Utf8Char) -> bool {
-        other == self
+impl PartialEq<char> for &Utf8Char {
+    fn eq(&self, other: &char) -> bool {
+        <Utf8Char as PartialEq<char>>::eq(self, other)
+    }
+}
+impl PartialEq<&Utf8Char> for char {
+    fn eq(&self, other: &&Utf8Char) -> bool {
+        <Utf8Char as PartialEq<char>>::eq(other, self)
     }
 }

@@ -6,7 +6,7 @@ pub(crate) struct LineBuf<'a> {
 }
 
 impl<'a> LineBuf<'a> {
-    pub const fn new(buf: &'a str) -> Self {
+    pub(crate) const fn new(buf: &'a str) -> Self {
         let cursor = 0;
         Self { buf, cursor }
     }
@@ -110,6 +110,6 @@ mod tests {
         );
         assert_eq!(stream.try_get_until_in_line(&['!'.into()]).unwrap(), "");
         assert_eq!(stream.try_get_until_in_line(&[]).unwrap(), "!");
-        assert_eq!(stream.try_get_until_in_line(&[]).unwrap(), "");
+        assert!(stream.try_get_until_in_line(&[]).is_err());
     }
 }

@@ -1,12 +1,20 @@
 use super::FixedUtf8Char;
+use std::str::from_utf8_unchecked;
 
-#[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
+/// An iterator over fixed-size UTF-8 characters.
+#[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Debug)]
 pub struct IterFixedUtf8Char<'a> {
     bytes: &'a [u8],
 }
 
 impl<'a> IterFixedUtf8Char<'a> {
-    pub fn new(bytes: &'a [u8]) -> Self {
+    /// Create a new `IterFixedUtf8Char` from a string slice.
+    pub const fn new(bytes: &'a str) -> Self {
+        let bytes = bytes.as_bytes();
+        Self { bytes }
+    }
+    /// Create a new `IterFixedUtf8Char` from a byte slice.
+    pub const unsafe fn new_from_bytes_unchecked(bytes: &'a [u8]) -> Self {
         Self { bytes }
     }
 }
@@ -15,34 +23,9 @@ impl<'a> Iterator for IterFixedUtf8Char<'a> {
     type Item = FixedUtf8Char;
 
     fn next(&mut self) -> Option<Self::Item> {
-        if self.bytes.is_empty() {
-            return None;
-        }
-        let (l, c) = match self.bytes[0] {
-            0..=0x7F => (1, unsafe {
-                FixedUtf8Char::from_bytes_unchecked([self.bytes[0], 0, 0, 0])
-            }),
-            0xC0..=0xDF => (2, unsafe {
-                FixedUtf8Char::from_bytes_unchecked([self.bytes[0], self.bytes[1], 0, 0])
-            }),
-            0xE0..=0xEF => (3, unsafe {
-                FixedUtf8Char::from_bytes_unchecked([
-                    self.bytes[0],
-                    self.bytes[1],
-                    self.bytes[2],
-                    0,
-                ])
-            }),
-            _ => (4, unsafe {
-                FixedUtf8Char::from_bytes_unchecked([
-                    self.bytes[0],
-                    self.bytes[1],
-                    self.bytes[2],
-                    self.bytes[3],
-                ])
-            }),
-        };
-        self.bytes = &self.bytes[l..];
-        Some(c)
+        FixedUtf8Char::from_first_char(unsafe { from_utf8_unchecked(self.bytes) }).map(|c| {
+            self.bytes = &self.bytes[c.len()..];
+            c
+        })
     }
 }

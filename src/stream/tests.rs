@@ -15,7 +15,8 @@ fn all_1(stream: &mut impl BufReadExt) {
     let c = unwrap!(stream.try_get_if(&['H', 'e'].map(Into::into)));
     assert_eq!(c, Some('e'));
 
-    let () = unwrap!(stream.try_skip_eol());
+    let nl = unwrap!(stream.try_skip_eol());
+    assert!(nl.is_none());
 
     assert!(stream.try_get_if(&[]).unwrap().is_none());
 
@@ -34,7 +35,8 @@ fn all_1(stream: &mut impl BufReadExt) {
     let c = unwrap!(stream.try_peek());
     assert_eq!(c, '\r');
 
-    unwrap!(stream.try_skip_eol());
+    let nl = unwrap!(stream.try_skip_eol());
+    assert!(matches!(nl, Some(true | false)));
 
     assert!(stream.try_peek().is_err());
     assert!(stream.try_get().is_err());

@@ -1,7 +1,8 @@
 use std::sync::atomic::{AtomicUsize, Ordering};
 
 static COUNT: AtomicUsize = AtomicUsize::new(0);
-pub struct Tracked(Box<(usize, usize, usize)>);
+
+pub(super) struct Tracked(Box<(usize, usize, usize)>);
 impl Tracked {
     pub(super) fn new(i: usize, j: usize) -> Self {
         loop {

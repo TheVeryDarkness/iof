@@ -69,7 +69,10 @@ fn read_any_in_line() {
     let reader = Cursor::new("\n1 2 3".as_bytes());
     let mut reader = InputStream::new(reader);
 
-    unwrap!(reader.try_skip_eol());
+    let nl = unwrap!(reader.try_skip_eol());
+    assert_eq!(nl, Some(true));
+
+    assert_eq!(reader.get_cur_line(), "1 2 3");
 
     let a: Vec<u32> = reader.read_any_in_line();
     assert_eq!(a, vec![1, 2, 3]);

@@ -23,11 +23,6 @@ impl<B: BufRead> InputStream<B> {
             cursor,
         }
     }
-    /// Check whether is at the end of the line.
-    #[inline]
-    pub fn is_eol(&self) -> bool {
-        self.cursor == self.line_buf.len()
-    }
 }
 
 impl<B: BufRead> BufReadExt for InputStream<B> {

@@ -15,7 +15,7 @@ int main() {
   std::cout << '{' << x << '}' << '{' << s << '}';
 
   assert(std::cin);
-  // std::getline(std::cin, s);
-  // std::cout << '{' << s << '}';
+  std::cin >> s;
+  std::cout << '{' << s << '}';
   return 0;
 }

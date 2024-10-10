@@ -20,7 +20,7 @@ mod tests;
 /// let array: Result<[String; 3], ()> = array_try_from_fn(|| Ok("hello".to_string()));
 /// assert_eq!(array, Ok(["hello", "hello", "hello"]));
 /// ```
-pub fn array_try_from_fn<T, E, const N: usize>(
+pub(crate) fn array_try_from_fn<T, E, const N: usize>(
     mut f: impl FnMut() -> Result<T, E>,
 ) -> Result<[T; N], E> {
     let mut array: [MaybeUninit<T>; N] = from_fn(|_| MaybeUninit::uninit());

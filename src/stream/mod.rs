@@ -13,7 +13,7 @@ const CR: FixedUtf8Char = unsafe { FixedUtf8Char::from_bytes_unchecked([b'\r', 0
 
 /// End of line characters.
 // const EOL: [FixedUtf8Char; 2] = [LF, CR];
-const STR_EOL: [char; 2] = ['\n', '\r'];
+const CHAR_EOL: [char; 2] = ['\n', '\r'];
 
 const fn is_eol(c: FixedUtf8Char) -> bool {
     matches!(c, LF | CR)

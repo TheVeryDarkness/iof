@@ -1,6 +1,6 @@
 use iof::{
     locale::{Locale, ASCII},
-    BufReadExt, InputStream,
+    unwrap, BufReadExt, InputStream,
 };
 use std::io::Cursor;
 
@@ -49,7 +49,7 @@ fn skip_all() {
         let c = reader.try_get().unwrap();
         assert_eq!(c, '\n');
     }
-    let c = reader.try_skip_all(w).unwrap();
+    let c = unwrap!(reader.try_skip_all(w));
     assert_eq!(c, 0);
     let c = reader.try_peek();
     assert!(c.is_err());
@@ -140,6 +140,7 @@ fn empty_lines() {
     }
 
     assert!(reader.try_get_line().is_err());
+    assert!(reader.try_get_line_some().is_err());
 }
 
 #[test]
