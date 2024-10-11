@@ -92,3 +92,46 @@ impl Locale<char> for WS<char> {
         &self.0
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::ASCII;
+    use crate::{
+        locale::{Locale, CSV, WHITE_SPACES, WS},
+        utf8char::FixedUtf8Char,
+    };
+
+    #[test]
+    fn equivalence() {
+        assert_eq!(
+            <ASCII as Locale<char>>::whitespace_chars(&ASCII),
+            <ASCII as Locale<FixedUtf8Char>>::whitespace_chars(&ASCII),
+        );
+        assert_eq!(
+            <&ASCII as Locale<char>>::whitespace_chars(&&ASCII),
+            <&ASCII as Locale<FixedUtf8Char>>::whitespace_chars(&&ASCII),
+        );
+        assert_eq!(
+            <CSV as Locale<char>>::whitespace_chars(&CSV),
+            <CSV as Locale<FixedUtf8Char>>::whitespace_chars(&CSV),
+        );
+        assert_eq!(
+            <&CSV as Locale<char>>::whitespace_chars(&&CSV),
+            <&CSV as Locale<FixedUtf8Char>>::whitespace_chars(&&CSV),
+        );
+
+        let seps = [' ', '\t', '\n', '\r'];
+        assert_eq!(
+            <WS<char> as Locale<char>>::whitespace_chars(&FromIterator::from_iter(seps)),
+            <WS<FixedUtf8Char> as Locale<FixedUtf8Char>>::whitespace_chars(
+                &FromIterator::from_iter(seps)
+            ),
+        );
+        assert_eq!(
+            <WS<char> as Locale<char>>::whitespace_chars(&FromIterator::from_iter(WHITE_SPACES)),
+            <WS<FixedUtf8Char> as Locale<FixedUtf8Char>>::whitespace_chars(
+                &FromIterator::from_iter(WHITE_SPACES)
+            ),
+        );
+    }
+}

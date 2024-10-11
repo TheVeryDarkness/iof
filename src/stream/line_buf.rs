@@ -12,7 +12,7 @@ impl<'a> LineBuf<'a> {
     }
 }
 
-impl<'a> BufReadExt<char> for LineBuf<'a> {
+impl BufReadExt<char> for LineBuf<'_> {
     #[inline]
     fn get_cur_line(&self) -> &str {
         let line = as_slice_from(self.buf, self.cursor);
@@ -112,9 +112,24 @@ mod tests {
     fn try_get_until_in_line() {
         let s = "Hello, world!";
         let mut stream = LineBuf::new(s);
-        assert_eq!(stream.try_get_until_in_line(&[',']).unwrap(), "Hello",);
-        assert_eq!(stream.try_get_until_in_line(&['!']).unwrap(), ", world",);
-        assert_eq!(stream.try_get_until_in_line(&['!']).unwrap(), "");
+        assert_eq!(
+            stream
+                .try_get_until_in_line(&[','].map(Into::into))
+                .unwrap(),
+            "Hello",
+        );
+        assert_eq!(
+            stream
+                .try_get_until_in_line(&['!'].map(Into::into))
+                .unwrap(),
+            ", world",
+        );
+        assert_eq!(
+            stream
+                .try_get_until_in_line(&['!'].map(Into::into))
+                .unwrap(),
+            "",
+        );
         assert_eq!(stream.try_get_until_in_line(&[]).unwrap(), "!");
         assert!(stream.try_get_until_in_line(&[]).is_err());
     }

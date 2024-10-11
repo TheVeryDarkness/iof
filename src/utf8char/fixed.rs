@@ -1,3 +1,5 @@
+use std::fmt::Display;
+
 use crate::utf8char::utf8_len_from_first_byte;
 
 /// A UTF-8 character that is fixed in size.
@@ -102,5 +104,11 @@ impl From<FixedUtf8Char> for char {
 impl From<&FixedUtf8Char> for char {
     fn from(f: &FixedUtf8Char) -> Self {
         unsafe { f.as_str().chars().next().unwrap_unchecked() }
+    }
+}
+
+impl Display for FixedUtf8Char {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        Display::fmt(self.as_str(), f)
     }
 }

@@ -89,6 +89,8 @@ pub trait Pattern: Sized {
     fn find_first_matching(self, s: &str) -> Option<usize>;
 
     /// Find the first matching character or the whole length.
+    ///
+    /// Returns the whole length if the string is fully not matching.
     #[inline]
     fn find_first_matching_or_whole_length(self, s: &str) -> usize {
         self.find_first_matching(s).unwrap_or(s.len())
@@ -98,6 +100,8 @@ pub trait Pattern: Sized {
     fn find_first_not_matching(self, s: &str) -> Option<usize>;
 
     /// Find the first not matching character or the whole length.
+    ///
+    /// Returns the whole length if the string is fully matching.
     #[inline]
     fn find_first_not_matching_or_whole_length(self, s: &str) -> usize {
         self.find_first_not_matching(s).unwrap_or(s.len())
@@ -205,19 +209,32 @@ impl Pattern for &[char] {
             Some(s.len() - l)
         }
     }
+
+    #[inline]
+    fn find_first_not_matching_or_whole_length(self, s: &str) -> usize {
+        s.len() - s.trim_start_matches(self).len()
+    }
 }
 
 #[cfg(test)]
 mod tests {
-    use super::Pattern;
+    use super::{CharExt, Pattern};
+    use crate::{stream::ext::StrExt, utf8char::FixedUtf8Char};
+    use std::fmt::{Debug, Display};
 
-    #[test]
-    fn chars() {
-        let ws = <&[char] as Pattern>::EOL.as_slice();
-        assert!(ws.matches('\n'));
-        assert!(ws.matches('\r'));
-        assert!(!ws.matches(' '));
-        assert!(!ws.matches('a'));
+    fn chars<Char>()
+    where
+        for<'a> &'a [Char]: Pattern<Item = Char>,
+        Char: From<char> + Copy + CharExt + PartialEq<char> + Debug + Display,
+        for<'a> &'a str: StrExt<'a, Char>,
+        char: PartialEq<Char> + From<Char>,
+    {
+        let ws = <&[Char] as Pattern>::EOL;
+        let ws = ws.as_slice();
+        assert!(ws.matches('\n'.into()));
+        assert!(ws.matches('\r'.into()));
+        assert!(!ws.matches(' '.into()));
+        assert!(!ws.matches('a'.into()));
 
         let s = " \n\r\n";
         assert_eq!(ws.trim_start(s), " \n\r\n");
@@ -226,5 +243,74 @@ mod tests {
 
         assert_eq!(ws.find_first_matching(s), Some(1));
         assert_eq!(ws.find_first_not_matching(s), Some(0));
+        assert_eq!(ws.find_first_matching_or_whole_length(s), 1);
+        assert_eq!(ws.find_first_not_matching_or_whole_length(s), 0);
+
+        let s = "\r\nabc\n";
+        assert_eq!(ws.trim_start(s), "abc\n");
+        assert_eq!(ws.trim_end(s), "\r\nabc");
+        assert_eq!(ws.trim(s), "abc");
+
+        assert_eq!(ws.find_first_matching(s), Some(0));
+        assert_eq!(ws.find_first_not_matching(s), Some(2));
+        assert_eq!(ws.find_first_matching_or_whole_length(s), 0);
+        assert_eq!(ws.find_first_not_matching_or_whole_length(s), 2);
+
+        let s = "\n\r\n";
+        assert_eq!(ws.trim_start(s), "");
+        assert_eq!(ws.trim_end(s), "");
+        assert_eq!(ws.trim(s), "");
+
+        assert_eq!(ws.find_first_matching(s), Some(0));
+        assert_eq!(ws.find_first_not_matching(s), None);
+        assert_eq!(ws.find_first_matching_or_whole_length(s), 0);
+        assert_eq!(ws.find_first_not_matching_or_whole_length(s), 3);
+
+        let s = "+-*/";
+        assert_eq!(ws.trim_start(s), "+-*/");
+        assert_eq!(ws.trim_end(s), "+-*/");
+        assert_eq!(ws.trim(s), "+-*/");
+
+        assert_eq!(ws.find_first_matching(s), None);
+        assert_eq!(ws.find_first_not_matching(s), Some(0));
+        assert_eq!(ws.find_first_matching_or_whole_length(s), 4);
+        assert_eq!(ws.find_first_not_matching_or_whole_length(s), 0);
+
+        let s = "";
+        assert_eq!(ws.trim_start(s), "");
+        assert_eq!(ws.trim_end(s), "");
+        assert_eq!(ws.trim(s), "");
+
+        assert_eq!(ws.find_first_matching(s), None);
+        assert_eq!(ws.find_first_not_matching(s), None);
+        assert_eq!(ws.find_first_matching_or_whole_length(s), 0);
+        assert_eq!(ws.find_first_not_matching_or_whole_length(s), 0);
+
+        let s = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789)(*&^%$#@!~";
+
+        let characters = s.chars().collect::<Vec<_>>();
+        for (i, c) in <&str as StrExt<Char>>::chars_ext(s).enumerate() {
+            assert_eq!(c, characters[i]);
+            assert_eq!(c.to_string(), characters[i].to_string());
+            assert_eq!(c.len_utf8(), characters[i].len_utf8());
+        }
+
+        let characters: Vec<Char> = s.chars_ext().collect();
+        for (i, (index, c)) in s.char_indices().enumerate() {
+            let sub = &s[index..];
+            assert_eq!(c, characters[i]);
+            assert_eq!(sub.first_char().map(Into::into), Some(c));
+            assert_eq!(sub.first_char().unwrap(), c);
+        }
+    }
+
+    #[test]
+    fn chars_char() {
+        chars::<char>();
+    }
+
+    #[test]
+    fn chars_fixed_utf8_char() {
+        chars::<FixedUtf8Char>();
     }
 }

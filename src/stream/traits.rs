@@ -59,18 +59,7 @@ where
     /// Get the next character in current line, if any.
     #[inline]
     fn get_in_cur_line(&mut self) -> Result<Option<char>, StreamError> {
-        if let Some(c) = self.get_line()?.chars().next() {
-            unsafe { self.skip(c.len_utf8()) };
-            Ok(Some(c))
-        } else {
-            Ok(None)
-        }
-    }
-
-    /// Get the next character in current line, if any.
-    #[inline]
-    fn get_in_cur_line_utf8(&mut self) -> Result<Option<Char>, StreamError> {
-        if let Some(c) = self.get_line()?.first_char() {
+        if let Some(c) = self.get_cur_line().chars().next() {
             unsafe { self.skip(c.len_utf8()) };
             Ok(Some(c))
         } else {
@@ -83,12 +72,6 @@ where
     fn peek_in_cur_line(&mut self) -> Result<Option<char>, StreamError> {
         let line = self.get_line()?;
         Ok(line.chars().next())
-    }
-
-    /// Get the next character in current line, if any.
-    #[inline]
-    fn peek_in_cur_line_utf8(&self) -> Result<Option<Char>, StreamError> {
-        Ok(self.get_cur_line().first_char())
     }
 
     /// Fill the buffer with a new line, ignoring the current line.

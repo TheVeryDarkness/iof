@@ -1,5 +1,5 @@
 use super::utf8_len_from_first_byte;
-use std::mem::transmute;
+use std::{fmt::Display, mem::transmute};
 
 /// A UTF-8 character that is fixed in size.
 ///
@@ -92,5 +92,17 @@ impl PartialEq<char> for &Utf8Char {
 impl PartialEq<&Utf8Char> for char {
     fn eq(&self, other: &&Utf8Char) -> bool {
         <Utf8Char as PartialEq<char>>::eq(other, self)
+    }
+}
+
+impl From<&Utf8Char> for char {
+    fn from(f: &Utf8Char) -> Self {
+        unsafe { f.as_str().chars().next().unwrap_unchecked() }
+    }
+}
+
+impl Display for Utf8Char {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        Display::fmt(self.as_str(), f)
     }
 }

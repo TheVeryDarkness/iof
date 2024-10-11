@@ -27,17 +27,21 @@ fn iter_fixed_utf8_char() {
     for ((c, f), u) in c.into_iter().zip(f.into_iter()).zip(u.into_iter()) {
         let string = c.to_string();
         let bytes = string.as_bytes();
+        assert_eq!(Into::<char>::into(f), c);
         assert_eq!(f, c);
         assert_eq!(c, f);
+        assert_eq!(c.to_string(), f.to_string());
         assert_eq!(f.as_bytes(), bytes);
         assert_eq!(AsRef::<[u8]>::as_ref(&f), bytes);
         assert_eq!(f.as_str(), c.to_string());
         assert_eq!(AsRef::<str>::as_ref(&f), c.to_string());
 
+        assert_eq!(Into::<char>::into(u), c);
         assert_eq!(u, c);
         assert_eq!(c, u);
         assert_eq!(u, &c);
         assert_eq!(&c, u);
+        assert_eq!(c.to_string(), u.to_string());
         assert_eq!(u.as_bytes(), bytes);
         assert_eq!(AsRef::<[u8]>::as_ref(&u), bytes);
         assert_eq!(u.as_str(), c.to_string());

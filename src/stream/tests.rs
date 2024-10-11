@@ -1,4 +1,7 @@
-use super::line_buf::LineBuf;
+use super::{
+    ext::{self, CharExt},
+    line_buf::LineBuf,
+};
 use crate::{
     locale::{Locale, ASCII},
     unwrap, BufReadExt, InputStream,
@@ -8,7 +11,13 @@ use std::io::Cursor;
 /// Test all methods.
 ///
 /// Pass "Hello, world!\r\n" to the stream and test all methods.
-fn all_1(stream: &mut impl BufReadExt<char>) {
+fn all_1<Char: CharExt + Copy + From<char>>(stream: &mut impl BufReadExt<Char>)
+where
+    for<'a> &'a [Char]: ext::Pattern<Item = Char>,
+    for<'a> &'a str: ext::StrExt<'a, Char>,
+    char: From<Char>,
+    ASCII: Locale<Char>,
+{
     let c = unwrap!(stream.try_get());
     assert_eq!(c, 'H');
 
