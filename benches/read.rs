@@ -11,8 +11,14 @@ struct LazyWriter(std::ops::Range<i32>);
 impl Read for LazyWriter {
     fn read(&mut self, mut buf: &mut [u8]) -> io::Result<usize> {
         if let Some(num) = self.0.next() {
-            let s = format!("{} ", num);
-            Ok(buf.write(s.as_bytes())?)
+            let s = format!(" {}", num);
+            if buf.len() >= s.len() {
+                buf.write_all(s.as_bytes())?;
+                Ok(s.len())
+            } else {
+                buf.write_all(b" ")?;
+                Ok(1)
+            }
         } else {
             Ok(0)
         }
