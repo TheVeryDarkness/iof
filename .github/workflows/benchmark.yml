@@ -10,7 +10,7 @@ permissions:
 
 jobs:
   benchmark:
-    name: Run Criterion.rs benchmark example
+    name: Run Criterion.rs benchmarks
     strategy:
       matrix:
         os: [ubuntu-latest, macos-latest, windows-latest]
