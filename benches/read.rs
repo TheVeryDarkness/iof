@@ -13,7 +13,7 @@ impl Read for LazyWriter {
         if let Some(num) = self.0.next() {
             let s = format!("{} ", num);
             let len = s.len();
-            buf.write_all(s.as_bytes())?;
+            buf.write(s.as_bytes())?;
             Ok(len)
         } else {
             Ok(0)
