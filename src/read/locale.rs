@@ -20,7 +20,7 @@ impl<L: Locale<Char> + ?Sized, Char> Locale<Char> for &L {
 
 /// Default locale.
 ///
-/// ASCII whitespace characters here are `' '`, `'\t'`, `'\n'`, and `'\r'`.
+/// Whitespace characters here are `' '`, `'\t'`, `'\n'`, and `'\r'`.
 pub struct ASCII;
 
 const WHITE_SPACES: [FixedUtf8Char; 4] = [SP, HT, LF, CR];
@@ -41,7 +41,7 @@ impl Locale<char> for ASCII {
 
 /// Locale for CSV.
 ///
-/// ASCII whitespace characters here are `' '`, `'\t'`, `','`, `'\n'`, and `'\r'`.
+/// Whitespace characters here are `' '`, `'\t'`, `','`, `'\n'`, and `'\r'`.
 pub struct CSV;
 
 const CSV_SEP: [FixedUtf8Char; 5] = [SP, HT, COMMA, LF, CR];

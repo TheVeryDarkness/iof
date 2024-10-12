@@ -15,9 +15,10 @@ use std::mem::transmute;
 /// - Or just the remained line ([BufReadExt::try_get_line]).
 /// - ...
 ///
-/// ASCII whitespace characters here are `' '`, `'\t'`, `'\n'`, and `'\r'`.
+/// Currently, available `Char` types are [char] and [FixedUtf8Char].
 ///
 /// [BufRead]: std::io::BufRead
+/// [FixedUtf8Char]: crate::utf8char::FixedUtf8Char
 #[allow(private_bounds)]
 pub trait BufReadExt<Char = char>
 where

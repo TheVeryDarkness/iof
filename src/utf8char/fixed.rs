@@ -4,7 +4,7 @@ use crate::utf8char::utf8_len_from_first_byte;
 
 /// A UTF-8 character that is fixed in size.
 ///
-/// 10xxxxxx: continuation byte
+/// `10xxxxxx`: continuation byte
 ///
 /// - `00000000..=01111111`: 1 byte
 /// - `11000000..=11011111`: 2 bytes

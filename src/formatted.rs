@@ -15,6 +15,10 @@ use crate::write::{sep_by, separator::Separator};
 /// let v = [[1, 2], [3, 4]];
 /// let s = format!("{}", sep_by!(&v, "\n", ", "));
 /// assert_eq!(s, "1, 2\n3, 4");
+///
+/// let v: [[f64; 2]; 2] = [[1.0 / 3.0, 2.0 / 3.0], [3.0 / 7.0, 4.0 / 7.0]];
+/// let s = format!("{:.5}", sep_by!(&v, "\n", ", "));
+/// assert_eq!(s, "0.33333, 0.66667\n0.42857, 0.57143");
 /// ```
 #[macro_export]
 macro_rules! sep_by {
