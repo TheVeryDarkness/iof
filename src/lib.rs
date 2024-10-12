@@ -296,10 +296,20 @@
 //!
 //! ```rust
 //! use iof::{sep_by, SepBy};
+//! use std::f64::consts::*;
 //!
 //! let v = vec![1.0, 2.1, 3.2];
 //! let s = sep_by!(&v, ", ");
 //! assert_eq!(format!("{s:?}"), "1.0, 2.1, 3.2");
+//!
+//! let v = vec!["Alice", "Bob", "Charlie"];
+//! let s = sep_by!(&v, ";");
+//! assert_eq!(format!("{s:>10}"), "     Alice;       Bob;   Charlie");
+//! assert_eq!(format!("{s:<10}"), "Alice     ;Bob       ;Charlie   ");
+//!
+//! let v = vec![E, PI, FRAC_1_PI, LN_2, LN_10, SQRT_2];
+//! let s = sep_by!(&v, "");
+//! assert_eq!(format!("{s:15.7}"), "      2.7182818      3.1415927      0.3183099      0.6931472      2.3025851      1.4142136");
 //!
 //! let v = vec![3735928559u32, 3405691582u32, 3405709037u32, 3435973836u32, 3452816845u32];
 //! let s = sep_by!(&v, " ");
