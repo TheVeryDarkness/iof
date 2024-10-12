@@ -12,9 +12,7 @@ impl Read for LazyWriter {
     fn read(&mut self, mut buf: &mut [u8]) -> io::Result<usize> {
         if let Some(num) = self.0.next() {
             let s = format!("{} ", num);
-            let len = s.len();
-            let _ = buf.write(s.as_bytes())?;
-            Ok(len)
+            Ok(buf.write(s.as_bytes())?)
         } else {
             Ok(0)
         }
