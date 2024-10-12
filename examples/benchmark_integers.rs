@@ -4,8 +4,8 @@ use iof::{sep_by, show, unwrap};
 use std::{fs::File, ops::Range, path::PathBuf};
 
 fn main() {
-    const INTEGERS: [Range<i64>; 3] = [
-        -0x10000i64..0x10000i64,
+    const INTEGERS: [Range<i32>; 3] = [
+        -0x10000..0x10000,
         -0x80000000..-0x7fff0000,
         0x70000000..0x70010000,
     ];

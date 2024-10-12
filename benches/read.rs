@@ -2,8 +2,24 @@ use criterion::{criterion_group, criterion_main, Criterion};
 use iof::{unwrap, InputStream, ReadInto, ReadOneInto};
 use std::{
     fs::{read_to_string, File},
-    io::{BufRead, BufReader, Cursor},
+    io::{self, BufRead, BufReader, Cursor, Read, Write},
 };
+
+#[derive(Clone)]
+struct LazyWriter(std::ops::Range<i32>);
+
+impl Read for LazyWriter {
+    fn read(&mut self, mut buf: &mut [u8]) -> io::Result<usize> {
+        if let Some(num) = self.0.next() {
+            let s = format!("{} ", num);
+            let len = s.len();
+            buf.write_all(s.as_bytes())?;
+            Ok(len)
+        } else {
+            Ok(0)
+        }
+    }
+}
 
 fn template<R: BufRead>(
     case: &'static str,
@@ -112,5 +128,15 @@ fn file(c: &mut Criterion) {
     }))(c);
 }
 
-criterion_group!(benches, cursor, file);
+fn lazy(c: &mut Criterion) {
+    let writer = LazyWriter(0..COUNT as i32);
+    {
+        (template("lazy - long", COUNT, || BufReader::new(writer.clone())))(c);
+    }
+    {
+        (template("lazy - short", COUNT, || BufReader::new(writer.clone())))(c);
+    }
+}
+
+criterion_group!(benches, cursor, file, lazy);
 criterion_main!(benches);
