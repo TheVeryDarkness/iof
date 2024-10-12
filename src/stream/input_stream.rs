@@ -14,6 +14,7 @@ pub struct InputStream<B> {
 
 impl<B: BufRead> InputStream<B> {
     /// Create an input stream from a buffer that implements [BufRead].
+    #[inline]
     pub const fn new(buffer: B) -> Self {
         let line_buf = String::new();
         let cursor = 0;

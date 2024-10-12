@@ -20,6 +20,7 @@ mod tests;
 /// let array: Result<[String; 3], ()> = array_try_from_fn(|| Ok("hello".to_string()));
 /// assert_eq!(array, Ok(["hello", "hello", "hello"]));
 /// ```
+#[inline]
 pub(crate) fn array_try_from_fn<T, E, const N: usize>(
     mut f: impl FnMut() -> Result<T, E>,
 ) -> Result<[T; N], E> {

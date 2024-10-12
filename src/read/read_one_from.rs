@@ -29,6 +29,7 @@ pub trait ReadOneFrom: Sized {
     fn parse(s: &str) -> Result<Self, ReadError<Self::ParseError>>;
 
     /// Read from `stream` and parse into `Self`.
+    #[inline]
     fn try_read_one_from<L: Locale, S: BufReadExt>(
         stream: &mut S,
         locale: &L,
@@ -38,6 +39,7 @@ pub trait ReadOneFrom: Sized {
     }
 
     /// Read an element in a single non-whitespace character from `stream`, parse into `Self`.
+    #[inline]
     fn try_read_in_char_from<L: Locale, S: BufReadExt>(
         stream: &mut S,
         locale: &L,
@@ -47,6 +49,7 @@ pub trait ReadOneFrom: Sized {
     }
 
     /// Read an element in the remained line from `stream`, parse into `Self`.
+    #[inline]
     fn try_read_in_line_trimmed_from<L: Locale, S: BufReadExt>(
         stream: &mut S,
         locale: &L,
@@ -58,6 +61,7 @@ pub trait ReadOneFrom: Sized {
     }
 
     /// Read an element in a single trimmed line that is not empty from `stream`, parse into `Self`.
+    #[inline]
     fn try_read_in_line_some_trimmed_from<L: Locale, S: BufReadExt>(
         stream: &mut S,
         locale: &L,
@@ -69,6 +73,7 @@ pub trait ReadOneFrom: Sized {
     }
 
     /// Read all remaining elements from `stream` into a [Vec] of `Self`.
+    #[inline]
     fn try_read_all_from<L: Locale, S: BufReadExt>(
         stream: &mut S,
         locale: &L,
@@ -77,6 +82,7 @@ pub trait ReadOneFrom: Sized {
     }
 
     /// Read all elements in current line from `stream` into a [Vec] of `Self`.
+    #[inline]
     fn try_read_any_in_line_from<L: Locale, S: BufReadExt>(
         stream: &mut S,
         locale: &L,
@@ -89,6 +95,7 @@ pub trait ReadOneFrom: Sized {
     }
 
     /// Read all elements in a non-empty line from `stream` into a [Vec] of `Self`.
+    #[inline]
     fn try_read_some_in_line_from<L: Locale, S: BufReadExt>(
         stream: &mut S,
         locale: &L,

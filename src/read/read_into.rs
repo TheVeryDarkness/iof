@@ -22,18 +22,21 @@ pub trait ReadInto<T>: BufReadExt {
     fn try_read_m_n(&mut self, m: usize, n: usize) -> Result<Mat<T>, Self::Error>;
 
     /// Unwrap the result of [ReadInto::try_read].
+    #[inline]
     #[track_caller]
     fn read(&mut self) -> T {
         unwrap!(self.try_read())
     }
 
     /// Unwrap the result of [ReadInto::try_read_n].
+    #[inline]
     #[track_caller]
     fn read_n(&mut self, n: usize) -> Vec<T> {
         unwrap!(self.try_read_n(n))
     }
 
     /// Unwrap the result of [ReadInto::try_read_m_n].
+    #[inline]
     #[track_caller]
     fn read_m_n(&mut self, m: usize, n: usize) -> Mat<T> {
         unwrap!(self.try_read_m_n(m, n))
@@ -46,14 +49,17 @@ where
 {
     type Error = ReadFromError<U>;
 
+    #[inline]
     fn try_read(&mut self) -> Result<U, Self::Error> {
         U::try_read_from(self, &ASCII)
     }
 
+    #[inline]
     fn try_read_n(&mut self, n: usize) -> Result<Vec<U>, Self::Error> {
         U::try_read_n_from(self, n, &ASCII)
     }
 
+    #[inline]
     fn try_read_m_n(&mut self, m: usize, n: usize) -> Result<Mat<U>, Self::Error> {
         U::try_read_m_n_from(self, m, n, &ASCII)
     }

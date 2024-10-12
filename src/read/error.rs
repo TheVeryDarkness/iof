@@ -23,6 +23,7 @@ impl<E> Display for ReadError<E>
 where
     E: std::error::Error,
 {
+    #[inline]
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Self::IOError(error) => Display::fmt(error, f),
@@ -43,6 +44,7 @@ where
 impl<E> std::error::Error for ReadError<E> where E: std::error::Error {}
 
 impl<E> From<stream::error::StreamError> for ReadError<E> {
+    #[inline]
     fn from(error: stream::error::StreamError) -> Self {
         match error {
             stream::error::StreamError::IOError(e) => Self::IOError(e),

@@ -6,6 +6,7 @@ pub(crate) struct LineBuf<'a> {
 }
 
 impl<'a> LineBuf<'a> {
+    #[inline]
     pub(crate) const fn new(buf: &'a str) -> Self {
         let cursor = 0;
         Self { buf, cursor }

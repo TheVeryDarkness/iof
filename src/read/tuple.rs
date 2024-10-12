@@ -6,6 +6,7 @@ macro_rules! impl_read_into_for_tuple {
         use std::convert::Infallible as $e;
         impl ReadFrom for () {
             type ParseError = $e;
+            #[inline]
             fn try_read_from<L: Locale, S: BufReadExt>(_stream: &mut S, _locale: &L) -> Result<(), ReadFromError<Self>> {
                 Ok(())
             }
@@ -17,6 +18,7 @@ macro_rules! impl_read_into_for_tuple {
             $($t($t), )+
         }
         impl<$($t: std::error::Error, )+ > Display for $e<$($t, )+ > {
+            #[inline]
             fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
                 match self { $( Self::$t(err) => Display::fmt(err, f), )+ }
             }
@@ -24,6 +26,7 @@ macro_rules! impl_read_into_for_tuple {
         impl<$($t: std::error::Error, )+ > std::error::Error for $e<$($t, )+ > {}
         impl<$($t: ReadFrom, )+> ReadFrom for ( $($t, )+ ) {
             type ParseError = $e<$(<$t as ReadFrom>::ParseError, )+>;
+            #[inline]
             fn try_read_from<L: Locale, S: BufReadExt>(stream: &mut S, locale: &L) -> Result<($($t, )+), ReadFromError<Self>> {
                 Ok(( $(<$t as ReadFrom>::try_read_from(stream, locale).map_err(|err| match err {
                     ReadFromError::<$t>::IOError(e) => ReadFromError::<Self>::IOError(e),

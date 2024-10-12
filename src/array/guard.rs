@@ -18,6 +18,7 @@ pub(super) struct ArrayGuard<'a, T, const N: usize> {
 }
 
 impl<T, const N: usize> Drop for ArrayGuard<'_, T, N> {
+    #[inline]
     fn drop(&mut self) {
         for i in 0..self.len {
             unsafe {
@@ -29,11 +30,13 @@ impl<T, const N: usize> Drop for ArrayGuard<'_, T, N> {
 
 impl<'a, T, const N: usize> ArrayGuard<'a, T, N> {
     /// Create a new `InitializingArray` from a mutable reference to an array of `MaybeUninit<T>`.
+    #[inline]
     pub(crate) fn new(array: &'a mut [MaybeUninit<T>; N]) -> Self {
         Self { array, len: 0 }
     }
 
     /// Use [usize::unchecked_add] if it's stabilized.
+    #[inline]
     pub(crate) unsafe fn push_unchecked(&mut self, value: T) {
         let _ = self.array.get_unchecked_mut(self.len).write(value);
         // Safety: We just wrote to the array.

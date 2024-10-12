@@ -54,6 +54,7 @@ pub struct DefaultSeparator;
 
 impl DefaultSeparator {
     /// Create a new default separator.
+    #[inline]
     pub const fn new() -> Self {
         Self
     }

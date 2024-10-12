@@ -1,11 +1,14 @@
 use super::{dimension::*, Separator, WriteInto};
-use crate::{impl_for_single, Separators};
+use crate::{impl_write_into_for_display, Separators};
 use std::{io, num::*};
 
-impl_for_single!(
+impl_write_into_for_display!(
     f32 f64
     bool
-    str String
+
+    /* char */
+    str
+    String
 
     i8 i16 i32 i64 i128 isize
     u8 u16 u32 u64 u128 usize
@@ -19,6 +22,7 @@ impl_for_single!(
 );
 
 impl WriteInto for char {
+    #[inline]
     fn try_write_into_with_sep<S: io::Write + ?Sized>(
         &self,
         s: &mut S,
@@ -52,6 +56,7 @@ macro_rules! check_separators_count {
 macro_rules! impl_for_tuple {
     ($n0:ident $t0:ident $(, $n:ident $t:ident)+ $(,)?) => {
         impl<$t0: WriteInto, $($t: WriteInto),*> WriteInto for ($t0, $($t,)*) {
+            #[inline]
             fn try_write_into_with_sep<S: io::Write + ?Sized>(&self, s: &mut S, sep: impl Separators) -> io::Result<()> {
                 check_separators_count!(sep, $t0 $(, $t)*);
 
@@ -78,6 +83,7 @@ macro_rules! impl_for_tuple {
     };
     ($n0:ident $t0:ident $(,)?) => {
         impl<$t0: WriteInto> WriteInto for ($t0, ) {
+            #[inline]
             fn try_write_into_with_sep<S: io::Write + ?Sized>(&self, s: &mut S, sep: impl Separators) -> io::Result<()> {
                 check_separators_count!(sep, $t0);
                 let ($n0, ) = self;
@@ -93,6 +99,7 @@ macro_rules! impl_for_tuple {
     };
     () => {
         impl WriteInto for () {
+            #[inline]
             fn try_write_into_with_sep<S: io::Write + ?Sized>(&self, _s: &mut S, _sep: impl Separators) -> io::Result<()> {
                 check_separators_count!(_sep, );
                 Ok(())

@@ -9,6 +9,7 @@ pub struct IterUtf8Char<'a> {
 
 impl<'a> IterUtf8Char<'a> {
     /// Create a new `IterUtf8Char` from a string slice.
+    #[inline]
     pub const fn new(bytes: &'a str) -> Self {
         let bytes = bytes.as_bytes();
         Self { bytes }
@@ -18,6 +19,7 @@ impl<'a> IterUtf8Char<'a> {
     /// # Safety
     ///
     /// This function is unsafe because it does not check if the byte slice is a valid UTF-8 string.
+    #[inline]
     pub const unsafe fn new_from_bytes_unchecked(bytes: &'a [u8]) -> Self {
         Self { bytes }
     }
@@ -26,6 +28,7 @@ impl<'a> IterUtf8Char<'a> {
 impl<'a> Iterator for IterUtf8Char<'a> {
     type Item = &'a Utf8Char;
 
+    #[inline]
     fn next(&mut self) -> Option<Self::Item> {
         let byte = self.bytes.first()?;
         let l = unsafe { super::utf8_len_from_first_byte(*byte) };

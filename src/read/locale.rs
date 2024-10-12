@@ -64,6 +64,7 @@ impl Locale<char> for CSV {
 pub struct WS<Char = char>(Vec<Char>);
 
 impl<Char: From<FixedUtf8Char> + Ord> FromIterator<FixedUtf8Char> for WS<Char> {
+    #[inline]
     fn from_iter<T: IntoIterator<Item = FixedUtf8Char>>(iter: T) -> Self {
         let mut v: Vec<_> = iter.into_iter().map(From::from).collect();
         v.sort();
@@ -73,6 +74,7 @@ impl<Char: From<FixedUtf8Char> + Ord> FromIterator<FixedUtf8Char> for WS<Char> {
 }
 
 impl<Char: From<char> + Ord> FromIterator<char> for WS<Char> {
+    #[inline]
     fn from_iter<T: IntoIterator<Item = char>>(iter: T) -> Self {
         let mut v: Vec<_> = iter.into_iter().map(From::from).collect();
         v.sort();
@@ -82,12 +84,14 @@ impl<Char: From<char> + Ord> FromIterator<char> for WS<Char> {
 }
 
 impl Locale<FixedUtf8Char> for WS<FixedUtf8Char> {
+    #[inline]
     fn whitespace_chars(&self) -> &[FixedUtf8Char] {
         &self.0
     }
 }
 
 impl Locale<char> for WS<char> {
+    #[inline]
     fn whitespace_chars(&self) -> &[char] {
         &self.0
     }

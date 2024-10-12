@@ -224,7 +224,7 @@
 //! - [NonZeroI8], [NonZeroI16], [NonZeroI32], [NonZeroI64], [NonZeroI128], [NonZeroIsize];
 //! - ...
 //!
-//! And you can implement [ReadOneFrom] trait for your own types by implementing [ReadOneFrom::parse] method. For [FromStr] types, you can use the macro [impl_read_into_single!].
+//! And you can implement [ReadOneFrom] trait for your own types by implementing [ReadOneFrom::parse] method. For [FromStr] types, you can use the macro [impl_read_one_from_for_from_str!].
 //!
 //! [FromStr]: std::str::FromStr
 //!
@@ -326,6 +326,8 @@
 //! - For `[T]`, `[T; N]` and [Vec] where `T` implements [WriteInto] trait, it writes each item in the vector with a space as separator;
 //! - For [Mat] where `T` implements [WriteInto] trait, it writes each row in the matrix with a newline as separator, and writes each item in a row with a space as separator;
 //! - For all `&T` where `T` implements [WriteInto] trait, it writes the value as is.
+//!
+//! And you can implement [WriteInto] trait for your own types by implementing [WriteInto::try_write_into_with_sep] method. For [Display] types, you can use the macro [impl_write_into_for_display!].
 //!
 //! [Display]: std::fmt::Display
 //! [Display::fmt]: std::fmt::Display::fmt

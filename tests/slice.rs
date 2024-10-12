@@ -1,3 +1,5 @@
+use std::{rc::Rc, sync::Arc};
+
 use iof::{show, unwrap, WriteInto};
 
 #[test]
@@ -24,6 +26,16 @@ fn write_into() {
 #[test]
 fn show() {
     show!([1, 2, 3, 4].as_slice());
+    show!([&1, &2, &3, &4]);
+    show!([&mut 1, &mut 2, &mut 3, &mut 4]);
+    show!([&mut [1, 2, 3]]);
+    show!(&Box::new([1, 2, 3, 4]));
+    show!(&mut Box::new([1, 2, 3, 4]));
+    show!(Box::new([1, 2, 3, 4]));
+    show!(Rc::new([1, 2, 3, 4]));
+    show!(&Rc::new([1, 2, 3, 4]));
+    show!(Arc::new([1, 2, 3, 4]));
+    show!(&Arc::new([1, 2, 3, 4]));
 }
 
 #[test]

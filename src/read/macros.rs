@@ -98,30 +98,17 @@ macro_rules! read {
 /// [ReadOneFrom]: crate::ReadOneFrom
 /// [ReadInto]: crate::ReadInto
 #[macro_export]
-macro_rules! impl_read_into_single {
-    (char $($tys:ident)*) => {
-        impl $crate::ReadOneFrom for char {
-            type ParseError = <char as ::std::str::FromStr>::Err;
+macro_rules! impl_read_one_from_for_from_str {
+    ($($ty:ty)*) => {
+        $(
+            impl $crate::ReadOneFrom for $ty {
+                type ParseError = <Self as ::std::str::FromStr>::Err;
 
-            fn parse(s: &str) -> Result<char, $crate::ReadOneFromError<Self>> {
-                s.parse().map_err(|err| $crate::ReadError::FromStrError(err, s.to_owned(), ::std::any::type_name::<char>()))
+                #[inline]
+                fn parse(s: &str) -> Result<Self, $crate::ReadOneFromError<Self>> {
+                    s.parse().map_err(|err| $crate::ReadError::FromStrError(err, s.to_owned(), ::std::any::type_name::<Self>()))
+                }
             }
-
-            fn try_read_one_from<L: $crate::locale::Locale, S: $crate::BufReadExt>(stream: &mut S, locale: &L) -> Result<char, $crate::ReadOneFromError<Self>> {
-                <Self as $crate::ReadOneFrom>::try_read_in_char_from(stream, locale)
-            }
-        }
-        $crate::impl_read_into_single!($($tys)*);
+        )*
     };
-    ($ty:ident $($tys:ident)*) => {
-        impl $crate::ReadOneFrom for $ty {
-            type ParseError = <$ty as ::std::str::FromStr>::Err;
-
-            fn parse(s: &str) -> Result<$ty, $crate::ReadOneFromError<Self>> {
-                s.parse().map_err(|err| $crate::ReadError::FromStrError(err, s.to_owned(), ::std::any::type_name::<$ty>()))
-            }
-        }
-        $crate::impl_read_into_single!($($tys)*);
-    };
-    () => {};
 }

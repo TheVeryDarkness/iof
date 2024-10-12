@@ -62,10 +62,12 @@ impl<I: IntoIterator> SepBy for I
 where
     I::IntoIter: Clone,
 {
+    #[inline]
     fn sep_by<S: Separator + ?Sized>(self, sep: &'_ S) -> sep_by::SepBy<'_, Self::IntoIter, S> {
         sep_by::SepBy::new(self.into_iter(), sep)
     }
 
+    #[inline]
     fn sep_by_write_into<S: Separator + ?Sized>(
         self,
         sep: &'_ S,

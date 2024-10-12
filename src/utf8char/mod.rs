@@ -25,6 +25,7 @@ mod tests;
 /// # Safety
 ///
 /// This function is unsafe because it does not check if the byte is a valid first byte of a UTF-8.
+#[inline]
 const unsafe fn utf8_len_from_first_byte(byte: u8) -> usize {
     debug_assert!(matches!(byte, 0..=0x7F | 0xC0..=0xDF | 0xE0..=0xEF | 0xF0..=0xF7));
     match byte {
@@ -36,24 +37,28 @@ const unsafe fn utf8_len_from_first_byte(byte: u8) -> usize {
 }
 
 impl PartialEq<FixedUtf8Char> for Utf8Char {
+    #[inline]
     fn eq(&self, other: &FixedUtf8Char) -> bool {
         self.as_bytes() == other.as_bytes()
     }
 }
 
 impl PartialEq<Utf8Char> for FixedUtf8Char {
+    #[inline]
     fn eq(&self, other: &Utf8Char) -> bool {
         <Utf8Char as PartialEq<FixedUtf8Char>>::eq(other, self)
     }
 }
 
 impl PartialEq<FixedUtf8Char> for &Utf8Char {
+    #[inline]
     fn eq(&self, other: &FixedUtf8Char) -> bool {
         <Utf8Char as PartialEq<FixedUtf8Char>>::eq(self, other)
     }
 }
 
 impl PartialEq<&Utf8Char> for FixedUtf8Char {
+    #[inline]
     fn eq(&self, other: &&Utf8Char) -> bool {
         <Utf8Char as PartialEq<FixedUtf8Char>>::eq(other, self)
     }

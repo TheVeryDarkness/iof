@@ -21,12 +21,14 @@ pub struct Utf8Char {
 }
 
 impl AsRef<[u8]> for Utf8Char {
+    #[inline]
     fn as_ref(&self) -> &[u8] {
         self.as_bytes()
     }
 }
 
 impl AsRef<str> for Utf8Char {
+    #[inline]
     fn as_ref(&self) -> &str {
         let bytes = self.as_ref();
         debug_assert!(std::str::from_utf8(bytes).is_ok());
@@ -40,6 +42,7 @@ impl Utf8Char {
     /// # Safety
     ///
     /// This function is unsafe because it does not check if the byte array is a valid UTF-8 character.
+    #[inline]
     pub const unsafe fn from_bytes_unchecked(bytes: &[u8]) -> &Self {
         debug_assert!(std::str::from_utf8(bytes).is_ok());
         debug_assert!(!bytes.is_empty());
@@ -47,14 +50,17 @@ impl Utf8Char {
         transmute(bytes)
     }
     /// Get the length in bytes of the UTF-8 character.
+    #[inline]
     pub const fn len_utf8(&self) -> usize {
         self.bytes.len()
     }
     /// Get the bytes of the UTF-8 character.
+    #[inline]
     pub const fn as_bytes(&self) -> &[u8] {
         &self.bytes
     }
     /// Get the string of the UTF-8 character.
+    #[inline]
     pub const fn as_str(&self) -> &str {
         let bytes = self.as_bytes();
         debug_assert!(std::str::from_utf8(bytes).is_ok());
@@ -63,6 +69,7 @@ impl Utf8Char {
     /// Get first character of the UTF-8 string.
     ///
     /// Returns `None` if the string is empty.
+    #[inline]
     pub fn from_first_char(s: &str) -> Option<&Self> {
         let byte = s.as_bytes().first()?;
         let l = unsafe { utf8_len_from_first_byte(*byte) };
@@ -72,6 +79,7 @@ impl Utf8Char {
 }
 
 impl PartialEq<char> for Utf8Char {
+    #[inline]
     fn eq(&self, other: &char) -> bool {
         let mut bytes = [0; 4];
         let _ = other.encode_utf8(&mut bytes);
@@ -79,29 +87,34 @@ impl PartialEq<char> for Utf8Char {
     }
 }
 impl PartialEq<Utf8Char> for char {
+    #[inline]
     fn eq(&self, other: &Utf8Char) -> bool {
         <Utf8Char as PartialEq<char>>::eq(other, self)
     }
 }
 
 impl PartialEq<char> for &Utf8Char {
+    #[inline]
     fn eq(&self, other: &char) -> bool {
         <Utf8Char as PartialEq<char>>::eq(self, other)
     }
 }
 impl PartialEq<&Utf8Char> for char {
+    #[inline]
     fn eq(&self, other: &&Utf8Char) -> bool {
         <Utf8Char as PartialEq<char>>::eq(other, self)
     }
 }
 
 impl From<&Utf8Char> for char {
+    #[inline]
     fn from(f: &Utf8Char) -> Self {
         unsafe { f.as_str().chars().next().unwrap_unchecked() }
     }
 }
 
 impl Display for Utf8Char {
+    #[inline]
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         Display::fmt(self.as_str(), f)
     }

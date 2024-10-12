@@ -28,10 +28,12 @@ const CHAR_EOL: [char; 2] = ['\n', '\r'];
 //     matches!(c, LF | CR)
 // }
 
+#[inline]
 fn err_eof() -> StreamError {
     StreamError::Eof
 }
 
+#[inline]
 fn err_eol() -> StreamError {
     StreamError::Eol
 }

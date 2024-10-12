@@ -53,11 +53,12 @@ macro_rules! argument_or_default {
 ///
 /// [WriteInto]: crate::WriteInto
 #[macro_export]
-macro_rules! impl_for_single {
+macro_rules! impl_write_into_for_display {
     ($($ty:ty)*) => {
         $(
             impl $crate::WriteInto for $ty {
-                fn try_write_into_with_sep<S: ::std::io::Write + ?::std::marker::Sized>(&self, s: &mut S, _sep: impl Separators) -> ::std::io::Result<()> {
+                #[inline]
+                fn try_write_into_with_sep<S: ::std::io::Write + ?::std::marker::Sized>(&self, s: &mut S, _sep: impl $crate::Separators) -> ::std::io::Result<()> {
                     ::std::write!(s, "{}", self)
                 }
             }

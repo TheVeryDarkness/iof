@@ -19,6 +19,7 @@ pub struct SepBy<'a, I, S: ?Sized> {
 }
 
 impl<'a, I: Clone, S: ?Sized> Clone for SepBy<'a, I, S> {
+    #[inline]
     fn clone(&self) -> Self {
         Self {
             sep: self.sep,
@@ -29,6 +30,7 @@ impl<'a, I: Clone, S: ?Sized> Clone for SepBy<'a, I, S> {
 
 impl<'a, I: Iterator + Clone, S: Separator + ?Sized> SepBy<'a, I, S> {
     /// Create a [SepBy].
+    #[inline]
     pub fn new(iter: I, sep: &'a S) -> Self {
         Self { sep, iter }
     }
@@ -76,6 +78,7 @@ impl<I: Iterator<Item = T> + Clone, T: WriteInto, S: Separator + ?Sized> Dimensi
 impl<I: Iterator<Item = T> + Clone, T: WriteInto, S: Separator + ?Sized> WriteInto
     for SepBy<'_, I, S>
 {
+    #[inline]
     fn try_write_into_with_sep<Stream: Write + ?Sized>(
         &self,
         s: &mut Stream,

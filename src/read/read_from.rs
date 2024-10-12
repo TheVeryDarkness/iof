@@ -56,6 +56,7 @@ pub trait ReadFrom: Sized {
 impl<T: ReadOneFrom> ReadFrom for T {
     type ParseError = <Self as ReadOneFrom>::ParseError;
 
+    #[inline]
     fn try_read_from<L: Locale, S: BufReadExt>(
         stream: &mut S,
         locale: &L,
@@ -67,6 +68,7 @@ impl<T: ReadOneFrom> ReadFrom for T {
 impl<T: ReadFrom, const N: usize> ReadFrom for [T; N] {
     type ParseError = <T as ReadFrom>::ParseError;
 
+    #[inline]
     fn try_read_from<L: Locale, S: BufReadExt>(
         stream: &mut S,
         locale: &L,
@@ -78,6 +80,7 @@ impl<T: ReadFrom, const N: usize> ReadFrom for [T; N] {
 impl<T: ReadFrom, const N: usize> ReadFrom for Box<[T; N]> {
     type ParseError = <T as ReadFrom>::ParseError;
 
+    #[inline]
     fn try_read_from<L: Locale, S: BufReadExt>(
         stream: &mut S,
         locale: &L,
@@ -100,6 +103,7 @@ impl<T: ReadFrom, const N: usize> ReadFrom for Box<[T; N]> {
 impl<T: ReadOneFrom> ReadFrom for Vec<T> {
     type ParseError = <T as ReadOneFrom>::ParseError;
 
+    #[inline]
     fn try_read_from<L: Locale, S: BufReadExt>(
         stream: &mut S,
         locale: &L,

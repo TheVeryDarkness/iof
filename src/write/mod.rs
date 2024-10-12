@@ -60,17 +60,6 @@ pub trait WriteInto: Dimension {
     }
 }
 
-impl<T: WriteInto + ?Sized> WriteInto for &T {
-    #[inline]
-    fn try_write_into_with_sep<S: Write + ?Sized>(
-        &self,
-        s: &mut S,
-        sep: impl Separators,
-    ) -> Result<()> {
-        (*self).try_write_into_with_sep(s, sep)
-    }
-}
-
 impl<T: WriteInto> WriteInto for Vec<T> {
     #[inline]
     fn try_write_into_with_sep<S: Write + ?Sized>(
@@ -93,7 +82,7 @@ impl<T: WriteInto, const N: usize> WriteInto for [T; N] {
     }
 }
 
-macro_rules! impl_write_into {
+macro_rules! impl_write_into_for_into_iter {
     ($ty:ty) => {
         impl<T: WriteInto> WriteInto for $ty {
             #[inline]
@@ -117,9 +106,30 @@ macro_rules! impl_write_into {
     };
 }
 
-impl_write_into!([T]);
-impl_write_into!(HashSet<T>);
-impl_write_into!(BTreeSet<T>);
-impl_write_into!(VecDeque<T>);
-impl_write_into!(BinaryHeap<T>);
-impl_write_into!(LinkedList<T>);
+impl_write_into_for_into_iter!([T]);
+impl_write_into_for_into_iter!(HashSet<T>);
+impl_write_into_for_into_iter!(BTreeSet<T>);
+impl_write_into_for_into_iter!(VecDeque<T>);
+impl_write_into_for_into_iter!(BinaryHeap<T>);
+impl_write_into_for_into_iter!(LinkedList<T>);
+
+macro_rules! impl_write_into_for_deref {
+    ($ty:ty) => {
+        impl<T: WriteInto + ?Sized> WriteInto for $ty {
+            #[inline]
+            fn try_write_into_with_sep<S: Write + ?Sized>(
+                &self,
+                s: &mut S,
+                sep: impl Separators,
+            ) -> Result<()> {
+                <T as WriteInto>::try_write_into_with_sep(self, s, sep)
+            }
+        }
+    };
+}
+
+impl_write_into_for_deref!(&T);
+impl_write_into_for_deref!(&mut T);
+impl_write_into_for_deref!(Box<T>);
+impl_write_into_for_deref!(std::rc::Rc<T>);
+impl_write_into_for_deref!(std::sync::Arc<T>);

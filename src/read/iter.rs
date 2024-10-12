@@ -14,6 +14,7 @@ pub(super) struct ReadAll<'l, 's, L: Locale, S: ?Sized, T: ReadOneFrom> {
 }
 
 impl<'l, 's, L: Locale, S: ?Sized, T: ReadOneFrom> ReadAll<'l, 's, L, S, T> {
+    #[inline]
     pub(crate) fn new(stream: &'s mut S, locale: &'l L) -> Self {
         let phantom = PhantomData;
         Self {
@@ -29,6 +30,7 @@ impl<'l, 's, L: Locale, S: BufReadExt + ?Sized, T: ReadOneFrom> Iterator
 {
     type Item = Result<T, ReadOneFromError<T>>;
 
+    #[inline]
     fn next(&mut self) -> Option<Self::Item> {
         match self
             .stream
@@ -49,6 +51,7 @@ pub(super) struct ReadAllIn<'l, 's, L: Locale, T: ReadOneFrom> {
 }
 
 impl<'l, 's, L: Locale, T: ReadOneFrom> ReadAllIn<'l, 's, L, T> {
+    #[inline]
     pub(crate) fn new(buffer: &'s str, locale: &'l L) -> Self {
         let stream = LineBuf::new(buffer);
         let phantom = PhantomData;
@@ -63,6 +66,7 @@ impl<'l, 's, L: Locale, T: ReadOneFrom> ReadAllIn<'l, 's, L, T> {
 impl<'l, 's, L: Locale, T: ReadOneFrom> Iterator for ReadAllIn<'l, 's, L, T> {
     type Item = Result<T, ReadOneFromError<T>>;
 
+    #[inline]
     fn next(&mut self) -> Option<Self::Item> {
         match T::try_read_one_from(&mut self.stream, self.locale) {
             Ok(t) => Some(Ok(t)),

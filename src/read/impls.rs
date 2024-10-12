@@ -1,8 +1,12 @@
-use crate::impl_read_into_single;
+use crate::{
+    impl_read_one_from_for_from_str, BufReadExt, ReadError, ReadOneFrom, ReadOneFromError,
+};
 use std::{ffi::OsString, net::*, num::*, path::PathBuf};
 
+use super::locale;
+
 // Implement `Parse` for all types that implement FromStr.
-impl_read_into_single!(
+impl_read_one_from_for_from_str!(
     bool
 
     i8 u8
@@ -21,7 +25,7 @@ impl_read_into_single!(
 
     f32 f64
 
-    char
+    /* char */
     String
     PathBuf
     OsString
@@ -29,3 +33,22 @@ impl_read_into_single!(
     IpAddr Ipv4Addr Ipv6Addr
     SocketAddr SocketAddrV4 SocketAddrV6
 );
+
+impl ReadOneFrom for char {
+    type ParseError = <char as ::std::str::FromStr>::Err;
+
+    #[inline]
+    fn parse(s: &str) -> Result<char, ReadOneFromError<Self>> {
+        s.parse().map_err(|err| {
+            ReadError::FromStrError(err, s.to_owned(), ::std::any::type_name::<char>())
+        })
+    }
+
+    #[inline]
+    fn try_read_one_from<L: locale::Locale, S: BufReadExt>(
+        stream: &mut S,
+        locale: &L,
+    ) -> Result<char, ReadOneFromError<Self>> {
+        <Self as ReadOneFrom>::try_read_in_char_from(stream, locale)
+    }
+}

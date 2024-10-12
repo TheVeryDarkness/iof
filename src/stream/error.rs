@@ -11,6 +11,7 @@ pub enum StreamError {
 }
 
 impl Display for StreamError {
+    #[inline]
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             Self::IOError(e) => Display::fmt(e, f),
@@ -23,6 +24,7 @@ impl Display for StreamError {
 impl std::error::Error for StreamError {}
 
 impl From<std::io::Error> for StreamError {
+    #[inline]
     fn from(e: std::io::Error) -> Self {
         Self::IOError(e)
     }
