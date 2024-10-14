@@ -18,4 +18,13 @@ fn main() {
             [[19, 20, 21], [22, 23, 24], [25, 26, 27],],
         ],
     );
+
+    let v: Vec<i32> = read!(3; fmt = iof::fmt::CSV);
+    assert_eq!(v, [1, 2, 3]);
+
+    let v: Vec<i32> = read!(3; skip = ";\r\n".chars());
+    assert_eq!(v, [1, 2, 3]);
+
+    let v: Vec<i32> = read!(3; skip = [':', '\r', '\n']);
+    assert_eq!(v, [1, 2, 3]);
 }
