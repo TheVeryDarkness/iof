@@ -145,6 +145,7 @@ fn file(c: &mut Criterion) {
     }))(c);
 }
 
+#[allow(dead_code)]
 fn lazy(c: &mut Criterion) {
     (template("lazy-short", COUNT, || {
         BufReader::new(LazyWriter::<false>(0..COUNT as i32, Vec::new()))
@@ -154,5 +155,5 @@ fn lazy(c: &mut Criterion) {
     }))(c);
 }
 
-criterion_group!(benches, cursor, file, lazy);
+criterion_group!(benches, cursor, file);
 criterion_main!(benches);
