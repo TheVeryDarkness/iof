@@ -1,5 +1,5 @@
 use iof::{
-    locale::{Locale, ASCII},
+    fmt::{Format, Default},
     show, unwrap, BufReadExt, InputStream, ReadInto, ReadOneInto, WriteInto,
 };
 use std::io::{self, Cursor};
@@ -29,7 +29,7 @@ impl io::Write for IllBuffer {
 #[test]
 fn try_get_string_some() {
     let mut buf = InputStream::new(IllBuffer);
-    let res: Result<&str, _> = buf.try_get_string_some(ASCII.whitespace_chars());
+    let res: Result<&str, _> = buf.try_get_string_some(Default.skipped_chars());
     assert!(res.is_err());
     let err = res.unwrap_err();
     assert_eq!(err.to_string(), "ill buffer");
@@ -38,7 +38,7 @@ fn try_get_string_some() {
 #[test]
 fn try_get_line_some_trimmed() {
     let mut buf = InputStream::new(IllBuffer);
-    let res: Result<&str, _> = buf.try_get_line_some_trimmed(ASCII.whitespace_chars());
+    let res: Result<&str, _> = buf.try_get_line_some_trimmed(Default.skipped_chars());
     assert!(res.is_err());
     let err = res.unwrap_err();
     assert_eq!(err.to_string(), "ill buffer");

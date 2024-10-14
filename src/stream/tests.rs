@@ -3,7 +3,7 @@ use super::{
     line_buf::LineBuf,
 };
 use crate::{
-    locale::{Locale, ASCII},
+    fmt::{Format, Default},
     unwrap, BufReadExt, InputStream,
 };
 use std::io::Cursor;
@@ -16,7 +16,7 @@ where
     for<'a> &'a [Char]: ext::Pattern<Item = Char>,
     for<'a> &'a str: ext::StrExt<'a, Char>,
     char: From<Char>,
-    ASCII: Locale<Char>,
+    Default: Format<Char>,
 {
     let c = unwrap!(stream.try_get());
     assert_eq!(c, 'H');
@@ -41,7 +41,7 @@ where
     let s = unwrap!(stream.try_get_until_in_line(&['!'].map(Into::into)));
     assert_eq!(s, ", world");
 
-    let s = unwrap!(stream.try_get_string_some(ASCII.whitespace_chars()));
+    let s = unwrap!(stream.try_get_string_some(Default.skipped_chars()));
     assert_eq!(s, "!");
 
     let c = unwrap!(stream.try_peek());

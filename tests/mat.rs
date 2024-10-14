@@ -1,5 +1,5 @@
+use fmt::{Default, CSV};
 use iof::*;
-use locale::ASCII;
 use std::{io::Cursor, vec};
 
 #[test]
@@ -41,7 +41,7 @@ fn read_m_n() {
 
     assert_eq!(unwrap!(mat.try_write_into_string()), "1 2 3\n4 5 6");
 
-    assert!(<u32>::try_read_n_from(&mut reader, 1, &ASCII).is_err());
+    assert!(<u32>::try_read_n_from(&mut reader, 1, &Default).is_err());
 }
 
 #[test]
@@ -64,7 +64,7 @@ fn read_same_rows() {
 
     assert_eq!(unwrap!(mat.try_write_into_string()), "2 3 2\n2 3 2\n2 3 2");
 
-    assert!(<u32>::try_read_m_n_from(&mut reader, 1, 1, &ASCII).is_err());
+    assert!(<u32>::try_read_m_n_from(&mut reader, 1, 1, &Default).is_err());
 }
 
 #[test]
@@ -81,7 +81,7 @@ fn read_all_same() {
 
     assert_eq!(unwrap!(mat.try_write_into_string()), "2 2 2\n2 2 2");
 
-    assert!(<u32>::try_read_m_n_from(&mut reader, 1, 1, &ASCII).is_err());
+    assert!(<u32>::try_read_m_n_from(&mut reader, 1, 1, &Default).is_err());
 }
 
 #[test]
@@ -98,7 +98,26 @@ fn read_char_mat() {
 
     assert_eq!(unwrap!(mat.try_write_into_string()), "123\n456");
 
-    assert!(<char>::try_read_m_n_from(&mut reader, 1, 1, &ASCII).is_err());
+    assert!(<char>::try_read_m_n_from(&mut reader, 1, 1, &Default).is_err());
+}
+
+#[test]
+fn macro_read_mat() {
+    let reader = Cursor::new("123\n456".as_bytes());
+    let mut reader = InputStream::new(reader);
+
+    let mat: Mat<char> = read!(2, 3; src = &mut reader; fmt = Default);
+    assert_eq!(mat, [['1', '2', '3'], ['4', '5', '6']]);
+
+    let reader = Cursor::new("123\n456".as_bytes());
+    let mut reader = InputStream::new(reader);
+    let mat: Vec<usize> = read!(2; src = &mut reader; fmt = Default);
+    assert_eq!(mat, [123, 456]);
+
+    let reader = Cursor::new("1,2,3\n4,5,6".as_bytes());
+    let mut reader = InputStream::new(reader);
+    let mat: Mat<char> = read!(2, 3; src = &mut reader; fmt = CSV);
+    assert_eq!(mat, [['1', '2', '3'], ['4', '5', '6']]);
 }
 
 #[test]

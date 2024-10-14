@@ -3,7 +3,7 @@ use crate::{
 };
 use std::{ffi::OsString, net::*, num::*, path::PathBuf};
 
-use super::locale;
+use super::fmt;
 
 // Implement `Parse` for all types that implement FromStr.
 impl_read_one_from_for_from_str!(
@@ -45,10 +45,10 @@ impl ReadOneFrom for char {
     }
 
     #[inline]
-    fn try_read_one_from<L: locale::Locale, S: BufReadExt>(
+    fn try_read_one_from<F: fmt::Format, S: BufReadExt>(
         stream: &mut S,
-        locale: &L,
+        format: &F,
     ) -> Result<char, ReadOneFromError<Self>> {
-        <Self as ReadOneFrom>::try_read_in_char_from(stream, locale)
+        <Self as ReadOneFrom>::try_read_in_char_from(stream, format)
     }
 }

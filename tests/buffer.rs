@@ -1,5 +1,5 @@
 use iof::{
-    locale::{Locale, ASCII},
+    fmt::{Format, Default},
     unwrap, BufReadExt, InputStream,
 };
 use std::io::Cursor;
@@ -151,7 +151,7 @@ fn read_string() {
     let mut reader = InputStream::new(reader);
 
     assert!(reader
-        .try_get_string_some(ASCII.whitespace_chars())
+        .try_get_string_some(Default.skipped_chars())
         .is_err());
 }
 
@@ -178,7 +178,7 @@ fn read_one_then_read_line() {
     let mut reader = InputStream::new(reader);
 
     let a = reader
-        .try_get_string_some(ASCII.whitespace_chars())
+        .try_get_string_some(Default.skipped_chars())
         .unwrap();
     assert_eq!(a, "1");
 
@@ -186,7 +186,7 @@ fn read_one_then_read_line() {
     assert_eq!(b, "");
 
     let a = reader
-        .try_get_string_some(ASCII.whitespace_chars())
+        .try_get_string_some(Default.skipped_chars())
         .unwrap();
     assert_eq!(a, "2");
 
@@ -194,7 +194,7 @@ fn read_one_then_read_line() {
     assert_eq!(b, " ");
 
     let a = reader
-        .try_get_string_some(ASCII.whitespace_chars())
+        .try_get_string_some(Default.skipped_chars())
         .unwrap();
     assert_eq!(a, "3");
 
@@ -202,7 +202,7 @@ fn read_one_then_read_line() {
     assert_eq!(b, " ");
 
     assert!(reader
-        .try_get_string_some(ASCII.whitespace_chars())
+        .try_get_string_some(Default.skipped_chars())
         .is_err());
     assert!(reader.try_get_line().is_err());
     assert!(reader.try_get_line_some().is_err());

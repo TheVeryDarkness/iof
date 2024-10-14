@@ -46,7 +46,7 @@ impl BufReadExt<char> for LineBuf<'_> {
 #[cfg(test)]
 mod tests {
     use crate::{
-        locale::{Locale, ASCII},
+        fmt::{Format, Default},
         stream::{error::StreamError, line_buf::LineBuf},
         BufReadExt,
     };
@@ -71,7 +71,7 @@ mod tests {
         assert!(matches!(stream.try_get().unwrap_err(), StreamError::Eol));
         assert_eq!(
             stream
-                .try_get_string_some(ASCII.whitespace_chars())
+                .try_get_string_some(Default.skipped_chars())
                 .unwrap_err()
                 .to_string(),
             StreamError::Eol.to_string(),
@@ -84,25 +84,25 @@ mod tests {
         let mut stream = LineBuf::new(s);
         assert_eq!(
             stream
-                .try_get_string_some(ASCII.whitespace_chars())
+                .try_get_string_some(Default.skipped_chars())
                 .unwrap(),
             "Hello,"
         );
         assert_eq!(
             stream
-                .try_get_string_some(ASCII.whitespace_chars())
+                .try_get_string_some(Default.skipped_chars())
                 .unwrap(),
             "world!"
         );
         assert!(matches!(
             stream
-                .try_get_string_some(ASCII.whitespace_chars())
+                .try_get_string_some(Default.skipped_chars())
                 .unwrap_err(),
             StreamError::Eol,
         ));
         assert_eq!(
             stream
-                .try_get_string_some(ASCII.whitespace_chars())
+                .try_get_string_some(Default.skipped_chars())
                 .unwrap_err()
                 .to_string(),
             StreamError::Eol.to_string(),

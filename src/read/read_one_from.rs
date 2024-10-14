@@ -1,6 +1,6 @@
 use super::{
+    fmt::Format,
     iter::{ReadAll, ReadAllIn},
-    locale::Locale,
 };
 use crate::{BufReadExt, ReadError};
 
@@ -30,79 +30,76 @@ pub trait ReadOneFrom: Sized {
 
     /// Read from `stream` and parse into `Self`.
     #[inline]
-    fn try_read_one_from<L: Locale, S: BufReadExt>(
+    fn try_read_one_from<F: Format, S: BufReadExt>(
         stream: &mut S,
-        locale: &L,
+        format: &F,
     ) -> Result<Self, ReadError<Self::ParseError>> {
-        let s = stream.try_get_string_some(locale.whitespace_chars())?;
+        let s = stream.try_get_string_some(format.skipped_chars())?;
         Self::parse(s)
     }
 
     /// Read an element in a single non-whitespace character from `stream`, parse into `Self`.
     #[inline]
-    fn try_read_in_char_from<L: Locale, S: BufReadExt>(
+    fn try_read_in_char_from<F: Format, S: BufReadExt>(
         stream: &mut S,
-        locale: &L,
+        format: &F,
     ) -> Result<Self, ReadError<Self::ParseError>> {
-        let s = stream.try_get_non(locale.whitespace_chars())?;
+        let s = stream.try_get_non(format.skipped_chars())?;
         Self::parse(s.encode_utf8(&mut [0; 4]))
     }
 
     /// Read an element in the remained line from `stream`, parse into `Self`.
     #[inline]
-    fn try_read_in_line_trimmed_from<L: Locale, S: BufReadExt>(
+    fn try_read_in_line_trimmed_from<F: Format, S: BufReadExt>(
         stream: &mut S,
-        locale: &L,
+        format: &F,
     ) -> Result<Self, ReadError<Self::ParseError>> {
         let s = stream
-            .try_get_line_trimmed(locale.whitespace_chars())?
+            .try_get_line_trimmed(format.skipped_chars())?
             .trim_start();
         Self::parse(s)
     }
 
     /// Read an element in a single trimmed line that is not empty from `stream`, parse into `Self`.
     #[inline]
-    fn try_read_in_line_some_trimmed_from<L: Locale, S: BufReadExt>(
+    fn try_read_in_line_some_trimmed_from<F: Format, S: BufReadExt>(
         stream: &mut S,
-        locale: &L,
+        format: &F,
     ) -> Result<Self, ReadError<Self::ParseError>> {
         let s = stream
-            .try_get_line_some_trimmed(locale.whitespace_chars())?
+            .try_get_line_some_trimmed(format.skipped_chars())?
             .trim_start();
         Self::parse(s)
     }
 
     /// Read all remaining elements from `stream` into a [Vec] of `Self`.
     #[inline]
-    fn try_read_all_from<L: Locale, S: BufReadExt>(
+    fn try_read_all_from<F: Format, S: BufReadExt>(
         stream: &mut S,
-        locale: &L,
+        format: &F,
     ) -> Result<Vec<Self>, ReadError<Self::ParseError>> {
-        ReadAll::<L, S, Self>::new(stream, locale).collect()
+        ReadAll::<F, S, Self>::new(stream, format).collect()
     }
 
     /// Read all elements in current line from `stream` into a [Vec] of `Self`.
     #[inline]
-    fn try_read_any_in_line_from<L: Locale, S: BufReadExt>(
+    fn try_read_any_in_line_from<F: Format, S: BufReadExt>(
         stream: &mut S,
-        locale: &L,
+        format: &F,
     ) -> Result<Vec<Self>, ReadError<Self::ParseError>> {
-        ReadAllIn::<L, Self>::new(
-            stream.try_get_line_trimmed(locale.whitespace_chars())?,
-            locale,
-        )
-        .collect()
+        ReadAllIn::<F, Self>::new(stream.try_get_line_trimmed(format.skipped_chars())?, format)
+            .collect()
     }
 
     /// Read all elements in a non-empty line from `stream` into a [Vec] of `Self`.
     #[inline]
-    fn try_read_some_in_line_from<L: Locale, S: BufReadExt>(
+    fn try_read_some_in_line_from<F: Format, S: BufReadExt>(
         stream: &mut S,
-        locale: &L,
+        format: &F,
     ) -> Result<Vec<Self>, ReadError<Self::ParseError>> {
-        ReadAllIn::<L, Self>::new(
-            stream.try_get_line_some_trimmed(locale.whitespace_chars())?,
-            locale,
+        ReadAllIn::<F, Self>::new(
+            stream.try_get_line_some_trimmed(format.skipped_chars())?,
+            format,
         )
         .collect()
     }

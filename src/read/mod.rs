@@ -1,7 +1,7 @@
 pub(super) mod error;
+pub mod fmt;
 mod impls;
 mod iter;
-pub mod locale;
 mod macros;
 pub(super) mod read_from;
 pub(super) mod read_into;

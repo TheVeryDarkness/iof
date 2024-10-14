@@ -3,7 +3,7 @@
 /// The intended grammar is:
 ///
 /// ```rust,ignore
-/// $($dims:expr),* $(,)? $(; src = $src:expr)? $(; loc = $loc:expr)?
+/// $($dims:expr),* $(,)? $(; src = $src:expr)? $(; fmt = $fmt:expr)?
 /// ```
 ///
 /// - `read!()` reads a single data item from input.
@@ -44,13 +44,13 @@
 #[doc = include_str!("../../examples/doc_macro_read.rs")]
 /// ```
 ///
-/// Also, you can specify the source (as long as it implements [BufReadExt](crate::BufReadExt)) and locale (as long as it implements [Locale]) for reading.
+/// Also, you can specify the source (as long as it implements [BufReadExt](crate::BufReadExt)) and format (as long as it implements [Format]) for reading.
 ///
 /// [BufReadExt]: crate::BufReadExt
-/// [Locale]: crate::locale::Locale
+/// [Format]: crate::fmt::Format
 ///
 /// ```rust
-/// use iof::{locale, read, InputStream, Mat};
+/// use iof::{fmt::CSV, read, InputStream, Mat};
 ///
 /// let a: usize = read!(; src = InputStream::new(b"42".as_slice()));
 /// assert_eq!(a, 42);
@@ -58,36 +58,52 @@
 /// let b: Vec<usize> = read!(3; src = InputStream::new(b"1 2 3".as_slice()));
 /// assert_eq!(b, [1, 2, 3]);
 ///
-/// let b: Vec<usize> = read!(3; src = InputStream::new(b"1, 2, 3".as_slice()); loc = locale::CSV);
+/// let b: Vec<usize> = read!(3; src = InputStream::new(b"1, 2, 3".as_slice()); fmt = CSV);
 /// assert_eq!(b, [1, 2, 3]);
 ///
-/// let s = b"1,2,3;4,5,6";
+/// let s = b"010\n101";
 ///
-/// let b: Mat<usize> = read!(2, 3; src = InputStream::new(s.as_slice()); loc = locale::WS::from_iter([' ', ',', ';']));
+/// let b: Mat<char> = read!(2, 3; src = InputStream::new(s.as_slice()); skip = [' ', ',', ';', '\n', '\r']);
+/// assert_eq!(b, [['0', '1', '0'], ['1', '0', '1']]);
+///
+/// let s = b"1,2,3;4,5,6\r\n";
+///
+/// let b: Mat<usize> = read!(2, 3; src = InputStream::new(s.as_slice()); skip = [' ', ',', ';', '\r', '\n']);
 /// assert_eq!(b, [[1, 2, 3], [4, 5, 6]]);
 ///
-/// let b: Mat<usize> = read!(2, 3; src = InputStream::new(s.as_slice()); loc = locale::WS::from_iter(" \t,;".chars()));
+/// let b: Mat<usize> = read!(2, 3; src = InputStream::new(s.as_slice()); skip = " \t,;\r\n".chars());
 /// assert_eq!(b, [[1, 2, 3], [4, 5, 6]]);
 /// ```
 #[macro_export]
 macro_rules! read {
-    (@ $(,)?; src = $src:expr; loc = $loc:expr) => {
-        $crate::unwrap!($crate::ReadFrom::try_read_from($src, $loc))
+    (@ $(,)?; src = $src:expr; fmt = $fmt:expr) => {
+        $crate::unwrap!($crate::ReadFrom::try_read_from($src, $fmt))
     };
-    (@ $dim0:expr $(, $dims:expr)* $(,)?; src = $src:expr; loc = $loc:expr) => {{
+    (@ $dim0:expr $(, $dims:expr)* $(,)?; src = $src:expr; fmt = $fmt:expr) => {{
         let range = 0usize..$dim0;
-        ::std::vec::Vec::<_>::from_iter(range.map(|_| $crate::read!(@ $($dims, )* ; src = $src ; loc = $loc)))
+        ::std::vec::Vec::<_>::from_iter(range.map(|_| $crate::read!(@ $($dims, )* ; src = $src ; fmt = $fmt)))
     }};
-    ($(,)? $(; src = $src:expr)? $(; loc = $loc:expr)?) => {{
+    ($(,)? $(; src = $src:expr)? $(; fmt = $fmt:expr)?) => {{
         let src = $crate::argument_or_default!($(&mut $src)?, &mut *$crate::stdin());
-        let loc = $crate::argument_or_default!($(&$loc)?, &$crate::locale::ASCII);
-        $crate::unwrap!($crate::ReadFrom::try_read_from(src, loc))
+        let fmt = $crate::argument_or_default!($(&$fmt)?, &$crate::fmt::Default);
+        $crate::unwrap!($crate::ReadFrom::try_read_from(src, fmt))
     }};
-    ($dim0:expr $(, $dims:expr)* $(,)? $(; src = $src:expr)? $(; loc = $loc:expr)?) => {{
+    ($dim0:expr $(, $dims:expr)* $(,)? $(; src = $src:expr)? $(; fmt = $fmt:expr)?) => {{
         let range = 0usize..$dim0;
         let src = $crate::argument_or_default!($(&mut $src)?, &mut *$crate::stdin());
-        let loc = $crate::argument_or_default!($(&$loc)?, &$crate::locale::ASCII);
-        ::std::vec::Vec::<_>::from_iter(range.map(|_| $crate::read!(@ $($dims, )*; src = src; loc = loc)))
+        let fmt = $crate::argument_or_default!($(&$fmt)?, &$crate::fmt::Default);
+        ::std::vec::Vec::<_>::from_iter(range.map(|_| $crate::read!(@ $($dims, )*; src = src; fmt = fmt)))
+    }};
+    ($(,)? $(; src = $src:expr)? ; skip = $skip:expr) => {{
+        let src = $crate::argument_or_default!($(&mut $src)?, &mut *$crate::stdin());
+        let fmt = &$crate::fmt::skip($skip);
+        $crate::unwrap!($crate::ReadFrom::try_read_from(src, fmt))
+    }};
+    ($dim0:expr $(, $dims:expr)* $(,)? $(; src = $src:expr)? ; skip = $skip:expr) => {{
+        let range = 0usize..$dim0;
+        let src = $crate::argument_or_default!($(&mut $src)?, &mut *$crate::stdin());
+        let fmt = &$crate::fmt::skip($skip);
+        ::std::vec::Vec::<_>::from_iter(range.map(|_| $crate::read!(@ $($dims, )*; src = src; fmt = fmt)))
     }};
 }
 

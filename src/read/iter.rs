@@ -1,41 +1,38 @@
 use super::read_one_from::ReadOneFromError;
 use crate::{
-    locale::Locale,
+    fmt::Format,
     stream::{error::StreamError, line_buf::LineBuf},
     BufReadExt, ReadError, ReadOneFrom,
 };
 use std::marker::PhantomData;
 
 /// Iterator for all elements.
-pub(super) struct ReadAll<'l, 's, L: Locale, S: ?Sized, T: ReadOneFrom> {
-    locale: &'l L,
+pub(super) struct ReadAll<'f, 's, F: Format, S: ?Sized, T: ReadOneFrom> {
+    format: &'f F,
     stream: &'s mut S,
     phantom: PhantomData<T>,
 }
 
-impl<'l, 's, L: Locale, S: ?Sized, T: ReadOneFrom> ReadAll<'l, 's, L, S, T> {
+impl<'f, 's, F: Format, S: ?Sized, T: ReadOneFrom> ReadAll<'f, 's, F, S, T> {
     #[inline]
-    pub(crate) fn new(stream: &'s mut S, locale: &'l L) -> Self {
+    pub(crate) fn new(stream: &'s mut S, format: &'f F) -> Self {
         let phantom = PhantomData;
         Self {
-            locale,
+            format,
             stream,
             phantom,
         }
     }
 }
 
-impl<'l, 's, L: Locale, S: BufReadExt + ?Sized, T: ReadOneFrom> Iterator
-    for ReadAll<'l, 's, L, S, T>
+impl<'l, 's, F: Format, S: BufReadExt + ?Sized, T: ReadOneFrom> Iterator
+    for ReadAll<'l, 's, F, S, T>
 {
     type Item = Result<T, ReadOneFromError<T>>;
 
     #[inline]
     fn next(&mut self) -> Option<Self::Item> {
-        match self
-            .stream
-            .try_get_string_some(self.locale.whitespace_chars())
-        {
+        match self.stream.try_get_string_some(self.format.skipped_chars()) {
             Ok(s) => Some(T::parse(s)),
             Err(StreamError::Eof | StreamError::Eol) => None,
             Err(e) => Some(Err(e.into())),
@@ -44,31 +41,31 @@ impl<'l, 's, L: Locale, S: BufReadExt + ?Sized, T: ReadOneFrom> Iterator
 }
 
 /// Iterator for all elements in a string.
-pub(super) struct ReadAllIn<'l, 's, L: Locale, T: ReadOneFrom> {
-    locale: &'l L,
+pub(super) struct ReadAllIn<'f, 's, F: Format, T: ReadOneFrom> {
+    format: &'f F,
     stream: LineBuf<'s>,
     phantom: PhantomData<T>,
 }
 
-impl<'l, 's, L: Locale, T: ReadOneFrom> ReadAllIn<'l, 's, L, T> {
+impl<'l, 's, L: Format, T: ReadOneFrom> ReadAllIn<'l, 's, L, T> {
     #[inline]
-    pub(crate) fn new(buffer: &'s str, locale: &'l L) -> Self {
+    pub(crate) fn new(buffer: &'s str, format: &'l L) -> Self {
         let stream = LineBuf::new(buffer);
         let phantom = PhantomData;
         Self {
-            locale,
+            format,
             stream,
             phantom,
         }
     }
 }
 
-impl<'l, 's, L: Locale, T: ReadOneFrom> Iterator for ReadAllIn<'l, 's, L, T> {
+impl<'l, 's, L: Format, T: ReadOneFrom> Iterator for ReadAllIn<'l, 's, L, T> {
     type Item = Result<T, ReadOneFromError<T>>;
 
     #[inline]
     fn next(&mut self) -> Option<Self::Item> {
-        match T::try_read_one_from(&mut self.stream, self.locale) {
+        match T::try_read_one_from(&mut self.stream, self.format) {
             Ok(t) => Some(Ok(t)),
             Err(ReadError::EOF | ReadError::EOL) => None,
             Err(e) => Some(Err(e)),
@@ -80,7 +77,7 @@ impl<'l, 's, L: Locale, T: ReadOneFrom> Iterator for ReadAllIn<'l, 's, L, T> {
 mod tests {
     use super::ReadAll;
     use crate::{
-        locale::{Locale, ASCII},
+        fmt::{Default, Format},
         stream::line_buf::LineBuf,
         unwrap, BufReadExt, InputStream, ReadInto,
     };
@@ -90,7 +87,7 @@ mod tests {
     fn line_buf_strings() {
         let s = "Hello, world!";
         let mut buf = LineBuf::new(s);
-        let iter = ReadAll::new(&mut buf, &ASCII);
+        let iter = ReadAll::new(&mut buf, &Default);
         let res: Result<Vec<String>, _> = iter.collect();
         let res = unwrap!(res);
         assert_eq!(res, vec!["Hello,", "world!"]);
@@ -100,7 +97,7 @@ mod tests {
     fn input_stream_strings() {
         let s = "Hello, world!";
         let mut buf = InputStream::new(Cursor::new(s));
-        let iter = ReadAll::new(&mut buf, &ASCII);
+        let iter = ReadAll::new(&mut buf, &Default);
         let res: Result<Vec<String>, _> = iter.collect();
         let res = unwrap!(res);
         assert_eq!(res, vec!["Hello,", "world!"]);
@@ -111,7 +108,7 @@ mod tests {
     fn line_buf_string() {
         let s = "\n";
         let mut buf = LineBuf::new(s);
-        let _: &str = unwrap!(buf.try_get_string_some(ASCII.whitespace_chars()));
+        let _: &str = unwrap!(buf.try_get_string_some(Default.skipped_chars()));
     }
 
     #[test]
@@ -119,7 +116,7 @@ mod tests {
     fn input_stream_string() {
         let s = "\n";
         let mut buf = InputStream::new(Cursor::new(s));
-        let _: &str = unwrap!(buf.try_get_string_some(ASCII.whitespace_chars()));
+        let _: &str = unwrap!(buf.try_get_string_some(Default.skipped_chars()));
     }
 
     #[test]

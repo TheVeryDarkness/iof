@@ -1,6 +1,6 @@
 use crate::{unwrap, BufReadExt, Mat, ReadFrom};
 
-use super::{locale::ASCII, read_from::ReadFromError};
+use super::{fmt::Default, read_from::ReadFromError};
 
 /// The opposite of [ReadFrom].
 pub trait ReadInto<T>: BufReadExt {
@@ -51,16 +51,16 @@ where
 
     #[inline]
     fn try_read(&mut self) -> Result<U, Self::Error> {
-        U::try_read_from(self, &ASCII)
+        U::try_read_from(self, &Default)
     }
 
     #[inline]
     fn try_read_n(&mut self, n: usize) -> Result<Vec<U>, Self::Error> {
-        U::try_read_n_from(self, n, &ASCII)
+        U::try_read_n_from(self, n, &Default)
     }
 
     #[inline]
     fn try_read_m_n(&mut self, m: usize, n: usize) -> Result<Mat<U>, Self::Error> {
-        U::try_read_m_n_from(self, m, n, &ASCII)
+        U::try_read_m_n_from(self, m, n, &Default)
     }
 }

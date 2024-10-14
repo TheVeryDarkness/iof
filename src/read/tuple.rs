@@ -1,4 +1,4 @@
-use crate::{locale::Locale, BufReadExt, ReadFrom, ReadFromError};
+use crate::{fmt::Format, BufReadExt, ReadFrom, ReadFromError};
 use std::fmt::{self, Display};
 
 macro_rules! impl_read_into_for_tuple {
@@ -7,7 +7,7 @@ macro_rules! impl_read_into_for_tuple {
         impl ReadFrom for () {
             type ParseError = $e;
             #[inline]
-            fn try_read_from<L: Locale, S: BufReadExt>(_stream: &mut S, _locale: &L) -> Result<(), ReadFromError<Self>> {
+            fn try_read_from<F: Format, S: BufReadExt>(_stream: &mut S, _format: &F) -> Result<(), ReadFromError<Self>> {
                 Ok(())
             }
         }
@@ -27,8 +27,8 @@ macro_rules! impl_read_into_for_tuple {
         impl<$($t: ReadFrom, )+> ReadFrom for ( $($t, )+ ) {
             type ParseError = $e<$(<$t as ReadFrom>::ParseError, )+>;
             #[inline]
-            fn try_read_from<L: Locale, S: BufReadExt>(stream: &mut S, locale: &L) -> Result<($($t, )+), ReadFromError<Self>> {
-                Ok(( $(<$t as ReadFrom>::try_read_from(stream, locale).map_err(|err| match err {
+            fn try_read_from<F: Format, S: BufReadExt>(stream: &mut S, format: &F) -> Result<($($t, )+), ReadFromError<Self>> {
+                Ok(( $(<$t as ReadFrom>::try_read_from(stream, format).map_err(|err| match err {
                     ReadFromError::<$t>::IOError(e) => ReadFromError::<Self>::IOError(e),
                     ReadFromError::<$t>::EOF => ReadFromError::<Self>::EOF,
                     ReadFromError::<$t>::EOL => ReadFromError::<Self>::EOL,

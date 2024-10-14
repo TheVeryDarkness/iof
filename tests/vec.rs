@@ -1,5 +1,5 @@
+use fmt::{skip, Default};
 use iof::*;
-use locale::ASCII;
 use std::{collections::BTreeSet, io::Cursor, str::from_utf8};
 
 #[test]
@@ -11,7 +11,7 @@ fn read_n() {
     assert_eq!(vec, &[1, 2, 3]);
     assert_eq!(vec.sep_by(&" ").to_string(), "1 2 3");
 
-    assert!(<u32>::try_read_n_from(&mut reader, 1, &ASCII).is_err());
+    assert!(<u32>::try_read_n_from(&mut reader, 1, &Default).is_err());
 }
 
 #[test]
@@ -28,7 +28,7 @@ fn read() {
     let c: Vec<u32> = reader.read();
     assert_eq!(c, [7, 8]);
 
-    assert!(<Vec<u32>>::try_read_from(&mut reader, &ASCII).is_err());
+    assert!(<Vec<u32>>::try_read_from(&mut reader, &Default).is_err());
 }
 
 #[test]
@@ -42,7 +42,7 @@ fn read_one_then_read_2() {
     let b: Vec<u32> = reader.read();
     assert_eq!(b, [2, 3]);
 
-    assert!(<u32>::try_read_from(&mut reader, &ASCII).is_err());
+    assert!(<u32>::try_read_from(&mut reader, &Default).is_err());
 }
 
 #[test]
@@ -59,9 +59,9 @@ fn read_one_then_read_0() {
     let a: u32 = reader.read_one();
     assert_eq!(a, 3);
 
-    assert!(<u32>::try_read_from(&mut reader, &ASCII).is_err());
-    assert!(<Vec<u32>>::try_read_from(&mut reader, &ASCII).is_err());
-    assert!(<Vec<u32>>::try_read_from(&mut reader, &ASCII).is_err());
+    assert!(<u32>::try_read_from(&mut reader, &Default).is_err());
+    assert!(<Vec<u32>>::try_read_from(&mut reader, &Default).is_err());
+    assert!(<Vec<u32>>::try_read_from(&mut reader, &Default).is_err());
 }
 
 #[test]
@@ -77,7 +77,7 @@ fn read_any_in_line() {
     let a: Vec<u32> = reader.read_any_in_line();
     assert_eq!(a, vec![1, 2, 3]);
 
-    assert!(<u32>::try_read_any_in_line_from(&mut reader, &ASCII).is_err());
+    assert!(<u32>::try_read_any_in_line_from(&mut reader, &Default).is_err());
 }
 
 #[test]
@@ -106,7 +106,7 @@ fn read_char_3() {
     let a: Vec<char> = reader.read();
     assert_eq!(a, vec!['1', '2', '3']);
 
-    assert!(<char>::try_read_from(&mut reader, &ASCII).is_err());
+    assert!(<char>::try_read_from(&mut reader, &Default).is_err());
 }
 
 #[test]
@@ -138,6 +138,27 @@ fn read_all_digit_error() {
     let mut reader = InputStream::new(reader);
 
     let _: Vec<u32> = reader.read_all();
+}
+
+#[test]
+fn macro_read_vec() {
+    let reader = Cursor::new("1,2,3\n4,5,6".as_bytes());
+    let mut reader = InputStream::new(reader);
+
+    let vec: Vec<char> = read!(; src = &mut reader; fmt = skip([]));
+    assert_eq!(vec, ['1', ',', '2', ',', '3']);
+
+    let vec: Vec<char> = read!(; src = &mut reader; fmt = skip([]));
+    assert_eq!(vec, ['4', ',', '5', ',', '6']);
+
+    let reader = Cursor::new("1 2 3\n4 5 6".as_bytes());
+    let mut reader = InputStream::new(reader);
+
+    let vec: Vec<char> = read!(; src = &mut reader; fmt = skip([]));
+    assert_eq!(vec, ['1', ' ', '2', ' ', '3']);
+
+    let vec: Vec<char> = read!(; src = &mut reader; fmt = skip([]));
+    assert_eq!(vec, ['4', ' ', '5', ' ', '6']);
 }
 
 #[test]

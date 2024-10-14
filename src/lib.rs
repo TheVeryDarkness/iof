@@ -399,7 +399,7 @@ pub use {
     mat::Mat,
     read::{
         error::ReadError,
-        locale,
+        fmt,
         read_from::{ReadFrom, ReadFromError},
         read_into::ReadInto,
         read_one_from::{ReadOneFrom, ReadOneFromError},
