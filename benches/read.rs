@@ -5,10 +5,9 @@ use std::{
     io::{self, BufRead, BufReader, Cursor, Read, Write},
 };
 
-#[derive(Clone)]
-struct LazyWriter(std::ops::Range<i32>, Vec<u8>);
+struct LazyWriter<const LONG: bool>(std::ops::Range<i32>, Vec<u8>);
 
-impl Read for LazyWriter {
+impl<const LONG: bool> Read for LazyWriter<LONG> {
     fn read(&mut self, mut buf: &mut [u8]) -> io::Result<usize> {
         let mut count = 0usize;
         if !self.1.is_empty() {
@@ -16,8 +15,12 @@ impl Read for LazyWriter {
             self.1.drain(..len);
             count += len;
         }
-        while let Some(num) = self.0.next() {
-            let mut s = format!(" {}", num);
+        for num in &mut self.0 {
+            let mut s = if LONG {
+                format!("{} ", num)
+            } else {
+                format!("{}\n", num)
+            };
             let len = buf.write(s.as_bytes())?;
             count += len;
             s.drain(..len);
@@ -107,6 +110,11 @@ fn template<R: BufRead>(
                         buf.push(byte);
                     }
                 }
+                if !buf.is_empty() {
+                    let s = unwrap!(std::str::from_utf8(&buf));
+                    results.push(unwrap!(s.parse::<Element>()));
+                    // buf.clear();
+                }
                 assert_eq!(results.len(), count);
             })
         });
@@ -138,10 +146,12 @@ fn file(c: &mut Criterion) {
 }
 
 fn lazy(c: &mut Criterion) {
-    let writer = LazyWriter(0..COUNT as i32, vec![]);
-    {
-        (template("lazy", COUNT, || BufReader::new(writer.clone())))(c);
-    }
+    (template("lazy - short", COUNT, || {
+        BufReader::new(LazyWriter::<false>(0..COUNT as i32, Vec::new()))
+    }))(c);
+    (template("lazy - long", COUNT, || {
+        BufReader::new(LazyWriter::<true>(0..COUNT as i32, Vec::new()))
+    }))(c);
 }
 
 criterion_group!(benches, cursor, file, lazy);
