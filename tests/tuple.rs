@@ -1,5 +1,5 @@
-use iof::*;
 use fmt::Default;
+use iof::*;
 use std::{io::Cursor, str::from_utf8};
 
 #[test]

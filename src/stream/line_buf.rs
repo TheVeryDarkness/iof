@@ -46,7 +46,7 @@ impl BufReadExt<char> for LineBuf<'_> {
 #[cfg(test)]
 mod tests {
     use crate::{
-        fmt::{Format, Default},
+        fmt::{Default, Format},
         stream::{error::StreamError, line_buf::LineBuf},
         BufReadExt,
     };
@@ -83,15 +83,11 @@ mod tests {
         let s = "Hello, world!";
         let mut stream = LineBuf::new(s);
         assert_eq!(
-            stream
-                .try_get_string_some(Default.skipped_chars())
-                .unwrap(),
+            stream.try_get_string_some(Default.skipped_chars()).unwrap(),
             "Hello,"
         );
         assert_eq!(
-            stream
-                .try_get_string_some(Default.skipped_chars())
-                .unwrap(),
+            stream.try_get_string_some(Default.skipped_chars()).unwrap(),
             "world!"
         );
         assert!(matches!(

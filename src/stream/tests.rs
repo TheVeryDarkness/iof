@@ -3,7 +3,7 @@ use super::{
     line_buf::LineBuf,
 };
 use crate::{
-    fmt::{Format, Default},
+    fmt::{Default, Format},
     unwrap, BufReadExt, InputStream,
 };
 use std::io::Cursor;

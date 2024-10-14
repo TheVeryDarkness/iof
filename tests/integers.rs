@@ -1,6 +1,6 @@
 use dimension::Dimension;
-use iof::*;
 use fmt::Default;
+use iof::*;
 use std::io::Cursor;
 
 #[test]

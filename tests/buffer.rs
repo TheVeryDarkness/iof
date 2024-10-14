@@ -1,5 +1,5 @@
 use iof::{
-    fmt::{Format, Default},
+    fmt::{Default, Format},
     unwrap, BufReadExt, InputStream,
 };
 use std::io::Cursor;
@@ -150,9 +150,7 @@ fn read_string() {
     let reader = Cursor::new(buf);
     let mut reader = InputStream::new(reader);
 
-    assert!(reader
-        .try_get_string_some(Default.skipped_chars())
-        .is_err());
+    assert!(reader.try_get_string_some(Default.skipped_chars()).is_err());
 }
 
 #[test]
@@ -177,33 +175,25 @@ fn read_one_then_read_line() {
     let reader = Cursor::new("1\n2 \n3 ".as_bytes());
     let mut reader = InputStream::new(reader);
 
-    let a = reader
-        .try_get_string_some(Default.skipped_chars())
-        .unwrap();
+    let a = reader.try_get_string_some(Default.skipped_chars()).unwrap();
     assert_eq!(a, "1");
 
     let b = reader.try_get_line().unwrap();
     assert_eq!(b, "");
 
-    let a = reader
-        .try_get_string_some(Default.skipped_chars())
-        .unwrap();
+    let a = reader.try_get_string_some(Default.skipped_chars()).unwrap();
     assert_eq!(a, "2");
 
     let b = reader.try_get_line().unwrap();
     assert_eq!(b, " ");
 
-    let a = reader
-        .try_get_string_some(Default.skipped_chars())
-        .unwrap();
+    let a = reader.try_get_string_some(Default.skipped_chars()).unwrap();
     assert_eq!(a, "3");
 
     let b = reader.try_get_line().unwrap();
     assert_eq!(b, " ");
 
-    assert!(reader
-        .try_get_string_some(Default.skipped_chars())
-        .is_err());
+    assert!(reader.try_get_string_some(Default.skipped_chars()).is_err());
     assert!(reader.try_get_line().is_err());
     assert!(reader.try_get_line_some().is_err());
 }

@@ -57,7 +57,7 @@ impl<B: BufRead> BufReadExt<char> for InputStream<B> {
 #[cfg(test)]
 mod tests {
     use crate::{
-        fmt::{Format, Default},
+        fmt::{Default, Format},
         stream::{error::StreamError, input_stream::InputStream},
         BufReadExt,
     };
@@ -105,27 +105,19 @@ mod tests {
         let s = "Hello, world!\nHello, Rust!";
         let mut stream = InputStream::new(Cursor::new(s));
         assert_eq!(
-            stream
-                .try_get_string_some(Default.skipped_chars())
-                .unwrap(),
+            stream.try_get_string_some(Default.skipped_chars()).unwrap(),
             "Hello,"
         );
         assert_eq!(
-            stream
-                .try_get_string_some(Default.skipped_chars())
-                .unwrap(),
+            stream.try_get_string_some(Default.skipped_chars()).unwrap(),
             "world!"
         );
         assert_eq!(
-            stream
-                .try_get_string_some(Default.skipped_chars())
-                .unwrap(),
+            stream.try_get_string_some(Default.skipped_chars()).unwrap(),
             "Hello,"
         );
         assert_eq!(
-            stream
-                .try_get_string_some(Default.skipped_chars())
-                .unwrap(),
+            stream.try_get_string_some(Default.skipped_chars()).unwrap(),
             "Rust!"
         );
         assert!(matches!(

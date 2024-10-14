@@ -1,5 +1,5 @@
 use iof::{
-    fmt::{Format, Default},
+    fmt::{Default, Format},
     show, unwrap, BufReadExt, InputStream, ReadInto, ReadOneInto, WriteInto,
 };
 use std::io::{self, Cursor};
