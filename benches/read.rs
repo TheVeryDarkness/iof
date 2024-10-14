@@ -2,7 +2,7 @@ use criterion::{criterion_group, criterion_main, Criterion};
 use iof::{unwrap, InputStream, ReadInto, ReadOneInto};
 use std::{
     fs::{read_to_string, File},
-    io::{self, BufRead, BufReader, Cursor, Read, Write},
+    io::{self, BufRead, BufReader, Read, Write},
 };
 
 struct LazyWriter<const LONG: bool>(std::ops::Range<i32>, Vec<u8>);
@@ -126,11 +126,11 @@ const COUNT: usize = 0x10000 * 4;
 fn cursor(c: &mut Criterion) {
     {
         let s = unwrap!(read_to_string("benches/long.txt"));
-        (template("cursor-long", COUNT, || Cursor::new(&s)))(c);
+        (template("cursor-long", COUNT, || s.as_bytes()))(c);
     }
     {
         let s = unwrap!(read_to_string("benches/short.txt"));
-        (template("cursor-short", COUNT, || Cursor::new(&s)))(c);
+        (template("cursor-short", COUNT, || s.as_bytes()))(c);
     }
 }
 
