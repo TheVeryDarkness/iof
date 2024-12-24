@@ -18,6 +18,7 @@ pub struct SepBy<'a, I, S: ?Sized> {
     iter: I,
 }
 
+#[expect(clippy::needless_lifetimes)]
 impl<'a, I: Clone, S: ?Sized> Clone for SepBy<'a, I, S> {
     #[inline]
     fn clone(&self) -> Self {

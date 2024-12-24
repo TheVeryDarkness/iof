@@ -12,13 +12,17 @@
 #![forbid(
     clippy::correctness,
     clippy::suspicious,
-    clippy::complexity,
     clippy::perf,
     clippy::style,
-    clippy::cargo
+    clippy::cargo,
+    clippy::should_panic_without_expect,
+    clippy::incompatible_msrv,
+    clippy::expect_used,
+    clippy::missing_safety_doc,
+    clippy::missing_panics_doc
 )]
-#![forbid(clippy::should_panic_without_expect, clippy::incompatible_msrv)]
 #![forbid(rustdoc::all)]
+#![deny(clippy::complexity)]
 
 //! A utility library for reading data from input and writing data to output.
 //!
