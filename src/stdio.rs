@@ -20,6 +20,11 @@ pub(crate) static STDIN: LazyLock<Mutex<InputStream<BufReader<Stdin>>>> =
 /// Get an exclusive handle to the standard input stream.
 ///
 /// See [io::stdin] and [io::Stdin::lock] for more information.
+///
+/// # Panics
+///
+/// This function will panic if the standard input stream is already locked by current thread,
+/// or if the standard input stream is poisoned.
 #[inline]
 pub fn stdin() -> MutexGuard<'static, InputStream<BufReader<Stdin>>> {
     STDIN.lock().unwrap()
