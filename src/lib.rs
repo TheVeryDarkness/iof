@@ -1,6 +1,6 @@
 #![forbid(missing_docs)]
 #![forbid(rust_2021_compatibility, rust_2018_idioms, future_incompatible)]
-#![warn(
+#![forbid(
     unused_imports,
     unused_qualifications,
     unused_results,
@@ -11,6 +11,7 @@
 )]
 #![forbid(
     clippy::correctness,
+    clippy::complexity,
     clippy::suspicious,
     clippy::perf,
     clippy::style,
@@ -19,10 +20,11 @@
     clippy::incompatible_msrv,
     clippy::expect_used,
     clippy::missing_safety_doc,
-    clippy::missing_panics_doc
+    clippy::missing_panics_doc,
+    clippy::allow_attributes,
+    clippy::allow_attributes_without_reason
 )]
 #![forbid(rustdoc::all)]
-#![deny(clippy::complexity)]
 
 //! A utility library for reading data from input and writing data to output.
 //!
