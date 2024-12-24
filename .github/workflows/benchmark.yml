@@ -7,6 +7,7 @@ on:
     - cron: "0 0 * * 6" # Run benchmarks every Saturday at midnight.
 
 permissions:
+  checks: write
   contents: write
   deployments: write
 
