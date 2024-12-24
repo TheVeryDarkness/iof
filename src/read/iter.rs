@@ -25,10 +25,7 @@ impl<'f, 's, F: Format, S: ?Sized, T: ReadOneFrom> ReadAll<'f, 's, F, S, T> {
     }
 }
 
-#[expect(clippy::needless_lifetimes)]
-impl<'l, 's, F: Format, S: BufReadExt + ?Sized, T: ReadOneFrom> Iterator
-    for ReadAll<'l, 's, F, S, T>
-{
+impl<F: Format, S: BufReadExt + ?Sized, T: ReadOneFrom> Iterator for ReadAll<'_, '_, F, S, T> {
     type Item = Result<T, ReadOneFromError<T>>;
 
     #[inline]
@@ -61,8 +58,7 @@ impl<'l, 's, L: Format, T: ReadOneFrom> ReadAllIn<'l, 's, L, T> {
     }
 }
 
-#[expect(clippy::needless_lifetimes)]
-impl<'l, 's, L: Format, T: ReadOneFrom> Iterator for ReadAllIn<'l, 's, L, T> {
+impl<L: Format, T: ReadOneFrom> Iterator for ReadAllIn<'_, '_, L, T> {
     type Item = Result<T, ReadOneFromError<T>>;
 
     #[inline]

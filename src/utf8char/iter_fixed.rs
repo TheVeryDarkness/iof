@@ -25,8 +25,7 @@ impl<'a> IterFixedUtf8Char<'a> {
     }
 }
 
-#[expect(clippy::needless_lifetimes)]
-impl<'a> Iterator for IterFixedUtf8Char<'a> {
+impl Iterator for IterFixedUtf8Char<'_> {
     type Item = FixedUtf8Char;
 
     #[inline]
