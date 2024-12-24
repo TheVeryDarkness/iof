@@ -3,6 +3,8 @@ on:
   push:
     branches:
       - main
+  schedule:
+    - cron: "0 0 * * 6" # Run benchmarks every Saturday at midnight.
 
 permissions:
   contents: write
