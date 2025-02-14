@@ -415,29 +415,27 @@
 //! ```
 //!
 //! If you call [`read_one<String>()`] for 3 times and [`read_in_line_trimmed<String>()`] for 1 time, they will read `1`, `2`, `3`, and an empty string respectively. Therefore it's generally unrecommended to use [`read_in_line_trimmed<String>()`] and similar functions that read a possibly empty line of string without specifying the number of data items to read.
-pub use {
-    crate as iof,
-    ascii::{char::Char as ASCIIChar, string::String as ASCIIString},
-    formatted::SepBy,
-    mat::Mat,
-    read::{
-        error::ReadError,
-        fmt,
-        read_from::{ReadFrom, ReadFromError},
-        read_into::ReadInto,
-        read_one_from::{ReadOneFrom, ReadOneFromError},
-        read_one_into::ReadOneInto,
-    },
-    stdio::{read_into::*, stdin, stdout, stream::*},
-    stream::{input_stream::InputStream, traits::BufReadExt},
-    write::{
-        dimension, separator,
-        separators::{DefaultSeparator, Separators},
-        writer::write,
-        WriteInto,
-    },
-    Vec,
+pub use crate as iof;
+pub use ascii::{char::Char as ASCIIChar, string::String as ASCIIString};
+pub use formatted::SepBy;
+pub use mat::Mat;
+pub use read::{
+    error::ReadError,
+    fmt,
+    read_from::{ReadFrom, ReadFromError},
+    read_into::ReadInto,
+    read_one_from::{ReadOneFrom, ReadOneFromError},
+    read_one_into::ReadOneInto,
 };
+pub use stdio::{read_into::*, stdin, stdout, stream::*};
+pub use stream::{input_stream::InputStream, traits::BufReadExt};
+pub use write::{
+    dimension, separator,
+    separators::{DefaultSeparator, Separators},
+    writer::write,
+    WriteInto,
+};
+pub use Vec;
 
 mod array;
 pub mod ascii;

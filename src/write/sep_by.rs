@@ -1,6 +1,5 @@
-use crate::Separators;
-
 use super::{dimension::Dimension, separator::Separator, WriteInto};
+use crate::Separators;
 use std::{
     fmt::{self, Binary, Debug, Display, LowerExp, LowerHex, Octal, Pointer, UpperExp, UpperHex},
     io::Write,

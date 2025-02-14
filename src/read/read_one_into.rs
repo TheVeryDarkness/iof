@@ -1,6 +1,5 @@
-use crate::{stream, unwrap, BufReadExt, ReadOneFrom, ReadOneFromError};
-
 use super::fmt::Default;
+use crate::{stream, unwrap, BufReadExt, ReadOneFrom, ReadOneFromError};
 
 /// The opposite of [ReadOneFrom].
 pub trait ReadOneInto<T> {

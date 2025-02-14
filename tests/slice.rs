@@ -1,6 +1,5 @@
-use std::{rc::Rc, sync::Arc};
-
 use iof::{show, unwrap, WriteInto};
+use std::{rc::Rc, sync::Arc};
 
 #[test]
 fn write_into() {

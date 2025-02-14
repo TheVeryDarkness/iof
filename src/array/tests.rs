@@ -1,8 +1,7 @@
 mod tracked;
 
 use crate::array::array_try_from_fn;
-use std::convert::Infallible;
-use std::{panic::catch_unwind, thread::spawn};
+use std::{convert::Infallible, panic::catch_unwind, thread::spawn};
 use tracked::{check, Tracked};
 
 #[test]

@@ -1,6 +1,5 @@
-use std::fmt::Display;
-
 use super::{MSG_EOF, MSG_EOL};
+use std::fmt::Display;
 
 /// Error type for the `Stream` module.
 #[derive(Debug)]

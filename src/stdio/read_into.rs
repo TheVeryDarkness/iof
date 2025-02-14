@@ -2,10 +2,10 @@ use crate::{
     mat::Mat, read::read_from::ReadFromError, stdin, ReadFrom, ReadInto, ReadOneFrom,
     ReadOneFromError, ReadOneInto,
 };
-pub use {
-    read_m_n as read_mat, read_n as read_vec, try_read_m_n as try_read_mat,
-    try_read_n as try_read_vec,
-};
+pub use read_m_n as read_mat;
+pub use read_n as read_vec;
+pub use try_read_m_n as try_read_mat;
+pub use try_read_n as try_read_vec;
 
 // type StdinReader = InputStream<BufReader<Stdin>>;
 

@@ -1,6 +1,5 @@
-use crate::{unwrap, BufReadExt, Mat, ReadFrom};
-
 use super::{fmt::Default, read_from::ReadFromError};
+use crate::{unwrap, BufReadExt, Mat, ReadFrom};
 
 /// The opposite of [ReadFrom].
 pub trait ReadInto<T>: BufReadExt {

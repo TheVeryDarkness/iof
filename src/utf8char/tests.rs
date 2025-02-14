@@ -1,6 +1,6 @@
-use crate::utf8char::{FixedUtf8Char, Utf8Char};
-
-use super::{iter_extensible::IterUtf8Char, iter_fixed::IterFixedUtf8Char};
+use super::{
+    iter_extensible::IterUtf8Char, iter_fixed::IterFixedUtf8Char, FixedUtf8Char, Utf8Char,
+};
 
 const S: &str = "aHello🦀🦀🦀：【中文字符串】？烫烫烫。";
 
