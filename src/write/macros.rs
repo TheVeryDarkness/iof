@@ -1,5 +1,11 @@
 /// Write the given expression into [standard output](std::io::Stdout) using [WriteInto].
 ///
+/// The intended grammar is:
+///
+/// ```ignore
+/// show!($expr:expr $(, sep=$sep:expr)? $(, end=$end:expr)? $(,)? $(=> $buf:expr)?)
+/// ```
+///
 /// You can configure the writer using the following options:
 ///
 /// - `sep`: Separator between values. Default is `" "`. Provide an instance of [Separators] to use custom separators, and if it has mismatched dimensions, it may use the default separator (if there is one) or panic.

@@ -104,9 +104,24 @@ fn read_char_3() {
     let mut reader = InputStream::new(reader);
 
     let a: Vec<char> = reader.read();
-    assert_eq!(a, vec!['1', '2', '3']);
+    assert_eq!(a, ['1', '2', '3']);
 
     assert!(<char>::try_read_from(&mut reader, &Default).is_err());
+}
+
+#[test]
+fn read_ascii_3() {
+    let reader = Cursor::new("1 2 3".as_bytes());
+    let mut reader = InputStream::new(reader);
+
+    let a: Vec<ASCIIChar> = reader.read();
+    assert_eq!(a, ['1', '2', '3']);
+
+    assert!(<char>::try_read_from(&mut reader, &Default).is_err());
+
+    let mut s = Vec::new();
+    show!(a => s);
+    assert_eq!(s, b"123\n");
 }
 
 #[test]

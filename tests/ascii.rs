@@ -22,12 +22,17 @@ fn ascii_char() {
 }
 
 #[test]
-#[should_panic = "invalid length: 2"]
-fn ascii_char_failed_length() {
+fn ascii_char_2() {
     let reader = Cursor::new("ab".as_bytes());
     let mut reader = InputStream::new(reader);
 
-    let _: ASCIIChar = reader.read();
+    let a: ASCIIChar = reader.read();
+    assert_eq!(a, ASCIIChar::SmallA);
+
+    let b: ASCIIChar = reader.read();
+    assert_eq!(b, ASCIIChar::SmallB);
+
+    assert!(<ASCIIChar>::try_read_from(&mut reader, &Default).is_err());
 }
 
 #[test]
