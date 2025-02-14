@@ -1,7 +1,7 @@
-use crate::{stdout, SepBy, Separators};
+use crate::{stdout, SepBy};
 use dimension::Dimension;
 use separator::Separator;
-use separators::DefaultSeparator;
+use separators::{DefaultSeparator, Separators};
 use std::{
     collections::{BTreeSet, BinaryHeap, HashSet, LinkedList, VecDeque},
     io::{self, Write},

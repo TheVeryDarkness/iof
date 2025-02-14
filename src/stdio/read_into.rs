@@ -1,6 +1,5 @@
 use crate::{
-    mat::Mat, read::read_from::ReadFromError, stdin, ReadFrom, ReadInto, ReadOneFrom,
-    ReadOneFromError, ReadOneInto,
+    stdin, Mat, ReadFrom, ReadFromError, ReadInto, ReadOneFrom, ReadOneFromError, ReadOneInto,
 };
 pub use read_m_n as read_mat;
 pub use read_n as read_vec;

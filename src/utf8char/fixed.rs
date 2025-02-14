@@ -1,4 +1,4 @@
-use crate::utf8char::utf8_len_from_first_byte;
+use super::utf8_len_from_first_byte;
 use std::fmt::Display;
 
 /// A UTF-8 character that is fixed in size.

@@ -1,5 +1,4 @@
-use super::WriteInto;
-use crate::Separators;
+use super::{separators::Separators, WriteInto};
 use std::io::{self, Write};
 
 /// Write the given value into the buffer.
