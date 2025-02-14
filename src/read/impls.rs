@@ -1,9 +1,9 @@
+use super::fmt;
 use crate::{
-    impl_read_one_from_for_from_str, BufReadExt, ReadError, ReadOneFrom, ReadOneFromError,
+    impl_read_one_from_for_from_str, ASCIIChar, ASCIIString, BufReadExt, ReadError, ReadOneFrom,
+    ReadOneFromError,
 };
 use std::{ffi::OsString, net::*, num::*, path::PathBuf};
-
-use super::fmt;
 
 // Implement `Parse` for all types that implement FromStr.
 impl_read_one_from_for_from_str!(
@@ -25,8 +25,9 @@ impl_read_one_from_for_from_str!(
 
     f32 f64
 
-    /* char */
+    /* char ASCIIChar */
     String
+    ASCIIString
     PathBuf
     OsString
 
@@ -38,7 +39,26 @@ impl ReadOneFrom for char {
     type ParseError = <char as ::std::str::FromStr>::Err;
 
     #[inline]
-    fn parse(s: &str) -> Result<char, ReadOneFromError<Self>> {
+    fn parse(s: &str) -> Result<Self, ReadOneFromError<Self>> {
+        s.parse().map_err(|err| {
+            ReadError::FromStrError(err, s.to_owned(), ::std::any::type_name::<Self>())
+        })
+    }
+
+    #[inline]
+    fn try_read_one_from<F: fmt::Format, S: BufReadExt>(
+        stream: &mut S,
+        format: &F,
+    ) -> Result<Self, ReadOneFromError<Self>> {
+        <Self as ReadOneFrom>::try_read_in_char_from(stream, format)
+    }
+}
+
+impl ReadOneFrom for ASCIIChar {
+    type ParseError = <Self as ::std::str::FromStr>::Err;
+
+    #[inline]
+    fn parse(s: &str) -> Result<Self, ReadOneFromError<Self>> {
         s.parse().map_err(|err| {
             ReadError::FromStrError(err, s.to_owned(), ::std::any::type_name::<char>())
         })
@@ -48,7 +68,7 @@ impl ReadOneFrom for char {
     fn try_read_one_from<F: fmt::Format, S: BufReadExt>(
         stream: &mut S,
         format: &F,
-    ) -> Result<char, ReadOneFromError<Self>> {
+    ) -> Result<Self, ReadOneFromError<Self>> {
         <Self as ReadOneFrom>::try_read_in_char_from(stream, format)
     }
 }

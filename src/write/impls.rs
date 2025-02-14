@@ -1,14 +1,15 @@
 use super::{dimension::*, Separator, WriteInto};
-use crate::{impl_write_into_for_display, Separators};
+use crate::{impl_write_into_for_display, ASCIIChar, ASCIIString, Separators};
 use std::{io, num::*};
 
 impl_write_into_for_display!(
     f32 f64
     bool
 
-    /* char */
+    /* char ASCIIChar */
     str
     String
+    ASCIIString
 
     i8 i16 i32 i64 i128 isize
     u8 u16 u32 u64 u128 usize
@@ -33,6 +34,22 @@ impl WriteInto for char {
 }
 
 impl Dimension for char {
+    const DIMENSION: usize = 0;
+    const SPACE: bool = false;
+}
+
+impl WriteInto for ASCIIChar {
+    #[inline]
+    fn try_write_into_with_sep<S: io::Write + ?Sized>(
+        &self,
+        s: &mut S,
+        _sep: impl Separators,
+    ) -> super::Result {
+        s.write_all(&[*self as u8])
+    }
+}
+
+impl Dimension for ASCIIChar {
     const DIMENSION: usize = 0;
     const SPACE: bool = false;
 }

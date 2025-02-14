@@ -1,3 +1,4 @@
+use super::char::{write_escaped, Char};
 use std::{
     fmt,
     ops::{
@@ -6,10 +7,6 @@ use std::{
     },
     str::FromStr,
 };
-
-use crate::{impl_read_one_from_for_from_str, impl_write_into_for_display};
-
-use super::char::{write_escaped, Char};
 
 /// A string that only contains ASCII characters.
 ///
@@ -137,6 +134,3 @@ impl FromStr for String {
         Ok(Self { bytes: string })
     }
 }
-
-impl_read_one_from_for_from_str!(String);
-impl_write_into_for_display!(String);

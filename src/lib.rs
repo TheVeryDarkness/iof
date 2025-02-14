@@ -220,8 +220,8 @@
 //!
 //! These functions are implemented for types that implement [ReadOneFrom] trait. Currently, the following types in [std] (or [core]) implement [ReadOneFrom] trait:
 //!
-//! - [String];
-//! - [char] (but it has different behavior from other types);
+//! - [String] and [ASCIIString];
+//! - [char] and [ASCIIChar] (but it has different behavior from other types);
 //! - [u8], [u16], [u32], [u64], [u128], [usize];
 //! - [i8], [i16], [i32], [i64], [i128], [isize];
 //! - [f32], [f64];
@@ -233,6 +233,22 @@
 //! And you can implement [ReadOneFrom] trait for your own types by implementing [ReadOneFrom::parse] method. For [FromStr] types, you can use the macro [impl_read_one_from_for_from_str!].
 //!
 //! [FromStr]: std::str::FromStr
+//!
+//! ## Extra ASCII Support
+//!
+//! For ASCII characters, you can use [ASCIIChar] and [ASCIIString] to read and write them.
+//!
+//! Given the input below:
+//!
+//! ```txt
+#![doc = include_str!("../examples/doc_read_ascii.txt")]
+//! ```
+//!
+//! Code below reads the input and stores it in variables:
+//!
+//! ```rust,no_run
+#![doc = include_str!("../examples/doc_read_ascii.rs")]
+//! ```
 //!
 //! ## Complex Examples for Input
 //!

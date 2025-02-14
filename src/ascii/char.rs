@@ -1,4 +1,3 @@
-use crate::{impl_read_one_from_for_from_str, impl_write_into_for_display};
 use std::{
     fmt::{self, Write as _},
     mem::transmute,
@@ -487,6 +486,3 @@ impl FromStr for Char {
         byte.try_into().map_err(Error::Byte)
     }
 }
-
-impl_read_one_from_for_from_str!(Char);
-impl_write_into_for_display!(Char);
