@@ -1,6 +1,7 @@
 use crate::{impl_read_one_from_for_from_str, impl_write_into_for_display};
 use std::{
     fmt::{self, Write as _},
+    mem::transmute,
     ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Rem, RemAssign, Sub, SubAssign},
     slice,
     str::FromStr,
@@ -470,7 +471,7 @@ impl TryFrom<u8> for Char {
             return Err(value);
         }
         // Safety: `value` is guaranteed to be in the range of `Char`.
-        Ok(unsafe { std::mem::transmute(value) })
+        Ok(unsafe { transmute::<u8, Char>(value) })
     }
 }
 
@@ -483,7 +484,7 @@ impl FromStr for Char {
             return Err(Error::Length(bytes.len()));
         }
         let byte = bytes[0];
-        byte.try_into().map_err(|byte| Error::Byte(byte))
+        byte.try_into().map_err(Error::Byte)
     }
 }
 
