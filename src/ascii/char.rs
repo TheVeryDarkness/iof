@@ -331,7 +331,7 @@ const HEX_DIGITS: [Char; 16] = [
 ];
 
 macro_rules! impl_arith {
-    ($trait:ident $fn:ident $trait_assign:ident  $fn_assign:ident) => {
+    ($trait:ident $fn:ident $trait_assign:ident $fn_assign:ident) => {
         impl $trait<u8> for Char {
             type Output = Char;
 
