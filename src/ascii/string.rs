@@ -14,7 +14,7 @@ use super::char::{write_escaped, Char};
 /// A string that only contains ASCII characters.
 ///
 /// Similar to [`std::string::String`].
-#[derive(Clone, PartialEq, Eq, Hash)]
+#[derive(Clone, Default, PartialEq, Eq, Hash)]
 pub struct String {
     bytes: Vec<Char>,
 }
