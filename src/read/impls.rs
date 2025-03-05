@@ -5,10 +5,27 @@ use crate::{
 };
 use std::{ffi::OsString, net::*, num::*, path::PathBuf};
 
-// Implement `Parse` for all types that implement FromStr.
+// Implement `Parse` for some built-in types.
 impl_read_one_from_for_from_str!(
-    bool
+    /* char ASCIIChar */
+    String
+    ASCIIString
+    PathBuf
+    OsString
 
+    IpAddr Ipv4Addr Ipv6Addr
+    SocketAddr SocketAddrV4 SocketAddrV6
+);
+
+impl_read_one_from_for_from_str!(
+    // `bool` is a special case, which only accepts `"true"` and `"false"`.
+    bool => 'a'..='z'
+);
+
+impl_read_one_from_for_from_str!(
+    f32 f64 => '0'..='9' | 'a'..='z' | 'A'..='Z' | '.' | '-' | '+'
+);
+impl_read_one_from_for_from_str!(
     i8 u8
     i16 u16
     i32 u32
@@ -23,16 +40,7 @@ impl_read_one_from_for_from_str!(
     NonZeroI128 NonZeroU128
     NonZeroIsize NonZeroUsize
 
-    f32 f64
-
-    /* char ASCIIChar */
-    String
-    ASCIIString
-    PathBuf
-    OsString
-
-    IpAddr Ipv4Addr Ipv6Addr
-    SocketAddr SocketAddrV4 SocketAddrV6
+    => '0'..='9' | '.' | '-' | '+'
 );
 
 impl ReadOneFrom for char {
@@ -48,7 +56,7 @@ impl ReadOneFrom for char {
     #[inline]
     fn try_read_one_from<F: fmt::Format, S: BufReadExt>(
         stream: &mut S,
-        format: &F,
+        format: F,
     ) -> Result<Self, ReadOneFromError<Self>> {
         <Self as ReadOneFrom>::try_read_in_char_from(stream, format)
     }
@@ -67,7 +75,7 @@ impl ReadOneFrom for ASCIIChar {
     #[inline]
     fn try_read_one_from<F: fmt::Format, S: BufReadExt>(
         stream: &mut S,
-        format: &F,
+        format: F,
     ) -> Result<Self, ReadOneFromError<Self>> {
         <Self as ReadOneFrom>::try_read_in_char_from(stream, format)
     }

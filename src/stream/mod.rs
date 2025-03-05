@@ -2,7 +2,7 @@ use crate::utf8char::FixedUtf8Char;
 use error::StreamError;
 
 pub(super) mod error;
-mod ext;
+pub mod ext;
 pub(super) mod input_stream;
 pub(super) mod line_buf;
 #[cfg(test)]
@@ -20,9 +20,9 @@ pub(crate) const LF: FixedUtf8Char =
 pub(crate) const CR: FixedUtf8Char =
     unsafe { FixedUtf8Char::from_bytes_unchecked([b'\r', 0, 0, 0]) };
 
-/// End of line characters.
+// /// End of line characters.
 // const EOL: [FixedUtf8Char; 2] = [LF, CR];
-const CHAR_EOL: [char; 2] = ['\n', '\r'];
+// const CHAR_EOL: [char; 2] = ['\n', '\r'];
 
 // const fn is_eol(c: FixedUtf8Char) -> bool {
 //     matches!(c, LF | CR)

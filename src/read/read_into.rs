@@ -50,16 +50,16 @@ where
 
     #[inline]
     fn try_read(&mut self) -> Result<U, Self::Error> {
-        U::try_read_from(self, &Default)
+        U::try_read_from(self, Default::new())
     }
 
     #[inline]
     fn try_read_n(&mut self, n: usize) -> Result<Vec<U>, Self::Error> {
-        U::try_read_n_from(self, n, &Default)
+        U::try_read_n_from(self, n, Default::new())
     }
 
     #[inline]
     fn try_read_m_n(&mut self, m: usize, n: usize) -> Result<Mat<U>, Self::Error> {
-        U::try_read_m_n_from(self, m, n, &Default)
+        U::try_read_m_n_from(self, m, n, Default::new())
     }
 }

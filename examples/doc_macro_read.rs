@@ -19,7 +19,7 @@ fn main() {
         ],
     );
 
-    let v: Vec<i32> = read!(3; fmt = iof::fmt::CSV);
+    let v: Vec<i32> = read!(3; fmt = iof::fmt::csv());
     assert_eq!(v, [1, 2, 3]);
 
     let v: Vec<i32> = read!(3; skip = ";\r\n".chars());

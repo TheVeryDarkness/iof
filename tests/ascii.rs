@@ -18,7 +18,7 @@ fn ascii_char() {
     assert_eq!(c.to_string(), "1");
     assert_eq!(format!("{:?}", c), "'1'");
 
-    assert!(<ASCIIChar>::try_read_from(&mut reader, &Default).is_err());
+    assert!(<ASCIIChar>::try_read_from(&mut reader, Default::new()).is_err());
 }
 
 #[test]
@@ -32,7 +32,7 @@ fn ascii_char_2() {
     let b: ASCIIChar = reader.read();
     assert_eq!(b, ASCIIChar::SmallB);
 
-    assert!(<ASCIIChar>::try_read_from(&mut reader, &Default).is_err());
+    assert!(<ASCIIChar>::try_read_from(&mut reader, Default::new()).is_err());
 }
 
 #[test]
@@ -52,7 +52,7 @@ fn ascii_string_0_empty() {
     let vec: ASCIIString = reader.read();
     assert_eq!(vec, ASCIIString::from_str("a").unwrap());
 
-    assert!(<ASCIIChar>::try_read_from(&mut reader, &Default).is_err());
+    assert!(<ASCIIChar>::try_read_from(&mut reader, Default::new()).is_err());
 }
 
 #[test]
@@ -63,7 +63,7 @@ fn ascii_string_0() {
     let vec: ASCIIString = reader.read();
     assert_eq!(vec, ASCIIString::from_str("b").unwrap());
 
-    assert!(<ASCIIChar>::try_read_from(&mut reader, &Default).is_err());
+    assert!(<ASCIIChar>::try_read_from(&mut reader, Default::new()).is_err());
 }
 
 #[test]
@@ -74,7 +74,7 @@ fn ascii_string_1() {
     let vec: ASCIIString = reader.read();
     assert_eq!(vec, ASCIIString::from_str("a").unwrap());
 
-    assert!(<ASCIIChar>::try_read_from(&mut reader, &Default).is_err());
+    assert!(<ASCIIChar>::try_read_from(&mut reader, Default::new()).is_err());
 }
 
 #[test]
@@ -85,7 +85,7 @@ fn ascii_string_2() {
     let vec: ASCIIString = reader.read();
     assert_eq!(vec, ASCIIString::from_str("ab").unwrap());
 
-    assert!(<ASCIIChar>::try_read_from(&mut reader, &Default).is_err());
+    assert!(<ASCIIChar>::try_read_from(&mut reader, Default::new()).is_err());
 }
 
 #[test]

@@ -34,3 +34,11 @@ impl Iterator for IterFixedUtf8Char<'_> {
             .inspect(|c| self.bytes = &self.bytes[c.len_utf8()..])
     }
 }
+
+impl DoubleEndedIterator for IterFixedUtf8Char<'_> {
+    #[inline]
+    fn next_back(&mut self) -> Option<Self::Item> {
+        FixedUtf8Char::from_last_char(unsafe { from_utf8_unchecked(self.bytes) })
+            .inspect(|c| self.bytes = &self.bytes[..c.len_utf8()])
+    }
+}

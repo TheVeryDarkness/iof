@@ -58,7 +58,9 @@ impl<B: BufRead> BufReadExt<char> for InputStream<B> {
 mod tests {
     use crate::{
         fmt::{Default, Format},
-        stream::{error::StreamError, input_stream::InputStream},
+        stream::{
+            error::StreamError, ext::Any, input_stream::InputStream, traits::BufReadExtWithFormat,
+        },
         BufReadExt,
     };
     use std::io::Cursor;
@@ -105,24 +107,32 @@ mod tests {
         let s = "Hello, world!\nHello, Rust!";
         let mut stream = InputStream::new(Cursor::new(s));
         assert_eq!(
-            stream.try_get_string_some(Default.skipped_chars()).unwrap(),
+            stream
+                .try_get_string_some(Default::<char>::new().skip(), Any::new())
+                .unwrap(),
             "Hello,"
         );
         assert_eq!(
-            stream.try_get_string_some(Default.skipped_chars()).unwrap(),
+            stream
+                .try_get_string_some(Default::<char>::new().skip(), Any::new())
+                .unwrap(),
             "world!"
         );
         assert_eq!(
-            stream.try_get_string_some(Default.skipped_chars()).unwrap(),
+            stream
+                .try_get_string_some(Default::<char>::new().skip(), Any::new())
+                .unwrap(),
             "Hello,"
         );
         assert_eq!(
-            stream.try_get_string_some(Default.skipped_chars()).unwrap(),
+            stream
+                .try_get_string_some(Default::<char>::new().skip(), Any::new())
+                .unwrap(),
             "Rust!"
         );
         assert!(matches!(
             stream
-                .try_get_string_some(Default.skipped_chars())
+                .try_get_string_some(Default::<char>::new().skip(), Any::new())
                 .unwrap_err(),
             StreamError::Eof
         ),);

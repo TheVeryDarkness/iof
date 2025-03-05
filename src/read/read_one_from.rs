@@ -2,7 +2,13 @@ use super::{
     fmt::Format,
     iter::{ReadAll, ReadAllIn},
 };
-use crate::{BufReadExt, ReadError};
+use crate::{
+    stream::{
+        ext::{Any, Pattern},
+        traits::BufReadExtWithFormat,
+    },
+    BufReadExt, ReadError,
+};
 
 /// The error type for [ReadOneFrom].
 pub type ReadOneFromError<T> = ReadError<<T as ReadOneFrom>::ParseError>;
@@ -28,13 +34,18 @@ pub trait ReadOneFrom: Sized {
     /// Parse a string into `Self`.
     fn parse(s: &str) -> Result<Self, ReadError<Self::ParseError>>;
 
+    /// Check if a character is acceptable.
+    fn accept() -> impl Pattern<Item = char> {
+        Any::new()
+    }
+
     /// Read from `stream` and parse into `Self`.
     #[inline]
     fn try_read_one_from<F: Format, S: BufReadExt>(
         stream: &mut S,
-        format: &F,
+        format: F,
     ) -> Result<Self, ReadError<Self::ParseError>> {
-        let s = stream.try_get_string_some(format.skipped_chars())?;
+        let s = stream.try_get_string_some(format.skip(), Self::accept())?;
         Self::parse(s)
     }
 
@@ -42,9 +53,9 @@ pub trait ReadOneFrom: Sized {
     #[inline]
     fn try_read_in_char_from<F: Format, S: BufReadExt>(
         stream: &mut S,
-        format: &F,
+        format: F,
     ) -> Result<Self, ReadError<Self::ParseError>> {
-        let s = stream.try_get_non(format.skipped_chars())?;
+        let s = stream.try_get_non_skipped(format.skip())?;
         Self::parse(s.encode_utf8(&mut [0; 4]))
     }
 
@@ -52,11 +63,9 @@ pub trait ReadOneFrom: Sized {
     #[inline]
     fn try_read_in_line_trimmed_from<F: Format, S: BufReadExt>(
         stream: &mut S,
-        format: &F,
+        format: F,
     ) -> Result<Self, ReadError<Self::ParseError>> {
-        let s = stream
-            .try_get_line_trimmed(format.skipped_chars())?
-            .trim_start();
+        let s = stream.try_get_line_trimmed(format.skip())?.trim_start();
         Self::parse(s)
     }
 
@@ -64,10 +73,10 @@ pub trait ReadOneFrom: Sized {
     #[inline]
     fn try_read_in_line_some_trimmed_from<F: Format, S: BufReadExt>(
         stream: &mut S,
-        format: &F,
+        format: F,
     ) -> Result<Self, ReadError<Self::ParseError>> {
         let s = stream
-            .try_get_line_some_trimmed(format.skipped_chars())?
+            .try_get_line_some_trimmed(format.skip())?
             .trim_start();
         Self::parse(s)
     }
@@ -76,7 +85,7 @@ pub trait ReadOneFrom: Sized {
     #[inline]
     fn try_read_all_from<F: Format, S: BufReadExt>(
         stream: &mut S,
-        format: &F,
+        format: F,
     ) -> Result<Vec<Self>, ReadError<Self::ParseError>> {
         ReadAll::<F, S, Self>::new(stream, format).collect()
     }
@@ -85,22 +94,18 @@ pub trait ReadOneFrom: Sized {
     #[inline]
     fn try_read_any_in_line_from<F: Format, S: BufReadExt>(
         stream: &mut S,
-        format: &F,
+        format: F,
     ) -> Result<Vec<Self>, ReadError<Self::ParseError>> {
-        ReadAllIn::<F, Self>::new(stream.try_get_line_trimmed(format.skipped_chars())?, format)
-            .collect()
+        ReadAllIn::<F, Self>::new(stream.try_get_line_trimmed(format.skip())?, format).collect()
     }
 
     /// Read all elements in a non-empty line from `stream` into a [Vec] of `Self`.
     #[inline]
     fn try_read_some_in_line_from<F: Format, S: BufReadExt>(
         stream: &mut S,
-        format: &F,
+        format: F,
     ) -> Result<Vec<Self>, ReadError<Self::ParseError>> {
-        ReadAllIn::<F, Self>::new(
-            stream.try_get_line_some_trimmed(format.skipped_chars())?,
-            format,
-        )
-        .collect()
+        ReadAllIn::<F, Self>::new(stream.try_get_line_some_trimmed(format.skip())?, format)
+            .collect()
     }
 }

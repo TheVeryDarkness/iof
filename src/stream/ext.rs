@@ -2,38 +2,112 @@
 
 use super::{CR, LF};
 use crate::utf8char::{FixedUtf8Char, IterFixedUtf8Char};
+use std::{marker::PhantomData, ops::Not};
 
 /// Extension traits for characters.
-pub trait CharExt {
+pub trait CharExt: Copy {
+    /// End of line characters.
+    ///
+    /// Represents the characters `'\n'` and `'\r'` respectively.
+    const EOL: [Self; 2];
+
     /// Get the length of the character in UTF-8.
     fn len_utf8(&self) -> usize;
+
+    // /// Get an iterator over characters.
+    // fn chars_ext(s: &str) -> impl Iterator<Item = Self> + DoubleEndedIterator;
+
+    // /// Get the first character.
+    // fn first_char(s: &str) -> Option<Self>;
 }
 
 impl CharExt for FixedUtf8Char {
+    const EOL: [Self; 2] = [LF, CR];
+
     #[inline]
     fn len_utf8(&self) -> usize {
         Self::len_utf8(self)
     }
+
+    // #[inline]
+    // fn chars_ext(s: &str) -> impl Iterator<Item = Self> + DoubleEndedIterator {
+    //     IterFixedUtf8Char::new(s)
+    // }
+
+    // #[inline]
+    // fn first_char(s: &str) -> Option<Self> {
+    //     FixedUtf8Char::from_first_char(s)
+    // }
 }
 
 impl CharExt for char {
+    const EOL: [Self; 2] = ['\n', '\r'];
+
     #[inline]
     fn len_utf8(&self) -> usize {
         Self::len_utf8(*self)
     }
+
+    // #[inline]
+    // fn chars_ext(s: &str) -> impl Iterator<Item = Self> + DoubleEndedIterator {
+    //     s.chars()
+    // }
+
+    // #[inline]
+    // fn first_char(s: &str) -> Option<Self> {
+    //     s.chars().next()
+    // }
 }
 
 /// Extension traits for strings.
-pub trait StrExt<'s, C: CharExt> {
+pub trait StrExt<'s, C: CharExt>: Sized + Copy {
     /// An iterator over characters.
-    type Iterator: Iterator<Item = C>;
+    type Iterator: Iterator<Item = C> + DoubleEndedIterator;
 
     /// Get an iterator over characters.
     fn chars_ext(self) -> Self::Iterator;
 
     /// Get the first character.
-    fn first_char(self) -> Option<C>;
+    fn first_char(self) -> Option<C> {
+        self.chars_ext().next()
+    }
+
+    /// Split the string at the middle.
+    fn split(self, mid: usize) -> (Self, Self);
+
+    /// Get length of the string, in bytes.
+    fn len(self) -> usize;
+
+    /// Check if the string is empty.
+    #[inline]
+    fn is_empty(self) -> bool {
+        self.len() == 0
+    }
 }
+
+// impl<'s, Char: CharExt> StrExt<'s, Char> for &'s str {
+//     type Iterator = Char::Iter;
+
+//     #[inline]
+//     fn chars_ext(self) -> Self::Iterator {
+//         Char::chars_ext(self)
+//     }
+
+//     #[inline]
+//     fn first_char(self) -> Option<Char> {
+//         Char::first_char(self)
+//     }
+
+//     #[inline]
+//     fn split(self, mid: usize) -> (Self, Self) {
+//         self.split_at(mid)
+//     }
+
+//     #[inline]
+//     fn len(self) -> usize {
+//         self.len()
+//     }
+// }
 
 impl<'s> StrExt<'s, FixedUtf8Char> for &'s str {
     type Iterator = IterFixedUtf8Char<'s>;
@@ -46,6 +120,16 @@ impl<'s> StrExt<'s, FixedUtf8Char> for &'s str {
     #[inline]
     fn first_char(self) -> Option<FixedUtf8Char> {
         FixedUtf8Char::from_first_char(self)
+    }
+
+    #[inline]
+    fn split(self, mid: usize) -> (Self, Self) {
+        self.split_at(mid)
+    }
+
+    #[inline]
+    fn len(self) -> usize {
+        self.len()
     }
 }
 
@@ -61,32 +145,69 @@ impl<'s> StrExt<'s, char> for &'s str {
     fn first_char(self) -> Option<char> {
         self.chars().next()
     }
+
+    #[inline]
+    fn split(self, mid: usize) -> (Self, Self) {
+        self.split_at(mid)
+    }
+
+    #[inline]
+    fn len(self) -> usize {
+        self.len()
+    }
 }
 
 /// Extension trait for patterns.
-pub trait Pattern: Sized {
+pub trait Pattern: Sized + Copy
+where
+    for<'s> &'s str: StrExt<'s, <Self as Pattern>::Item>,
+{
     /// The item type.
     type Item: CharExt;
-
-    /// End of line characters.
-    ///
-    /// Represents the characters `'\n'` and `'\r'`.
-    const EOL: [Self::Item; 2];
 
     /// Check whether the character matches the pattern.
     fn matches(&self, c: Self::Item) -> bool;
 
     /// Trim the start of the string.
-    fn trim_start(self, s: &str) -> &str;
+    fn trim_start(self, s: &str) -> &str {
+        let mut cursor = 0;
+        for c in s.chars_ext() {
+            if self.matches(c) {
+                return &s[cursor..];
+            }
+            cursor += c.len_utf8();
+        }
+        s
+    }
 
     /// Trim the end of the string.
-    fn trim_end(self, s: &str) -> &str;
+    fn trim_end(self, s: &str) -> &str {
+        let mut cursor = s.len();
+        for c in s.chars_ext().rev() {
+            if self.matches(c) {
+                return &s[..cursor];
+            }
+            cursor -= c.len_utf8();
+        }
+        s
+    }
 
     /// Trim the string.
-    fn trim(self, s: &str) -> &str;
+    fn trim(self, s: &str) -> &str {
+        self.trim_end(self.trim_start(s))
+    }
 
     /// Find the first matching character.
-    fn find_first_matching(self, s: &str) -> Option<usize>;
+    fn find_first_matching(self, s: &str) -> Option<usize> {
+        let mut cursor = 0;
+        for c in s.chars_ext() {
+            if self.matches(c) {
+                return Some(cursor);
+            }
+            cursor += c.len_utf8();
+        }
+        None
+    }
 
     /// Find the first matching character or the whole length.
     ///
@@ -97,7 +218,16 @@ pub trait Pattern: Sized {
     }
 
     /// Find the first not matching character.
-    fn find_first_not_matching(self, s: &str) -> Option<usize>;
+    fn find_first_not_matching(self, s: &str) -> Option<usize> {
+        let mut cursor = 0;
+        for c in s.chars_ext() {
+            if !self.matches(c) {
+                return Some(cursor);
+            }
+            cursor += c.len_utf8();
+        }
+        None
+    }
 
     /// Find the first not matching character or the whole length.
     ///
@@ -106,12 +236,22 @@ pub trait Pattern: Sized {
     fn find_first_not_matching_or_whole_length(self, s: &str) -> usize {
         self.find_first_not_matching(s).unwrap_or(s.len())
     }
+
+    /// Subtract another pattern from this pattern.
+    #[inline]
+    fn except<B: Pattern<Item = Self::Item>>(self, b: B) -> Subtract<Self::Item, Self, B> {
+        Subtract::new(self, b)
+    }
+
+    /// Reverse the pattern.
+    #[inline]
+    fn not(self) -> Subtract<Self::Item, Any<Self::Item>, Self> {
+        Subtract::new(Any::new(), self)
+    }
 }
 
 impl Pattern for &[FixedUtf8Char] {
     type Item = FixedUtf8Char;
-
-    const EOL: [Self::Item; 2] = [LF, CR];
 
     #[inline]
     fn matches(&self, c: Self::Item) -> bool {
@@ -173,8 +313,6 @@ impl Pattern for &[FixedUtf8Char] {
 impl Pattern for &[char] {
     type Item = char;
 
-    const EOL: [Self::Item; 2] = ['\n', '\r'];
-
     #[inline]
     fn matches(&self, c: Self::Item) -> bool {
         self.contains(&c)
@@ -216,6 +354,73 @@ impl Pattern for &[char] {
     }
 }
 
+/// A pattern that matches any character.
+#[derive(Clone, Copy, Debug, Default, Eq, PartialEq)]
+pub struct Any<Char>(PhantomData<Char>);
+
+impl<Char> Any<Char> {
+    /// Create a new instance.
+    pub const fn new() -> Self {
+        Self(PhantomData)
+    }
+}
+
+impl<Char: CharExt> Pattern for Any<Char>
+where
+    for<'s> &'s str: StrExt<'s, Char>,
+{
+    type Item = Char;
+
+    fn matches(&self, _: Self::Item) -> bool {
+        true
+    }
+
+    fn trim_start(self, s: &str) -> &str {
+        &s[s.len()..]
+    }
+
+    fn trim_end(self, s: &str) -> &str {
+        &s[..0]
+    }
+
+    fn find_first_matching(self, s: &str) -> Option<usize> {
+        s.is_empty().not().then_some(0)
+    }
+
+    fn find_first_not_matching(self, s: &str) -> Option<usize> {
+        let _ = s;
+        None
+    }
+}
+
+/// A pattern that match `A` but not `B`.
+#[derive(Clone, Copy, Debug, Default, Eq, PartialEq)]
+pub struct Subtract<Char: CharExt, A: Pattern<Item = Char>, B: Pattern<Item = Char>>(A, B)
+where
+    for<'s> &'s str: StrExt<'s, Char>;
+
+impl<Char: CharExt, A: Pattern<Item = Char>, B: Pattern<Item = Char>> Subtract<Char, A, B>
+where
+    for<'s> &'s str: StrExt<'s, Char>,
+{
+    /// Create a new instance.
+    pub const fn new(a: A, b: B) -> Self {
+        Self(a, b)
+    }
+}
+
+impl<Char: CharExt, A: Pattern<Item = Char>, B: Pattern<Item = Char>> Pattern
+    for Subtract<Char, A, B>
+where
+    for<'s> &'s str: StrExt<'s, Char>,
+{
+    type Item = Char;
+
+    fn matches(&self, c: Self::Item) -> bool {
+        self.0.matches(c) && !self.1.matches(c)
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::{CharExt, Pattern};
@@ -229,7 +434,7 @@ mod tests {
         for<'a> &'a str: StrExt<'a, Char>,
         char: PartialEq<Char> + From<Char>,
     {
-        let ws = <&[Char] as Pattern>::EOL;
+        let ws = Char::EOL;
         let ws = ws.as_slice();
         assert!(ws.matches('\n'.into()));
         assert!(ws.matches('\r'.into()));

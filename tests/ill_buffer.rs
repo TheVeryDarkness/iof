@@ -1,7 +1,4 @@
-use iof::{
-    fmt::{Default, Format},
-    show, unwrap, BufReadExt, InputStream, ReadInto, ReadOneInto, WriteInto,
-};
+use iof::{show, unwrap, InputStream, ReadInto, ReadOneInto, WriteInto};
 use std::io::{self, Cursor};
 
 struct IllBuffer;

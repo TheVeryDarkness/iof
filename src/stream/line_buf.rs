@@ -46,8 +46,10 @@ impl BufReadExt<char> for LineBuf<'_> {
 #[cfg(test)]
 mod tests {
     use crate::{
-        fmt::{Default, Format},
-        stream::{error::StreamError, line_buf::LineBuf},
+        fmt::{Default, Format, Skip},
+        stream::{
+            error::StreamError, ext::Any, line_buf::LineBuf, traits::BufReadExtWithFormat as _,
+        },
         BufReadExt,
     };
 
@@ -71,7 +73,7 @@ mod tests {
         assert!(matches!(stream.try_get().unwrap_err(), StreamError::Eol));
         assert_eq!(
             stream
-                .try_get_string_some(Default.skipped_chars())
+                .try_get_string_some(Default::<char>::new().skip(), Any::new())
                 .unwrap_err()
                 .to_string(),
             StreamError::Eol.to_string(),
@@ -82,23 +84,17 @@ mod tests {
     fn try_get_string() {
         let s = "Hello, world!";
         let mut stream = LineBuf::new(s);
-        assert_eq!(
-            stream.try_get_string_some(Default.skipped_chars()).unwrap(),
-            "Hello,"
-        );
-        assert_eq!(
-            stream.try_get_string_some(Default.skipped_chars()).unwrap(),
-            "world!"
-        );
+        let d: Default<char> = Default::new();
+        let a = Any::new();
+        assert_eq!(stream.try_get_string_some(d.skip(), a).unwrap(), "Hello,");
+        assert_eq!(stream.try_get_string_some(d.skip(), a).unwrap(), "world!");
         assert!(matches!(
-            stream
-                .try_get_string_some(Default.skipped_chars())
-                .unwrap_err(),
+            stream.try_get_string_some(d.skip(), a).unwrap_err(),
             StreamError::Eol,
         ));
         assert_eq!(
             stream
-                .try_get_string_some(Default.skipped_chars())
+                .try_get_string_some(d.skip(), a)
                 .unwrap_err()
                 .to_string(),
             StreamError::Eol.to_string(),
@@ -111,23 +107,30 @@ mod tests {
         let mut stream = LineBuf::new(s);
         assert_eq!(
             stream
-                .try_get_until_in_line(&[','].map(Into::into))
+                .try_get_until_in_line(Skip::<char>::from_iter([',']).skip())
                 .unwrap(),
             "Hello",
         );
         assert_eq!(
             stream
-                .try_get_until_in_line(&['!'].map(Into::into))
+                .try_get_until_in_line(Skip::<char>::from_iter(['!']).skip())
                 .unwrap(),
             ", world",
         );
         assert_eq!(
             stream
-                .try_get_until_in_line(&['!'].map(Into::into))
+                .try_get_until_in_line(Skip::<char>::from_iter(['!']).skip())
                 .unwrap(),
             "",
         );
-        assert_eq!(stream.try_get_until_in_line(&[]).unwrap(), "!");
-        assert!(stream.try_get_until_in_line(&[]).is_err());
+        assert_eq!(
+            stream
+                .try_get_until_in_line(Skip::<char>::from_iter([' '; 0]).skip())
+                .unwrap(),
+            "!"
+        );
+        assert!(stream
+            .try_get_until_in_line(Skip::<char>::from_iter([' '; 0]).skip())
+            .is_err());
     }
 }

@@ -1,4 +1,4 @@
-use super::utf8_len_from_first_byte;
+use super::{is_utf8_continuation_byte, utf8_len_from_first_byte};
 use std::fmt::Display;
 
 /// A UTF-8 character that is fixed in size.
@@ -84,6 +84,30 @@ impl FixedUtf8Char {
         let byte = s.as_bytes().first()?;
         let l = unsafe { utf8_len_from_first_byte(*byte) };
         bytes[0..l].copy_from_slice(s.as_bytes().get(0..l)?);
+        Some(Self { bytes })
+    }
+    /// Get last character of the UTF-8 string.
+    ///
+    /// Returns `None` if the string is empty.
+    #[inline]
+    pub fn from_last_char(s: &str) -> Option<Self> {
+        let mut bytes = [0; 4];
+        let buf = s.as_bytes();
+        let (last, mut b) = buf.split_last()?;
+        if last.is_ascii() {
+            bytes[0] = *last;
+            return Some(Self { bytes });
+        }
+        let mut l = 1;
+        while let Some((last, b_)) = b.split_last() {
+            if unsafe { is_utf8_continuation_byte(*last) } {
+                l += 1;
+                b = b_;
+            } else {
+                break;
+            }
+        }
+        bytes[0..l].copy_from_slice(&buf[b.len()..]);
         Some(Self { bytes })
     }
 }

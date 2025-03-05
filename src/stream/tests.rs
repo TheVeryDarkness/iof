@@ -1,9 +1,11 @@
 use super::{
     ext::{self, CharExt},
     line_buf::LineBuf,
+    traits::BufReadExtWithFormat,
 };
 use crate::{
-    fmt::{Default, Format},
+    fmt::{Default, Format, Skip},
+    stream::ext::Any,
     unwrap, BufReadExt, InputStream,
 };
 use std::io::Cursor;
@@ -11,12 +13,15 @@ use std::io::Cursor;
 /// Test all methods.
 ///
 /// Pass "Hello, world!\r\n" to the stream and test all methods.
-fn all_1<Char: CharExt + Copy + From<char>>(stream: &mut impl BufReadExt<Char>)
+fn all_1<Char, S>(stream: &mut S)
 where
+    S: BufReadExt<Char> + BufReadExtWithFormat<Char>,
+    for<'a> &'a Skip<Char>: Format<Char>,
+    Char: CharExt + Copy + From<char> + Ord + PartialEq<char>,
     for<'a> &'a [Char]: ext::Pattern<Item = Char>,
     for<'a> &'a str: ext::StrExt<'a, Char>,
     char: From<Char>,
-    Default: Format<Char>,
+    Default<Char>: Format<Char>,
 {
     let c = unwrap!(stream.try_get());
     assert_eq!(c, 'H');
@@ -24,24 +29,22 @@ where
     let c = unwrap!(stream.try_peek());
     assert_eq!(c, 'e');
 
-    let c = unwrap!(stream.try_get_if(&['H', 'e'].map(Into::into)));
-    assert_eq!(c, Some('e'));
+    let c = unwrap!(stream.try_get_non_skipped(Default::<Char>::new().skip()));
+    assert_eq!(c, 'e');
 
     let nl = unwrap!(stream.try_skip_eol());
     assert!(nl.is_none());
 
-    assert!(stream.try_get_if(&[]).unwrap().is_none());
-
-    let c = unwrap!(stream.try_skip_all(&['l', 'o'].map(Into::into)));
+    let c = unwrap!(stream.try_skip_all(Skip::<Char>::from_iter(['l', 'o']).skip()));
     assert_eq!(c, 3);
 
-    let s = unwrap!(stream.try_skip_all(&[' ', '!'].map(Into::into)));
+    let s = unwrap!(stream.try_skip_all(Skip::<Char>::from_iter([' ', '!']).skip()));
     assert_eq!(s, 0);
 
-    let s = unwrap!(stream.try_get_until_in_line(&['!'].map(Into::into)));
+    let s = unwrap!(stream.try_get_until_in_line(Skip::<Char>::from_iter(['!']).skip()));
     assert_eq!(s, ", world");
 
-    let s = unwrap!(stream.try_get_string_some(Default.skipped_chars()));
+    let s = unwrap!(stream.try_get_string_some(Default::new().skip(), Any::new()));
     assert_eq!(s, "!");
 
     let c = unwrap!(stream.try_peek());
@@ -52,10 +55,7 @@ where
 
     assert!(stream.try_peek().is_err());
     assert!(stream.try_get().is_err());
-    assert!(stream
-        .try_get_if(&['H', 'e', 'l', 'o', ',', 'w', 'r', 'd', '!', '\r', '\n'].map(Into::into))
-        .is_err());
-    assert!(stream.try_get_if(&[]).is_err());
+    assert!(stream.try_get_non_skipped(Skip::new().skip()).is_err());
 }
 
 #[test]

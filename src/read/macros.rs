@@ -50,7 +50,7 @@
 /// [Format]: crate::fmt::Format
 ///
 /// ```rust
-/// use iof::{fmt::CSV, read, InputStream, Mat};
+/// use iof::{fmt::csv, read, InputStream, Mat};
 ///
 /// let a: usize = read!(; src = InputStream::new(b"42".as_slice()));
 /// assert_eq!(a, 42);
@@ -58,7 +58,7 @@
 /// let b: Vec<usize> = read!(3; src = InputStream::new(b"1 2 3".as_slice()));
 /// assert_eq!(b, [1, 2, 3]);
 ///
-/// let b: Vec<usize> = read!(3; src = InputStream::new(b"1, 2, 3".as_slice()); fmt = CSV);
+/// let b: Vec<usize> = read!(3; src = InputStream::new(b"1, 2, 3".as_slice()); fmt = csv());
 /// assert_eq!(b, [1, 2, 3]);
 ///
 /// let s = b"010\n101";
@@ -85,13 +85,13 @@ macro_rules! read {
     }};
     ($(,)? $(; src = $src:expr)? $(; fmt = $fmt:expr)?) => {{
         let src = $crate::argument_or_default!($(&mut $src)?, &mut *$crate::stdin());
-        let fmt = $crate::argument_or_default!($(&$fmt)?, &$crate::fmt::Default);
+        let fmt = $crate::argument_or_default!($(&$fmt)?, &$crate::fmt::Default::new());
         $crate::unwrap!($crate::ReadFrom::try_read_from(src, fmt))
     }};
     ($dim0:expr $(, $dims:expr)* $(,)? $(; src = $src:expr)? $(; fmt = $fmt:expr)?) => {{
         let range = 0usize..$dim0;
         let src = $crate::argument_or_default!($(&mut $src)?, &mut *$crate::stdin());
-        let fmt = $crate::argument_or_default!($(&$fmt)?, &$crate::fmt::Default);
+        let fmt = $crate::argument_or_default!($(&$fmt)?, &$crate::fmt::Default::new());
         ::std::vec::Vec::<_>::from_iter(range.map(|_| $crate::read!(@ $($dims, )*; src = src; fmt = fmt)))
     }};
     ($(,)? $(; src = $src:expr)? ; skip = $skip:expr) => {{
@@ -109,6 +109,12 @@ macro_rules! read {
 
 /// Implement [ReadOneFrom] for given types that already implement [std::str::FromStr].
 ///
+/// The intended grammar is:
+///
+/// ```rust,ignore
+/// $($ty:ty $(=> $accept:pat)?)*
+/// ```
+///
 /// Note that all types that are [ReadOneFrom] will also implement [ReadInto] automatically.
 ///
 /// [ReadOneFrom]: crate::ReadOneFrom
@@ -118,11 +124,63 @@ macro_rules! impl_read_one_from_for_from_str {
     ($($ty:ty)*) => {
         $(
             impl $crate::ReadOneFrom for $ty {
-                type ParseError = <Self as ::std::str::FromStr>::Err;
+                type ParseError = <Self as ::core::str::FromStr>::Err;
 
                 #[inline]
-                fn parse(s: &str) -> Result<Self, $crate::ReadOneFromError<Self>> {
-                    s.parse().map_err(|err| $crate::ReadError::FromStrError(err, s.to_owned(), ::std::any::type_name::<Self>()))
+                fn parse(s: &::core::primitive::str) -> Result<Self, $crate::ReadOneFromError<Self>> {
+                    s.parse().map_err(|err| $crate::ReadError::FromStrError(err, s.to_owned(), ::core::any::type_name::<Self>()))
+                }
+            }
+        )*
+    };
+    ($($ty:ty)* => $accept:pat) => {
+        $(
+            impl $crate::ReadOneFrom for $ty {
+                type ParseError = <Self as ::core::str::FromStr>::Err;
+
+                #[inline]
+                fn accept() -> impl $crate::stream::ext::Pattern<Item = char> {
+                    #[derive(Debug, Clone, Copy)]
+                    struct Accept;
+
+                    impl $crate::stream::ext::Pattern for Accept {
+                        type Item = char;
+
+                        #[inline]
+                        fn matches(&self, c: char) -> bool {
+                            match c {
+                                $accept => true,
+                                _ => false,
+                            }
+                        }
+
+                        /// Trim the start of the string.
+                        fn trim_start(self, s: &str) -> &str {
+                            s.trim_start_matches(|c| matches!(c, $accept))
+                        }
+
+                        /// Trim the end of the string.
+                        fn trim_end(self, s: &str) -> &str {
+                            s.trim_end_matches(|c| matches!(c, $accept))
+                        }
+
+                        /// Find the first matching character.
+                        fn find_first_matching(self, s: &str) -> Option<usize> {
+                            s.find(|c| matches!(c, $accept))
+                        }
+
+                        /// Find the first not matching character.
+                        fn find_first_not_matching(self, s: &str) -> Option<usize> {
+                            s.find(|c| !matches!(c, $accept))
+                        }
+                    }
+
+                    Accept
+                }
+
+                #[inline]
+                fn parse(s: &::core::primitive::str) -> Result<Self, $crate::ReadOneFromError<Self>> {
+                    s.parse().map_err(|err| $crate::ReadError::FromStrError(err, s.to_owned(), ::core::any::type_name::<Self>()))
                 }
             }
         )*

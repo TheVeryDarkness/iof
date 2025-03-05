@@ -25,6 +25,10 @@ mod tests;
 /// # Safety
 ///
 /// This function is unsafe because it does not check if the byte is a valid first byte of a UTF-8.
+///
+/// # Note
+///
+/// See [`std::str::Chars`] and [`std::str::Chars::next_back`] for more information.
 #[inline]
 const unsafe fn utf8_len_from_first_byte(byte: u8) -> usize {
     debug_assert!(matches!(byte, 0..=0x7F | 0xC0..=0xDF | 0xE0..=0xEF | 0xF0..=0xF7));
@@ -34,6 +38,20 @@ const unsafe fn utf8_len_from_first_byte(byte: u8) -> usize {
         0xE0..=0xEF => 3,
         _ => 4,
     }
+}
+
+/// Check if a byte is a UTF-8 continuation byte.
+///
+/// # Safety
+///
+/// This function is unsafe because it does not check if the byte is a valid UTF-8 continuation byte.
+///
+/// # Note
+///
+/// See [`std::str::Chars`] and [`std::str::Chars::next_back`] for more information.
+#[inline]
+const unsafe fn is_utf8_continuation_byte(byte: u8) -> bool {
+    byte & 0xC0 == 0x80
 }
 
 impl PartialEq<FixedUtf8Char> for Utf8Char {

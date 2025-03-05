@@ -428,7 +428,11 @@ pub use read::{
     read_one_into::ReadOneInto,
 };
 pub use stdio::{read_into::*, stdin, stdout, stream::*};
-pub use stream::{input_stream::InputStream, traits::BufReadExt};
+pub use stream::{
+    ext,
+    input_stream::InputStream,
+    traits::{BufReadExt, BufReadExtWithFormat},
+};
 pub use write::{
     dimension, separator,
     separators::{DefaultSeparator, Separators},
@@ -443,7 +447,7 @@ mod formatted;
 mod mat;
 mod read;
 mod stdio;
-mod stream;
+pub(crate) mod stream;
 pub mod utf8char;
 mod write;
 

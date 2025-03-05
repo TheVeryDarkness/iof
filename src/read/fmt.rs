@@ -1,67 +1,214 @@
 //! [Format] trait for input format and built-in formats.
 
 use crate::{
-    stream::{COMMA, CR, HT, LF, SP},
+    ext::CharExt,
+    stream::{
+        ext::{Pattern, StrExt},
+        COMMA, CR, HT, LF, SP,
+    },
     utf8char::FixedUtf8Char,
 };
+use std::marker::PhantomData;
 
 /// Trait for input format.
-pub trait Format<Char = char> {
-    /// Get the list of whitespace characters.
-    fn skipped_chars(&self) -> &[Char];
+pub trait Format<Char: CharExt = char>: Copy
+where
+    for<'s> &'s str: StrExt<'s, Char>,
+{
+    /// The type for skipped characters.
+    type Skip: Pattern<Item = Char>;
+    /// Get the pattern for skipped characters.
+    fn skip(self) -> Self::Skip;
+
+    // /// Check if the character should be skipped.
+    // ///
+    // /// # Note
+    // ///
+    // /// Normally this function should be marked with `#[inline]`.
+    // fn skip(self, c: Char) -> bool;
+
+    // /// Skip the prefix of a string.
+    // #[inline]
+    // fn skip_prefix<'s, S: StrExt<'s, Char>>(self, s: S) -> (S, S) {
+    //     let mut i = 0;
+    //     for c in s.chars_ext() {
+    //         if !self.skip(c) {
+    //             break;
+    //         }
+    //         i += c.len_utf8();
+    //     }
+    //     s.split(i)
+    // }
+
+    // /// Find the first not matching character.
+    // #[inline]
+    // fn find_first_not_skipped<'s, S: StrExt<'s, Char>>(self, s: S) -> Option<usize> {
+    //     let mut cursor = 0;
+    //     for c in s.chars_ext() {
+    //         if !self.skip(c) {
+    //             return Some(cursor);
+    //         }
+    //         cursor += c.len_utf8();
+    //     }
+    //     None
+    // }
+
+    // /// Find the first not matching character or the whole length.
+    // ///
+    // /// Returns the whole length if the string is fully matching.
+    // #[inline]
+    // fn find_first_not_skipped_or_whole_length<'s, S: StrExt<'s, Char>>(self, s: S) -> usize {
+    //     self.find_first_not_skipped(s).unwrap_or(s.len())
+    // }
+
+    // /// Find the first matching character.
+    // #[inline]
+    // fn find_first_skipped<'s, S: StrExt<'s, Char>>(self, s: S) -> Option<usize> {
+    //     let mut cursor = 0;
+    //     for c in s.chars_ext() {
+    //         if self.skip(c) {
+    //             return Some(cursor);
+    //         }
+    //         cursor += c.len_utf8();
+    //     }
+    //     None
+    // }
+
+    // /// Find the first matching character or the whole length.
+    // ///
+    // /// Returns the whole length if the string is fully not matching.
+    // #[inline]
+    // fn find_first_skipped_or_whole_length<'s, S: StrExt<'s, Char>>(self, s: S) -> usize {
+    //     self.find_first_skipped(s).unwrap_or(s.len())
+    // }
+
+    // /// Trim the end of a string.
+    // #[inline]
+    // fn trim_end<'s, S: StrExt<'s, Char>>(self, s: S) -> S {
+    //     let i = self.find_first_skipped_or_whole_length(s);
+    //     s.split(i).0
+    // }
+
+    // /// Trim the start of a string.
+    // #[inline]
+    // fn trim_start<'s, S: StrExt<'s, Char>>(self, s: S) -> S {
+    //     // 0..i is the prefix to skip.
+    //     let i = self.find_first_not_skipped_or_whole_length(s);
+    //     s.split(i).1
+    // }
+
+    // /// Trim the start and end of a string.
+    // #[inline]
+    // fn trim<'s, S: StrExt<'s, Char>>(self, s: S) -> S {
+    //     self.trim_end(self.trim_start(s))
+    // }
 }
 
-impl<L: Format<Char> + ?Sized, Char> Format<Char> for &L {
-    #[inline]
-    fn skipped_chars(&self) -> &[Char] {
-        <L as Format<Char>>::skipped_chars(self)
+impl<L: Format<Char>, Char: CharExt> Format<Char> for &L
+where
+    for<'s> &'s str: StrExt<'s, Char>,
+{
+    type Skip = L::Skip;
+    fn skip(self) -> Self::Skip {
+        L::skip(*self)
     }
+    // #[inline]
+    // fn skip(self, c: Char) -> bool {
+    //     <L as Format<Char>>::skip(*self, c)
+    // }
 }
+
+// impl<Char: CharExt> Format<Char> for fn(Char) -> bool {
+//     #[inline]
+//     fn skip(self, c: Char) -> bool {
+//         self(c)
+//     }
+// }
 
 /// Default Format.
 ///
 /// Whitespace characters here are `' '`, `'\t'`, `'\n'`, and `'\r'`.
-pub struct Default;
+#[derive(Debug, Clone, Copy, Default)]
+pub struct Default<Char>(PhantomData<Char>);
 
-const WHITE_SPACES: [FixedUtf8Char; 4] = [SP, HT, LF, CR];
-
-impl Format<FixedUtf8Char> for Default {
-    #[inline]
-    fn skipped_chars(&self) -> &[FixedUtf8Char] {
-        &WHITE_SPACES
+impl<Char> Default<Char> {
+    /// Create a new instance.
+    pub const fn new() -> Self {
+        Self(PhantomData)
     }
 }
 
-impl Format<char> for Default {
-    #[inline]
-    fn skipped_chars(&self) -> &[char] {
+const WHITE_SPACES: [FixedUtf8Char; 4] = [SP, HT, LF, CR];
+
+impl Format<FixedUtf8Char> for Default<FixedUtf8Char> {
+    type Skip = &'static [FixedUtf8Char];
+    fn skip(self) -> Self::Skip {
+        &WHITE_SPACES
+    }
+    // #[inline]
+    // fn skip(self, c: FixedUtf8Char) -> bool {
+    //     WHITE_SPACES.contains(&c)
+    // }
+}
+
+impl Format<char> for Default<char> {
+    type Skip = &'static [char];
+    fn skip(self) -> Self::Skip {
         &[' ', '\t', '\n', '\r']
     }
+    // #[inline]
+    // fn skip(self, c: char) -> bool {
+    //     [' ', '\t', '\n', '\r'].contains(&c)
+    // }
 }
 
 /// Format for CSV.
 ///
 /// Whitespace characters here are `' '`, `'\t'`, `','`, `'\n'`, and `'\r'`.
-pub struct CSV;
+#[derive(Debug, Clone, Copy, Default)]
+pub struct CSV<Char>(PhantomData<Char>);
+
+impl<Char> CSV<Char> {
+    /// Create a new instance.
+    pub const fn new() -> Self {
+        Self(PhantomData)
+    }
+}
 
 const CSV_SEP: [FixedUtf8Char; 5] = [SP, HT, COMMA, LF, CR];
 
-impl Format<FixedUtf8Char> for CSV {
-    #[inline]
-    fn skipped_chars(&self) -> &[FixedUtf8Char] {
+impl Format<FixedUtf8Char> for CSV<FixedUtf8Char> {
+    type Skip = &'static [FixedUtf8Char];
+    fn skip(self) -> Self::Skip {
         &CSV_SEP
     }
+    // #[inline]
+    // fn skip(self, c: FixedUtf8Char) -> bool {
+    //     CSV_SEP.contains(&c)
+    // }
 }
 
-impl Format<char> for CSV {
-    #[inline]
-    fn skipped_chars(&self) -> &[char] {
+impl Format<char> for CSV<char> {
+    type Skip = &'static [char];
+    fn skip(self) -> Self::Skip {
         &[' ', '\t', ',', '\n', '\r']
     }
+    // #[inline]
+    // fn skip(self, c: char) -> bool {
+    //     [' ', '\t', ',', '\n', '\r'].contains(&c)
+    // }
 }
 
 /// Special format that skip the given characters.
+#[derive(Debug, Clone, Default)]
 pub struct Skip<Char = char>(Vec<Char>);
+
+impl<Char> Skip<Char> {
+    /// Create a new instance.
+    pub const fn new() -> Self {
+        Self(Vec::new())
+    }
+}
 
 impl<Char: From<C> + Ord, C> FromIterator<C> for Skip<Char> {
     #[inline]
@@ -73,18 +220,38 @@ impl<Char: From<C> + Ord, C> FromIterator<C> for Skip<Char> {
     }
 }
 
-impl Format<FixedUtf8Char> for Skip<FixedUtf8Char> {
-    #[inline]
-    fn skipped_chars(&self) -> &[FixedUtf8Char] {
+impl<'s> Format<FixedUtf8Char> for &'s Skip<FixedUtf8Char> {
+    type Skip = &'s [FixedUtf8Char];
+    fn skip(self) -> Self::Skip {
         &self.0
     }
+    // #[inline]
+    // fn skip(self, c: FixedUtf8Char) -> bool {
+    //     self.0.contains(&c)
+    // }
 }
 
-impl Format<char> for Skip<char> {
-    #[inline]
-    fn skipped_chars(&self) -> &[char] {
+impl<'s> Format<char> for &'s Skip<char> {
+    type Skip = &'s [char];
+    fn skip(self) -> Self::Skip {
         &self.0
     }
+    // #[inline]
+    // fn skip(self, c: char) -> bool {
+    //     self.0.contains(&c)
+    // }
+}
+
+/// Create a [Format] instance that skip `' '`, `'\t'`, `'\n'`, and `'\r'`.
+#[inline]
+pub fn default<Char>() -> Default<Char> {
+    Default::new()
+}
+
+/// Create a [Format] instance that skip `' '`, `'\t'`, `','`, `'\n'`, and `'\r'`.
+#[inline]
+pub fn csv<Char>() -> CSV<Char> {
+    CSV::new()
 }
 
 /// Create a [Format] instance that skip the given characters.
@@ -97,41 +264,49 @@ pub fn skip<Char: Ord, T: IntoIterator<Item = Char>>(iter: T) -> Skip<Char> {
 mod tests {
     use super::Default;
     use crate::{
+        ext::Pattern as _,
         fmt::{Format, Skip, CSV, WHITE_SPACES},
         utf8char::FixedUtf8Char,
     };
 
-    #[test]
-    fn equivalence() {
+    fn equivalence_for(c: char) {
         assert_eq!(
-            <Default as Format<char>>::skipped_chars(&Default),
-            <Default as Format<FixedUtf8Char>>::skipped_chars(&Default),
+            Default::<char>::new().skip().matches(c),
+            Default::<FixedUtf8Char>::new().skip().matches(c.into()),
         );
         assert_eq!(
-            <&Default as Format<char>>::skipped_chars(&&Default),
-            <&Default as Format<FixedUtf8Char>>::skipped_chars(&&Default),
+            Default::<char>::new().skip().matches(c),
+            Default::<FixedUtf8Char>::new().skip().matches(c.into()),
         );
         assert_eq!(
-            <CSV as Format<char>>::skipped_chars(&CSV),
-            <CSV as Format<FixedUtf8Char>>::skipped_chars(&CSV),
+            CSV::<char>::new().skip().matches(c),
+            CSV::<FixedUtf8Char>::new().skip().matches(c.into()),
         );
         assert_eq!(
-            <&CSV as Format<char>>::skipped_chars(&&CSV),
-            <&CSV as Format<FixedUtf8Char>>::skipped_chars(&&CSV),
+            CSV::<char>::new().skip().matches(c),
+            CSV::<FixedUtf8Char>::new().skip().matches(c.into()),
         );
 
         let seps = [' ', '\t', '\n', '\r'];
         assert_eq!(
-            <Skip<char> as Format<char>>::skipped_chars(&FromIterator::from_iter(seps)),
-            <Skip<FixedUtf8Char> as Format<FixedUtf8Char>>::skipped_chars(
-                &FromIterator::from_iter(seps)
-            ),
+            Skip::<char>::from_iter(seps).skip().matches(c),
+            Skip::<FixedUtf8Char>::from_iter(seps)
+                .skip()
+                .matches(c.into()),
         );
         assert_eq!(
-            <Skip<char> as Format<char>>::skipped_chars(&FromIterator::from_iter(WHITE_SPACES)),
-            <Skip<FixedUtf8Char> as Format<FixedUtf8Char>>::skipped_chars(
-                &FromIterator::from_iter(WHITE_SPACES)
-            ),
+            Skip::<char>::from_iter(WHITE_SPACES).skip().matches(c),
+            Skip::<FixedUtf8Char>::from_iter(WHITE_SPACES)
+                .skip()
+                .matches(c.into()),
         );
+    }
+
+    #[test]
+    fn equivalence() {
+        equivalence_for(' ');
+        equivalence_for('\t');
+        equivalence_for('\n');
+        equivalence_for('\r');
     }
 }

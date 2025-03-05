@@ -22,14 +22,14 @@ pub trait ReadFrom: Sized {
     /// Read from `self` and parse into `Self`.
     fn try_read_from<F: Format, S: BufReadExt>(
         stream: &mut S,
-        format: &F,
+        format: F,
     ) -> Result<Self, ReadFromError<Self>>;
     /// Read `n` elements from `self`, parse into `Self` and aggregate them into a single [Vec].
     #[inline]
     fn try_read_n_from<F: Format, S: BufReadExt>(
         stream: &mut S,
         n: usize,
-        format: &F,
+        format: F,
     ) -> Result<Vec<Self>, ReadFromError<Self>> {
         let mut res = Vec::with_capacity(n);
         for _ in 0..n {
@@ -43,7 +43,7 @@ pub trait ReadFrom: Sized {
         stream: &mut S,
         m: usize,
         n: usize,
-        format: &F,
+        format: F,
     ) -> Result<Mat<Self>, ReadFromError<Self>> {
         let mut res = Mat::with_capacity(m);
         for _ in 0..m {
@@ -59,7 +59,7 @@ impl<T: ReadOneFrom> ReadFrom for T {
     #[inline]
     fn try_read_from<F: Format, S: BufReadExt>(
         stream: &mut S,
-        format: &F,
+        format: F,
     ) -> Result<T, ReadFromError<Self>> {
         Self::try_read_one_from(stream, format)
     }
@@ -71,7 +71,7 @@ impl<T: ReadFrom, const N: usize> ReadFrom for [T; N] {
     #[inline]
     fn try_read_from<F: Format, S: BufReadExt>(
         stream: &mut S,
-        format: &F,
+        format: F,
     ) -> Result<Self, ReadFromError<Self>> {
         array_try_from_fn(|| T::try_read_from(stream, format))
     }
@@ -83,7 +83,7 @@ impl<T: ReadFrom, const N: usize> ReadFrom for Box<[T; N]> {
     #[inline]
     fn try_read_from<F: Format, S: BufReadExt>(
         stream: &mut S,
-        format: &F,
+        format: F,
     ) -> Result<Box<[T; N]>, ReadFromError<Self>> {
         let res = T::try_read_n_from(stream, N, format)?
             .into_boxed_slice()
@@ -106,7 +106,7 @@ impl<T: ReadOneFrom> ReadFrom for Vec<T> {
     #[inline]
     fn try_read_from<F: Format, S: BufReadExt>(
         stream: &mut S,
-        format: &F,
+        format: F,
     ) -> Result<Vec<T>, ReadFromError<Self>> {
         T::try_read_some_in_line_from(stream, format)
     }

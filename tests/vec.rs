@@ -11,7 +11,7 @@ fn read_n() {
     assert_eq!(vec, &[1, 2, 3]);
     assert_eq!(vec.sep_by(&" ").to_string(), "1 2 3");
 
-    assert!(<u32>::try_read_n_from(&mut reader, 1, &Default).is_err());
+    assert!(<u32>::try_read_n_from(&mut reader, 1, Default::new()).is_err());
 }
 
 #[test]
@@ -28,7 +28,7 @@ fn read() {
     let c: Vec<u32> = reader.read();
     assert_eq!(c, [7, 8]);
 
-    assert!(<Vec<u32>>::try_read_from(&mut reader, &Default).is_err());
+    assert!(<Vec<u32>>::try_read_from(&mut reader, Default::new()).is_err());
 }
 
 #[test]
@@ -42,7 +42,7 @@ fn read_one_then_read_2() {
     let b: Vec<u32> = reader.read();
     assert_eq!(b, [2, 3]);
 
-    assert!(<u32>::try_read_from(&mut reader, &Default).is_err());
+    assert!(<u32>::try_read_from(&mut reader, Default::new()).is_err());
 }
 
 #[test]
@@ -59,9 +59,9 @@ fn read_one_then_read_0() {
     let a: u32 = reader.read_one();
     assert_eq!(a, 3);
 
-    assert!(<u32>::try_read_from(&mut reader, &Default).is_err());
-    assert!(<Vec<u32>>::try_read_from(&mut reader, &Default).is_err());
-    assert!(<Vec<u32>>::try_read_from(&mut reader, &Default).is_err());
+    assert!(<u32>::try_read_from(&mut reader, Default::new()).is_err());
+    assert!(<Vec<u32>>::try_read_from(&mut reader, Default::new()).is_err());
+    assert!(<Vec<u32>>::try_read_from(&mut reader, Default::new()).is_err());
 }
 
 #[test]
@@ -77,7 +77,7 @@ fn read_any_in_line() {
     let a: Vec<u32> = reader.read_any_in_line();
     assert_eq!(a, vec![1, 2, 3]);
 
-    assert!(<u32>::try_read_any_in_line_from(&mut reader, &Default).is_err());
+    assert!(<u32>::try_read_any_in_line_from(&mut reader, Default::new()).is_err());
 }
 
 #[test]
@@ -106,7 +106,7 @@ fn read_char_3() {
     let a: Vec<char> = reader.read();
     assert_eq!(a, ['1', '2', '3']);
 
-    assert!(<char>::try_read_from(&mut reader, &Default).is_err());
+    assert!(<char>::try_read_from(&mut reader, Default::new()).is_err());
 }
 
 #[test]
@@ -117,7 +117,7 @@ fn read_ascii_3() {
     let a: Vec<ASCIIChar> = reader.read();
     assert_eq!(a, ['1', '2', '3']);
 
-    assert!(<char>::try_read_from(&mut reader, &Default).is_err());
+    assert!(<char>::try_read_from(&mut reader, Default::new()).is_err());
 
     let mut s = Vec::new();
     show!(a => s);
@@ -147,7 +147,7 @@ fn read_all_encoding_error() {
 }
 
 #[test]
-#[should_panic = "Error during converting a string \",1\" to a value of `u32`: invalid digit found in string"]
+#[should_panic = "Error during converting a string \"\" to a value of `u32`: cannot parse integer from empty string"]
 fn read_all_digit_error() {
     let reader = Cursor::new("3 2 ,1".as_bytes());
     let mut reader = InputStream::new(reader);

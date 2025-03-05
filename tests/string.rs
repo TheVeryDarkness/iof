@@ -19,7 +19,7 @@ fn read_strings() {
     let world: String = reader.read();
     assert_eq!(hello, "Hello,");
     assert_eq!(world, "World!");
-    assert!(<String>::try_read_from(&mut reader, &Default).is_err());
+    assert!(<String>::try_read_from(&mut reader, Default::new()).is_err());
 }
 
 #[test]
@@ -29,7 +29,7 @@ fn read_string_vec() {
 
     let strings: Vec<String> = reader.read_n(4);
     assert_eq!(strings, vec!["There", "are", "4", "strings."]);
-    assert!(<String>::try_read_from(&mut reader, &Default).is_err());
+    assert!(<String>::try_read_from(&mut reader, Default::new()).is_err());
 }
 
 #[test]
@@ -39,7 +39,7 @@ fn read_all_strings() {
 
     let strings: Vec<String> = reader.read_all();
     assert_eq!(strings, vec!["There", "are", "4", "strings."]);
-    assert!(<String>::try_read_from(&mut reader, &Default).is_err());
+    assert!(<String>::try_read_from(&mut reader, Default::new()).is_err());
 }
 
 #[test]
@@ -49,7 +49,7 @@ fn read_line() {
 
     let strings: String = reader.read_in_line_some_trimmed();
     assert_eq!(strings, "There are 4 strings.");
-    assert!(<String>::try_read_from(&mut reader, &Default).is_err());
+    assert!(<String>::try_read_from(&mut reader, Default::new()).is_err());
 }
 
 #[test]
@@ -63,7 +63,7 @@ fn read_in_line() {
     let b: String = reader.read_in_line_trimmed();
     assert_eq!(b, "There are 3 lines.");
 
-    assert!(<String>::try_read_some_in_line_from(&mut reader, &Default).is_err());
+    assert!(<String>::try_read_some_in_line_from(&mut reader, Default::new()).is_err());
 }
 
 #[test]
@@ -73,7 +73,7 @@ fn read_in_line_some_trimmed_spaces() {
 
     let s: String = reader.read_in_line_some_trimmed();
     assert_eq!(s, "s");
-    assert!(<String>::try_read_some_in_line_from(&mut reader, &Default).is_err());
+    assert!(<String>::try_read_some_in_line_from(&mut reader, Default::new()).is_err());
 }
 
 #[test]
@@ -111,7 +111,7 @@ fn read_unicode() {
     let s: String = reader.read();
     assert_eq!(s, "καλημέρα");
 
-    assert!(<String>::try_read_from(&mut reader, &Default).is_err());
+    assert!(<String>::try_read_from(&mut reader, Default::new()).is_err());
 }
 
 #[test]
@@ -131,7 +131,7 @@ fn read_in_line_trimmed_unicode() {
     let s: String = reader.read_in_line_trimmed();
     assert_eq!(s, "καλημέρα");
 
-    assert!(<String>::try_read_in_line_trimmed_from(&mut reader, &Default).is_err());
+    assert!(<String>::try_read_in_line_trimmed_from(&mut reader, Default::new()).is_err());
 }
 
 #[test]
@@ -151,7 +151,7 @@ fn read_in_line_some_unicode() {
     let s: String = reader.read_in_line_some_trimmed();
     assert_eq!(s, "καλημέρα");
 
-    assert!(<String>::try_read_in_line_some_trimmed_from(&mut reader, &Default).is_err());
+    assert!(<String>::try_read_in_line_some_trimmed_from(&mut reader, Default::new()).is_err());
 }
 
 #[test]
