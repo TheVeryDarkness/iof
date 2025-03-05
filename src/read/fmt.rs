@@ -264,12 +264,12 @@ pub fn skip<Char: Ord, T: IntoIterator<Item = Char>>(iter: T) -> Skip<Char> {
 mod tests {
     use super::Default;
     use crate::{
-        ext::Pattern as _,
+        ext::{Any, Pattern as _},
         fmt::{Format, Skip, CSV, WHITE_SPACES},
         utf8char::FixedUtf8Char,
     };
 
-    fn equivalence_for(c: char) {
+    fn equivalence_for_char(c: char) {
         assert_eq!(
             Default::<char>::new().skip().matches(c),
             Default::<FixedUtf8Char>::new().skip().matches(c.into()),
@@ -303,10 +303,49 @@ mod tests {
     }
 
     #[test]
-    fn equivalence() {
-        equivalence_for(' ');
-        equivalence_for('\t');
-        equivalence_for('\n');
-        equivalence_for('\r');
+    fn equivalence_char() {
+        equivalence_for_char(' ');
+        equivalence_for_char('\t');
+        equivalence_for_char('\n');
+        equivalence_for_char('\r');
+        equivalence_for_char('a');
+        equivalence_for_char('å');
+        equivalence_for_char('🦀');
+        equivalence_for_char('中');
+        equivalence_for_char('文');
+    }
+
+    fn equivalence_for_string(s: &str) {
+        assert_eq!(
+            Default::<char>::new().skip().trim_end(s),
+            Default::<FixedUtf8Char>::new().skip().trim_end(s),
+        );
+        assert_eq!(
+            Default::<char>::new().skip().trim(s),
+            Default::<FixedUtf8Char>::new().skip().trim(s),
+        );
+    }
+
+    #[test]
+    fn equivalence_string() {
+        equivalence_for_string(" ");
+        equivalence_for_string("\t");
+        equivalence_for_string("\n");
+        equivalence_for_string("\r");
+        equivalence_for_string("a");
+        equivalence_for_string("å");
+        equivalence_for_string("🦀");
+        equivalence_for_string("中");
+        equivalence_for_string("文");
+    }
+
+    #[test]
+    fn any() {
+        for s in [" ", "\t", "\n", "\r", "a", "å", "🦀", "中", "文"].iter() {
+            let d = Any::<char>::new();
+            assert_eq!(d.trim_start(s), "");
+            assert_eq!(d.trim_end(s), "");
+            assert_eq!(d.trim(s), "");
+        }
     }
 }

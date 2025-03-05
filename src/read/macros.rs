@@ -139,40 +139,37 @@ macro_rules! impl_read_one_from_for_from_str {
                 type ParseError = <Self as ::core::str::FromStr>::Err;
 
                 #[inline]
-                fn accept() -> impl $crate::stream::ext::Pattern<Item = char> {
+                fn accept() -> impl $crate::ext::Pattern<Item = char> {
                     #[derive(Debug, Clone, Copy)]
                     struct Accept;
 
-                    impl $crate::stream::ext::Pattern for Accept {
+                    impl $crate::ext::Pattern for Accept {
                         type Item = char;
 
                         #[inline]
                         fn matches(&self, c: char) -> bool {
-                            match c {
-                                $accept => true,
-                                _ => false,
-                            }
+                            ::core::matches!(c, $accept)
                         }
 
-                        /// Trim the start of the string.
-                        fn trim_start(self, s: &str) -> &str {
-                            s.trim_start_matches(|c| matches!(c, $accept))
-                        }
+                        // /// Trim the start of the string.
+                        // fn trim_start(self, s: &str) -> &str {
+                        //     s.trim_start_matches(|c| matches!(c, $accept))
+                        // }
 
-                        /// Trim the end of the string.
-                        fn trim_end(self, s: &str) -> &str {
-                            s.trim_end_matches(|c| matches!(c, $accept))
-                        }
+                        // /// Trim the end of the string.
+                        // fn trim_end(self, s: &str) -> &str {
+                        //     s.trim_end_matches(|c| matches!(c, $accept))
+                        // }
 
-                        /// Find the first matching character.
-                        fn find_first_matching(self, s: &str) -> Option<usize> {
-                            s.find(|c| matches!(c, $accept))
-                        }
+                        // /// Find the first matching character.
+                        // fn find_first_matching(self, s: &str) -> Option<usize> {
+                        //     s.find(|c| matches!(c, $accept))
+                        // }
 
-                        /// Find the first not matching character.
-                        fn find_first_not_matching(self, s: &str) -> Option<usize> {
-                            s.find(|c| !matches!(c, $accept))
-                        }
+                        // /// Find the first not matching character.
+                        // fn find_first_not_matching(self, s: &str) -> Option<usize> {
+                        //     s.find(|c| !matches!(c, $accept))
+                        // }
                     }
 
                     Accept

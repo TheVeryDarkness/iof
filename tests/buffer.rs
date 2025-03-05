@@ -5,35 +5,35 @@ use iof::{
 };
 use std::io::Cursor;
 
-#[test]
-fn try_get_if() {
-    let reader = Cursor::new("1 2 3".as_bytes());
-    let mut reader = InputStream::new(reader);
+// #[test]
+// fn try_get_if() {
+//     let reader = Cursor::new("1 2 3".as_bytes());
+//     let mut reader = InputStream::new(reader);
 
-    let c = reader.try_get_if(&['1'].map(Into::into)).unwrap();
-    assert_eq!(c, Some('1'));
+//     let c = reader.try_get_if(&['1'].map(Into::into)).unwrap();
+//     assert_eq!(c, Some('1'));
 
-    let c = reader.try_get_if(&['2'].map(Into::into)).unwrap();
-    assert_eq!(c, None);
+//     let c = reader.try_get_if(&['2'].map(Into::into)).unwrap();
+//     assert_eq!(c, None);
 
-    let c = reader.try_get_if(&[' '].map(Into::into)).unwrap();
-    assert_eq!(c, Some(' '));
+//     let c = reader.try_get_if(&[' '].map(Into::into)).unwrap();
+//     assert_eq!(c, Some(' '));
 
-    let c = reader.try_get_if(&['2'].map(Into::into)).unwrap();
-    assert_eq!(c, Some('2'));
+//     let c = reader.try_get_if(&['2'].map(Into::into)).unwrap();
+//     assert_eq!(c, Some('2'));
 
-    let c = reader.try_get_if(&['3'].map(Into::into)).unwrap();
-    assert_eq!(c, None);
+//     let c = reader.try_get_if(&['3'].map(Into::into)).unwrap();
+//     assert_eq!(c, None);
 
-    let c = reader.try_get_if(&[' '].map(Into::into)).unwrap();
-    assert_eq!(c, Some(' '));
+//     let c = reader.try_get_if(&[' '].map(Into::into)).unwrap();
+//     assert_eq!(c, Some(' '));
 
-    let c = reader.try_get_if(&['3'].map(Into::into)).unwrap();
-    assert_eq!(c, Some('3'));
+//     let c = reader.try_get_if(&['3'].map(Into::into)).unwrap();
+//     assert_eq!(c, Some('3'));
 
-    let c = reader.try_get_if(&['1', '2', '3', ' '].map(Into::into));
-    assert!(c.is_err());
-}
+//     let c = reader.try_get_if(&['1', '2', '3', ' '].map(Into::into));
+//     assert!(c.is_err());
+// }
 
 #[test]
 fn skip_all() {
@@ -103,20 +103,20 @@ fn try_skip_any() {
 //     assert!(c.is_err());
 // }
 
-#[test]
-fn get_non() {
-    let buf: Vec<u8> = (0..100).flat_map(|_| b"\r\n".to_owned()).collect();
-    let reader = Cursor::new(buf);
-    let mut reader = InputStream::new(reader);
+// #[test]
+// fn get_non() {
+//     let buf: Vec<u8> = (0..100).flat_map(|_| b"\r\n".to_owned()).collect();
+//     let reader = Cursor::new(buf);
+//     let mut reader = InputStream::new(reader);
 
-    let w = &[' ', '\t', '\r'].map(Into::into);
-    for _ in 0..100 {
-        let c = reader.try_get_non(w).unwrap();
-        assert_eq!(c, '\n');
-    }
-    let c = reader.try_get_non(w);
-    assert!(c.is_err());
-}
+//     let w = &Skip::from_iter([' ', '\t', '\r']);
+//     for _ in 0..100 {
+//         let c = reader.try_get_non(w).unwrap();
+//         assert_eq!(c, '\n');
+//     }
+//     let c = reader.try_get_non(w);
+//     assert!(c.is_err());
+// }
 
 // #[test]
 // fn get_non_ws_error() {

@@ -31,6 +31,12 @@ mod tests;
 /// See [`std::str::Chars`] and [`std::str::Chars::next_back`] for more information.
 #[inline]
 const unsafe fn utf8_len_from_first_byte(byte: u8) -> usize {
+    // SAFETY: The byte is a valid first byte of a UTF-8 character.
+    // 0b0xxxxxxx: 1 byte
+    // 0b110xxxxx: 2 bytes
+    // 0b1110xxxx: 3 bytes
+    // 0b11110xxx: 4 bytes
+
     debug_assert!(matches!(byte, 0..=0x7F | 0xC0..=0xDF | 0xE0..=0xEF | 0xF0..=0xF7));
     match byte {
         0..=0x7F => 1,
@@ -40,7 +46,7 @@ const unsafe fn utf8_len_from_first_byte(byte: u8) -> usize {
     }
 }
 
-/// Check if a byte is a UTF-8 continuation byte.
+/// Check if a byte is a UTF-8 continuation byte, AKA `0b10xxxxxx`.
 ///
 /// # Safety
 ///

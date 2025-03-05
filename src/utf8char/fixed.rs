@@ -84,7 +84,8 @@ impl FixedUtf8Char {
         let byte = s.as_bytes().first()?;
         let l = unsafe { utf8_len_from_first_byte(*byte) };
         bytes[0..l].copy_from_slice(s.as_bytes().get(0..l)?);
-        Some(Self { bytes })
+        Some(unsafe { Self::from_bytes_unchecked(bytes) })
+        // Some(Self { bytes })
     }
     /// Get last character of the UTF-8 string.
     ///
@@ -100,15 +101,15 @@ impl FixedUtf8Char {
         }
         let mut l = 1;
         while let Some((last, b_)) = b.split_last() {
-            if unsafe { is_utf8_continuation_byte(*last) } {
-                l += 1;
-                b = b_;
-            } else {
+            l += 1;
+            b = b_;
+            if !unsafe { is_utf8_continuation_byte(*last) } {
                 break;
             }
         }
         bytes[0..l].copy_from_slice(&buf[b.len()..]);
-        Some(Self { bytes })
+        Some(unsafe { Self::from_bytes_unchecked(bytes) })
+        // Some(Self { bytes })
     }
 }
 

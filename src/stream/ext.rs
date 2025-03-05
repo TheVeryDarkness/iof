@@ -72,8 +72,8 @@ pub trait StrExt<'s, C: CharExt>: Sized + Copy {
         self.chars_ext().next()
     }
 
-    /// Split the string at the middle.
-    fn split(self, mid: usize) -> (Self, Self);
+    // /// Split the string at the middle.
+    // fn split(self, mid: usize) -> (Self, Self);
 
     /// Get length of the string, in bytes.
     fn len(self) -> usize;
@@ -122,10 +122,10 @@ impl<'s> StrExt<'s, FixedUtf8Char> for &'s str {
         FixedUtf8Char::from_first_char(self)
     }
 
-    #[inline]
-    fn split(self, mid: usize) -> (Self, Self) {
-        self.split_at(mid)
-    }
+    // #[inline]
+    // fn split(self, mid: usize) -> (Self, Self) {
+    //     self.split_at(mid)
+    // }
 
     #[inline]
     fn len(self) -> usize {
@@ -141,15 +141,15 @@ impl<'s> StrExt<'s, char> for &'s str {
         self.chars()
     }
 
-    #[inline]
-    fn first_char(self) -> Option<char> {
-        self.chars().next()
-    }
+    // #[inline]
+    // fn first_char(self) -> Option<char> {
+    //     self.chars().next()
+    // }
 
-    #[inline]
-    fn split(self, mid: usize) -> (Self, Self) {
-        self.split_at(mid)
-    }
+    // #[inline]
+    // fn split(self, mid: usize) -> (Self, Self) {
+    //     self.split_at(mid)
+    // }
 
     #[inline]
     fn len(self) -> usize {
@@ -172,24 +172,24 @@ where
     fn trim_start(self, s: &str) -> &str {
         let mut cursor = 0;
         for c in s.chars_ext() {
-            if self.matches(c) {
+            if !self.matches(c) {
                 return &s[cursor..];
             }
             cursor += c.len_utf8();
         }
-        s
+        &s[s.len()..]
     }
 
     /// Trim the end of the string.
     fn trim_end(self, s: &str) -> &str {
         let mut cursor = s.len();
         for c in s.chars_ext().rev() {
-            if self.matches(c) {
+            if !self.matches(c) {
                 return &s[..cursor];
             }
             cursor -= c.len_utf8();
         }
-        s
+        &s[..0]
     }
 
     /// Trim the string.
@@ -424,13 +424,13 @@ where
 #[cfg(test)]
 mod tests {
     use super::{CharExt, Pattern};
-    use crate::{stream::ext::StrExt, utf8char::FixedUtf8Char};
+    use crate::{ext::Any, stream::ext::StrExt, utf8char::FixedUtf8Char};
     use std::fmt::{Debug, Display};
 
     fn chars<Char>()
     where
         for<'a> &'a [Char]: Pattern<Item = Char>,
-        Char: From<char> + Copy + CharExt + PartialEq<char> + Debug + Display,
+        Char: From<char> + Copy + CharExt + PartialEq<Char> + PartialEq<char> + Debug + Display,
         for<'a> &'a str: StrExt<'a, Char>,
         char: PartialEq<Char> + From<Char>,
     {
@@ -491,21 +491,38 @@ mod tests {
         assert_eq!(ws.find_first_matching_or_whole_length(s), 0);
         assert_eq!(ws.find_first_not_matching_or_whole_length(s), 0);
 
-        let s = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789)(*&^%$#@!~";
+        for s in [
+            "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789)(*&^%$#@!~",
+            "🦀🦀🦀🦀",
+            "Hello, World! 你好，世界！",
+        ] {
+            assert_eq!(s.len(), <&str as StrExt<Char>>::len(s));
+            assert_eq!(s.is_empty(), <&str as StrExt<Char>>::is_empty(s));
 
-        let characters = s.chars().collect::<Vec<_>>();
-        for (i, c) in <&str as StrExt<Char>>::chars_ext(s).enumerate() {
-            assert_eq!(c, characters[i]);
-            assert_eq!(c.to_string(), characters[i].to_string());
-            assert_eq!(c.len_utf8(), characters[i].len_utf8());
-        }
+            assert_eq!(Some(0), Any::new().find_first_matching(s));
+            assert_eq!(None, Any::new().find_first_not_matching(s));
 
-        let characters: Vec<Char> = s.chars_ext().collect();
-        for (i, (index, c)) in s.char_indices().enumerate() {
-            let sub = &s[index..];
-            assert_eq!(c, characters[i]);
-            assert_eq!(sub.first_char().map(Into::into), Some(c));
-            assert_eq!(sub.first_char().unwrap(), c);
+            let characters = s.chars().collect::<Vec<_>>();
+            for (i, c) in <&str as StrExt<Char>>::chars_ext(s).enumerate() {
+                assert_eq!(c, characters[i]);
+                assert_eq!(c.to_string(), characters[i].to_string());
+                assert_eq!(c.len_utf8(), characters[i].len_utf8());
+            }
+
+            let characters: Vec<Char> = s.chars_ext().collect();
+            for (i, (index, c)) in s.char_indices().enumerate() {
+                let sub = &s[index..];
+                assert_eq!(c, characters[i]);
+                assert_eq!(sub.first_char().map(Into::into), Some(c));
+                assert_eq!(sub.first_char().unwrap(), c);
+            }
+
+            let characters_reverse: Vec<Char> = s.chars_ext().rev().collect();
+            assert_eq!(characters_reverse.len(), characters.len());
+            assert_eq!(
+                characters_reverse.into_iter().rev().collect::<Vec<_>>(),
+                characters,
+            );
         }
     }
 
