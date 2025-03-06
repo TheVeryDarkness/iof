@@ -2,7 +2,12 @@
 
 use super::{CR, LF};
 use crate::utf8char::{FixedUtf8Char, IterFixedUtf8Char};
-use std::{error::Error, fmt::Debug, marker::PhantomData, ops::Not};
+use std::{
+    error::Error,
+    fmt::{self, Debug},
+    marker::PhantomData,
+    ops::Not,
+};
 
 /// Extension traits for characters.
 pub trait CharExt: Copy + Debug {
@@ -499,11 +504,11 @@ impl<E: Error> From<E> for PatternError<E> {
     }
 }
 
-impl<E: Error> std::fmt::Display for PatternError<E> {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+impl<E: Error> fmt::Display for PatternError<E> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Self::UnexpectedChar(s) => write!(f, "unexpected character at the end of {s:?}"),
-            Self::Extra(e) => write!(f, "{}", e),
+            Self::Extra(e) => fmt::Display::fmt(e, f),
         }
     }
 }
@@ -590,7 +595,7 @@ where
 mod tests {
     use super::*;
     use crate::{ext::Any, stream::ext::StrExt, utf8char::FixedUtf8Char};
-    use std::fmt::{Debug, Display};
+    use fmt::{Debug, Display};
 
     fn chars<Char>()
     where
@@ -720,10 +725,24 @@ mod tests {
         assert_eq!(CharSet::except(p, p).trim(""), "");
         assert_eq!(CharSet::except(p, p).find_first_matching(""), None);
         assert_eq!(CharSet::except(p, p).find_first_not_matching(""), None);
+        assert_eq!(CharSet::except(p, p).find_first_matching("a"), None);
+        assert_eq!(CharSet::except(p, p).find_first_not_matching("a"), Some(0));
 
         assert_eq!(p.not().trim(" \n\r\n"), "\n\r\n");
         assert_eq!(p.not().trim("\n\r\n"), "\n\r\n");
         assert_eq!(p.not().trim(" \n\r\n xyz"), "\n\r\n");
+
+        for s in [" ", "", "\r\n", "🦀", "中文", "aå bß"] {
+            assert_eq!(p.find_first_matching(s), p.not().find_first_not_matching(s));
+            assert_eq!(p.find_first_not_matching(s), p.not().find_first_matching(s));
+        }
+
+        assert_eq!(p.not().find_first_matching(" \n\r\n xyz"), Some(0));
+        assert_eq!(p.not().find_first_not_matching(" \n\r\n xyz"), Some(1));
+        assert_eq!(p.not().find_first_matching(" "), Some(0));
+        assert_eq!(p.not().find_first_not_matching(" "), None);
+        assert_eq!(p.not().find_first_matching(""), None);
+        assert_eq!(p.not().find_first_not_matching(""), None);
 
         assert_eq!(
             p.forward::<E>(" \n\r\n"),

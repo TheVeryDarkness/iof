@@ -68,11 +68,11 @@ where
         }
     }
 
-    /// Get the next character in current line, if any.
+    /// Peek the next character in current line, if any.
     #[inline]
-    fn peek_in_cur_line(&mut self) -> Result<Option<char>, StreamError> {
-        let line = self.get_line()?;
-        Ok(line.chars().next())
+    fn peek_in_cur_line(&mut self) -> Option<char> {
+        let line = self.get_cur_line();
+        line.chars().next()
     }
 
     /// Fill the buffer with a new line, ignoring the current line.
@@ -108,11 +108,11 @@ where
         }
     }
 
-    /// Peek a single character.
+    /// Peek a single character. Read a new line if current line is empty.
     #[inline]
     fn try_peek(&mut self) -> Result<char, StreamError> {
         loop {
-            if let Some(c) = self.peek_in_cur_line()? {
+            if let Some(c) = self.peek_in_cur_line() {
                 return Ok(c);
             } else {
                 self.fill_buf()?;

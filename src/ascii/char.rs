@@ -450,13 +450,14 @@ impl PartialEq<Char> for char {
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Error {
     Length(usize),
+    /// Should never happen if given input is legal UTF-8.
     Byte(u8),
 }
 impl fmt::Display for Error {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Self::Length(len) => write!(f, "invalid length: {}", len),
-            Self::Byte(ch) => write!(f, "invalid byte: {:x?}", ch),
+            Self::Byte(ch) => write!(f, "invalid byte: {:#x?}", ch),
         }
     }
 }
@@ -484,5 +485,17 @@ impl FromStr for Char {
         }
         let byte = bytes[0];
         byte.try_into().map_err(Error::Byte)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::unwrap;
+
+    #[test]
+    #[should_panic = "invalid byte: 0x80"]
+    fn try_from_u8() {
+        let _ = unwrap!(Char::try_from(128).map_err(Error::Byte));
     }
 }

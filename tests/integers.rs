@@ -26,6 +26,55 @@ fn check_separator_3_dim_tensor() {
 }
 
 #[test]
+fn try_read() {
+    for (s, i) in [
+        ("0", 0u8),
+        ("1", 1u8),
+        ("2", 2u8),
+        ("+2", 2u8),
+        ("99", 99u8),
+    ] {
+        let mut reader = InputStream::new(s.as_bytes());
+
+        let a: u32 = unwrap!(reader.try_read());
+        assert_eq!(a, i.into());
+
+        assert_eq!(reader.get_cur_line(), "");
+
+        let mut reader = InputStream::new(s.as_bytes());
+
+        let a: i32 = unwrap!(reader.try_read());
+        assert_eq!(a, i.into());
+
+        assert_eq!(reader.get_cur_line(), "");
+    }
+    for (s, i, r) in [("0+", 0u8, "+"), ("10+", 10u8, "+")] {
+        let mut reader = InputStream::new(s.as_bytes());
+
+        let a: u32 = unwrap!(reader.try_read());
+        assert_eq!(a, i.into());
+
+        assert_eq!(reader.get_cur_line(), r);
+
+        let mut reader = InputStream::new(s.as_bytes());
+
+        let a: i32 = unwrap!(reader.try_read());
+        assert_eq!(a, i.into());
+
+        assert_eq!(reader.get_cur_line(), r);
+    }
+    for s in ["+", "++", "x", ".", "", " "] {
+        let reader = Cursor::new(s.as_bytes());
+        let mut reader = InputStream::new(reader);
+
+        let a: Result<u32, _> = reader.try_read();
+        assert!(a.is_err());
+        let a: Result<i32, _> = reader.try_read();
+        assert!(a.is_err());
+    }
+}
+
+#[test]
 fn try_read_single_3() {
     let reader = Cursor::new("1 2 3".as_bytes());
     let mut reader = InputStream::new(reader);

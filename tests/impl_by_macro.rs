@@ -91,7 +91,11 @@ fn test_accept() {
         let s = c.to_string();
         assert_eq!(
             x.forward::<E>(&s),
-            Err(PatternError::UnexpectedChar(c.to_string()))
+            Err(PatternError::UnexpectedChar(s.clone())),
+        );
+        assert_eq!(
+            x.forward::<E>(&s).unwrap_err().to_string(),
+            format!("unexpected character at the end of {s:?}"),
         );
     }
 

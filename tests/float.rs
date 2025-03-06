@@ -62,7 +62,7 @@ fn try_read_nan() {
 #[test]
 fn try_read_error() {
     for s in [
-        "n", "a", "na", "nap", "i", "ia", "in", "in_", ",", ".", "e", ".e", "++", "+.",
+        "n", "a", "np", "na", "nap", "i", "ia", "in", "in_", ",", ".", "e", ".e", "++", "+.",
     ] {
         let reader = Cursor::new(s.as_bytes());
         let mut reader = InputStream::new(reader);
@@ -72,14 +72,25 @@ fn try_read_error() {
     }
     for (s, f, r) in [
         ("1.e", 1., "e"),
+        ("1.1ee", 1.1, "ee"),
+        ("-2-2", -2., "-2"),
+        ("2..", 2., "."),
+        ("+2..", 2., "."),
+        ("+2.2-", 2.2, "-"),
+        ("+2.22-", 2.22, "-"),
         ("1.e-", 1., "e-"),
         ("1.e+", 1., "e+"),
+        ("1.e-2+", 0.01, "+"),
         ("1.e-+", 1., "e-+"),
         ("1.e+-", 1., "e+-"),
         ("infin", f64::INFINITY, "in"),
         ("infini_", f64::INFINITY, "ini_"),
         ("infini_t", f64::INFINITY, "ini_t"),
         ("infinit_", f64::INFINITY, "init_"),
+        ("infinity", f64::INFINITY, ""),
+        ("iNfiNitY", f64::INFINITY, ""),
+        ("InFiNiTy", f64::INFINITY, ""),
+        ("infinity_", f64::INFINITY, "_"),
         ("inf_", f64::INFINITY, "_"),
         ("infi_", f64::INFINITY, "i_"),
         ("infin_", f64::INFINITY, "in_"),
@@ -92,7 +103,12 @@ fn try_read_error() {
 
         assert_eq!(reader.get_cur_line(), r);
     }
-    for (s, r) in [("nana", "a"), ("nannan", "nan")] {
+    for (s, r) in [
+        ("nana", "a"),
+        ("nan__", "__"),
+        ("nan", ""),
+        ("nannan", "nan"),
+    ] {
         let reader = Cursor::new(s.as_bytes());
         let mut reader = InputStream::new(reader);
 
@@ -105,7 +121,19 @@ fn try_read_error() {
 
 #[test]
 fn try_read_single() {
-    for (s, data) in [("1.", 1.0), ("2e0", 2.0), ("3.e0", 3.0), ("4.", 4.0)] {
+    for (s, data) in [
+        ("1.", 1.0),
+        ("12", 12.0),
+        ("3.14", 3.14),
+        ("3.1415926", 3.1415926),
+        ("2e0", 2.0),
+        ("3.e0", 3.0),
+        ("3.e10", 3.0e10),
+        ("3.e-10", 3.0e-10),
+        ("3.14e1", 3.14e1),
+        ("3.14e-1", 0.314),
+        ("4.", 4.0),
+    ] {
         let reader = Cursor::new(s.as_bytes());
         let mut reader = InputStream::new(reader);
 
