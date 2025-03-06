@@ -44,7 +44,7 @@
 #[doc = include_str!("../../examples/doc_macro_read.rs")]
 /// ```
 ///
-/// Also, you can specify the source (as long as it implements [BufReadExt](crate::BufReadExt)) and format (as long as it implements [Format]) for reading.
+/// Also, you can specify the source (as long as it implements [BufReadExt]) via `src =` and format (as long as it implements [Format]) via `fmt =` for reading, and you can also specify the characters to skip via `skip =`, which is a shorthand for `fmt = iof::fmt::skip($skip)`.
 ///
 /// [BufReadExt]: crate::BufReadExt
 /// [Format]: crate::fmt::Format

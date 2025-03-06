@@ -198,7 +198,7 @@ where
     }
 }
 
-/// Extension trait for [BufRead] with [Format].
+/// Extension trait for [BufReadExt] with [CharSet] and [Pattern].
 pub trait BufReadExtWithFormat<Char = char>: BufReadExt<Char>
 where
     Char: CharExt + Into<char> + Copy,
