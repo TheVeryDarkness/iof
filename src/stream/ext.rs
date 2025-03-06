@@ -503,7 +503,6 @@ impl<E: Error> std::fmt::Display for PatternError<E> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             Self::UnexpectedChar(s) => write!(f, "unexpected character at the end of {s:?}"),
-            // Self::Unfulfilled(s) => write!(f, "unfulfilled pattern in {s:?}"),
             Self::Extra(e) => write!(f, "{}", e),
         }
     }
@@ -702,36 +701,53 @@ mod tests {
         chars::<FixedUtf8Char>();
     }
 
-    // fn test_forward<Char>()
-    // where
-    //     Char: CharExt + PartialEq + From<char>,
-    //     for<'a> &'a [Char]: Pattern<Item = Char>,
-    //     for<'s> &'s str: StrExt<'s, Char>,
-    // {
-    //     type E = ();
-    //     let ws = Char::EOL;
-    //     let ws = ws.as_slice();
-    //     let p = ws;
-    //     assert_eq!(
-    //         p.forward::<E>(" \n\r\n"),
-    //         Err(PatternError::UnexpectedChar(' '.into()))
-    //     );
-    //     assert_eq!(p.forward::<E>("\r\nabc\n"), Ok(2));
-    //     assert_eq!(p.forward::<E>("\n\r\n"), Ok(3));
-    //     assert_eq!(
-    //         p.forward::<E>("+-*/"),
-    //         Err(PatternError::UnexpectedChar('+'.into()))
-    //     );
-    //     assert_eq!(p.forward::<E>(""), Err(PatternError::Unfulfilled));
-    // }
+    fn test_forward<Char>()
+    where
+        Char: CharExt + PartialEq + From<char>,
+        for<'a> &'a [Char]: Pattern<Item = Char> + CharSet<Item = Char>,
+        for<'s> &'s str: StrExt<'s, Char>,
+    {
+        type E = ();
+        let ws = Char::EOL;
+        let ws = ws.as_slice();
+        let p = ws;
 
-    // #[test]
-    // fn forward_char() {
-    //     test_forward::<char>();
-    // }
+        assert_eq!(p.trim("\n\r\n"), "");
+        assert_eq!(p.trim(" \n\r\n"), " ");
+        assert_eq!(p.trim(" \n\r\nabc"), " \n\r\nabc");
 
-    // #[test]
-    // fn forward_fixed_utf8_char() {
-    //     test_forward::<FixedUtf8Char>();
-    // }
+        assert_eq!(CharSet::except(p, p).trim(" \n\r\n"), " \n\r\n");
+        assert_eq!(CharSet::except(p, p).trim(""), "");
+        assert_eq!(CharSet::except(p, p).find_first_matching(""), None);
+        assert_eq!(CharSet::except(p, p).find_first_not_matching(""), None);
+
+        assert_eq!(p.not().trim(" \n\r\n"), "\n\r\n");
+        assert_eq!(p.not().trim("\n\r\n"), "\n\r\n");
+        assert_eq!(p.not().trim(" \n\r\n xyz"), "\n\r\n");
+
+        assert_eq!(
+            p.forward::<E>(" \n\r\n"),
+            Err(PatternError::UnexpectedChar(' '.into()))
+        );
+        assert_eq!(p.forward::<E>("\r\nabc\n"), Ok(2));
+        assert_eq!(p.forward::<E>("\n\r\n"), Ok(3));
+        assert_eq!(
+            p.forward::<E>("+-*/"),
+            Err(PatternError::UnexpectedChar('+'.into()))
+        );
+        assert_eq!(
+            p.forward::<E>(""),
+            Err(PatternError::UnexpectedChar("".into()))
+        );
+    }
+
+    #[test]
+    fn forward_char() {
+        test_forward::<char>();
+    }
+
+    #[test]
+    fn forward_fixed_utf8_char() {
+        test_forward::<FixedUtf8Char>();
+    }
 }

@@ -26,7 +26,7 @@ impl Pattern for Alphabet {
 
     #[inline]
     fn step(&mut self, c: <Self as Pattern>::Item) -> bool {
-        !c.is_ascii_alphabetic()
+        c.is_ascii_alphabetic()
     }
 
     #[inline]
@@ -163,6 +163,7 @@ impl Pattern for Float {
                 _ => return false,
             },
             Self::Dot | Self::DotAfterDigits => match c {
+                'e' | 'E' => *self = Self::Exponent,
                 _ if c.is_ascii_digit() => *self = Self::DigitsAfterDot,
                 _ => return false,
             },
@@ -207,7 +208,6 @@ impl Pattern for Float {
             | Self::Digits
             | Self::DotAfterDigits
             | Self::DigitsAfterDot
-            | Self::SignAfterExponent
             | Self::DigitAfterExponent => State::Stoppable,
             // Self::Overrun => State::Overrun,
             _ => State::Unfulfilled,

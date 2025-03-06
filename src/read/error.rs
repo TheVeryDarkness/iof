@@ -17,8 +17,8 @@ pub enum ReadError<E> {
     EOL,
     /// Error during matching a pattern.
     UnexpectedChar(String, &'static str),
-    /// Unfulfilled pattern.
-    Unfulfilled(String),
+    // /// Unfulfilled pattern.
+    // Unfulfilled(String),
     /// Error during converting a string to a value, usually caused by calling [std::str::FromStr::from_str].
     FromStrError(E, String, &'static str),
 }
@@ -41,7 +41,7 @@ where
                 Display::fmt(error, f)
             }
             Self::UnexpectedChar(s, t) => write!(f, "found unexpected character at the end of the string {s:?} during converting it to a value of {t:?}"),
-            Self::Unfulfilled(s) => write!(f, "unfulfilled pattern in {s:?}"),
+            // Self::Unfulfilled(s) => write!(f, "unfulfilled pattern in {s:?}"),
         }
     }
 }

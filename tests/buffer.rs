@@ -60,6 +60,12 @@ fn skip_all() {
 }
 
 #[test]
+fn empty() {
+    let mut reader = InputStream::new(b"".as_slice());
+    assert!(reader.try_peek().is_err());
+}
+
+#[test]
 fn try_skip_any() {
     let buf: Vec<u8> = (0..100).flat_map(|_| b"\r".to_owned()).collect();
     let reader = Cursor::new(buf);
@@ -132,7 +138,7 @@ fn try_skip_any() {
 #[test]
 fn empty_lines() {
     let buf: Vec<u8> = (0..100).map(|_| b'\n').collect();
-    // println!("{:?}", std::str::from_utf8(&buf));
+
     let reader = Cursor::new(buf);
     let mut reader = InputStream::new(reader);
 
@@ -148,7 +154,7 @@ fn empty_lines() {
 #[test]
 fn read_string() {
     let buf: Vec<u8> = (0..100).flat_map(|_| b"\r\n".to_owned()).collect();
-    // println!("{:?}", std::str::from_utf8(&buf));
+
     let reader = Cursor::new(buf);
     let mut reader = InputStream::new(reader);
 
@@ -162,7 +168,7 @@ fn growing() {
     let buf: Vec<u8> = (0..100)
         .flat_map(|i| b"1 ".repeat(i).into_iter().chain([b'\n']))
         .collect();
-    // println!("{:?}", std::str::from_utf8(&buf));
+
     let reader = Cursor::new(buf);
     let mut reader = InputStream::new(reader);
 

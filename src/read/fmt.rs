@@ -341,7 +341,7 @@ mod tests {
 
     #[test]
     fn any() {
-        for s in [" ", "\t", "\n", "\r", "a", "å", "🦀", "中", "文"].iter() {
+        for s in ["", " ", "\t", "\n", "\r", "a", "å", "🦀", "中", "文"].iter() {
             let d = Any::<char>::new();
             assert_eq!(d.trim_start(s), "");
             assert_eq!(d.trim_end(s), "");

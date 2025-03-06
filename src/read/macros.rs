@@ -141,43 +141,6 @@ macro_rules! impl_read_one_from_for_from_str {
                 #[inline]
                 fn accept() -> impl $crate::ext::Pattern<Item = ::core::primitive::char> {
                     $accept
-                    // #[derive(Debug, Clone, Copy)]
-                    // struct Pattern;
-
-                    // impl $crate::ext::Pattern for Pattern {
-                    //     type Item = ::core::primitive::char;
-
-                    //     fn step<E: ::std::error::Error>(&mut self, _: ::core::primitive::char) -> ::core::result::Result<::core::primitive::bool, $crate::ext::PatternError<E, char>> {
-                    //         todo!()
-                    //     }
-
-                    //     // #[inline]
-                    //     // fn matches(&self, c: char) -> bool {
-                    //     //     ::core::matches!(c, $accept)
-                    //     // }
-
-                    //     // /// Trim the start of the string.
-                    //     // fn trim_start(self, s: &str) -> &str {
-                    //     //     s.trim_start_matches(|c| matches!(c, $accept))
-                    //     // }
-
-                    //     // /// Trim the end of the string.
-                    //     // fn trim_end(self, s: &str) -> &str {
-                    //     //     s.trim_end_matches(|c| matches!(c, $accept))
-                    //     // }
-
-                    //     // /// Find the first matching character.
-                    //     // fn find_first_matching(self, s: &str) -> Option<usize> {
-                    //     //     s.find(|c| matches!(c, $accept))
-                    //     // }
-
-                    //     // /// Find the first not matching character.
-                    //     // fn find_first_not_matching(self, s: &str) -> Option<usize> {
-                    //     //     s.find(|c| !matches!(c, $accept))
-                    //     // }
-                    // }
-
-                    // Pattern
                 }
 
                 #[inline]

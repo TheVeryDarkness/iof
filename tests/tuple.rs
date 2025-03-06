@@ -1,6 +1,6 @@
 use fmt::Default;
 use iof::*;
-use std::{io::Cursor, str::from_utf8};
+use std::{io::Cursor, num::NonZero, str::from_utf8};
 
 #[test]
 fn read_tuple_3() {
@@ -11,6 +11,17 @@ fn read_tuple_3() {
     assert_eq!(vec, (1, 2, 3));
 
     assert!(<u32>::try_read_from(&mut reader, Default::new()).is_err());
+}
+
+#[test]
+fn read_tuple_5() {
+    let reader = Cursor::new("1 2 3.0 false 1".as_bytes());
+    let mut reader = InputStream::new(reader);
+
+    let vec: (u32, char, f64, bool, NonZero<u32>) = reader.read();
+    assert_eq!(vec, (1, '2', 3.0, false, 1.try_into().unwrap()));
+
+    assert!(<char>::try_read_from(&mut reader, Default::new()).is_err());
 }
 
 #[test]
@@ -33,18 +44,21 @@ fn try_read_tuple_3_encoding_err() {
 
 #[test]
 fn try_read_tuple_3_from_str_err() {
-    let reader = Cursor::new("1 2 -3".as_bytes());
+    let reader = Cursor::new("l m n".as_bytes());
     let mut reader = InputStream::new(reader);
 
-    let vec: Result<(i32, i8, u32), _> = reader.try_read();
+    let vec: Result<(char, String, bool), _> = reader.try_read();
     let err = vec.unwrap_err();
-    assert_eq!(err.to_string(), "found unexpected character at the end of the string \"-\" during converting it to a value of \"u32\"");
-    assert_eq!(format!("{:?}", err), "UnexpectedChar(\"-\", \"u32\")");
+    assert_eq!(err.to_string(), "error during converting a string \"n\" to a value of `bool`: provided string was not `true` or `false`");
+    assert_eq!(
+        format!("{:?}", err),
+        "FromStrError(T3(ParseBoolError), \"n\", \"bool\")"
+    );
 }
 
 #[test]
 #[should_panic = "found unexpected character at the end of the string \"-\" during converting it to a value of \"u32\""]
-fn read_tuple_3_from_str_err() {
+fn read_tuple_3_unexpected_char_err() {
     let reader = Cursor::new("1 2 -3".as_bytes());
     let mut reader = InputStream::new(reader);
 
