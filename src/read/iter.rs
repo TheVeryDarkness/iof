@@ -1,10 +1,11 @@
 use super::read_one_from::ReadOneFromError;
 use crate::{
+    ext::PatternError,
     fmt::Format,
     stream::{error::StreamError, line_buf::LineBuf, traits::BufReadExtWithFormat},
     BufReadExt, ReadError, ReadOneFrom,
 };
-use std::marker::PhantomData;
+use std::{any::type_name, marker::PhantomData};
 
 /// Iterator for all elements.
 pub(super) struct ReadAll<'s, F: Format, S: ?Sized, T: ReadOneFrom> {
@@ -35,8 +36,11 @@ impl<F: Format, S: BufReadExt + ?Sized, T: ReadOneFrom> Iterator for ReadAll<'_,
             .try_get_string_some(self.format.skip(), T::accept())
         {
             Ok(s) => Some(T::parse(s)),
-            Err(StreamError::Eof | StreamError::Eol) => None,
-            Err(e) => Some(Err(e.into())),
+            Err(PatternError::Extra(StreamError::Eof | StreamError::Eol)) => None,
+            Err(PatternError::Extra(e)) => Some(Err(e.into())),
+            Err(PatternError::UnexpectedChar(e)) => {
+                Some(Err(ReadError::UnexpectedChar(e, type_name::<T>())))
+            }
         }
     }
 }

@@ -1,6 +1,6 @@
 use super::{
     error::StreamError,
-    ext::{CharExt, Pattern, StrExt},
+    ext::{CharExt, CharSet, Pattern, PatternError, StrExt},
 };
 use std::mem::transmute;
 
@@ -23,7 +23,7 @@ use std::mem::transmute;
 pub trait BufReadExt<Char = char>
 where
     Char: CharExt + Into<char> + Copy,
-    for<'a> &'a [Char]: Pattern<Item = Char>,
+    for<'a> &'a [Char]: CharSet<Item = Char>,
     for<'a> &'a str: StrExt<'a, Char>,
 {
     /// Get the current line whatever state it is.
@@ -177,7 +177,7 @@ where
 impl<S: ?Sized + BufReadExt<Char>, Char> BufReadExt<Char> for &mut S
 where
     Char: CharExt + Into<char> + Copy,
-    for<'a> &'a [Char]: Pattern<Item = Char>,
+    for<'a> &'a [Char]: CharSet<Item = Char>,
     for<'a> &'a str: StrExt<'a, Char>,
 {
     #[inline]
@@ -202,7 +202,7 @@ where
 pub trait BufReadExtWithFormat<Char = char>: BufReadExt<Char>
 where
     Char: CharExt + Into<char> + Copy,
-    for<'a> &'a [Char]: Pattern<Item = Char>,
+    for<'a> &'a [Char]: CharSet<Item = Char>,
     for<'a> &'a str: StrExt<'a, Char>,
 {
     // /// Get a single character if it is in `pattern`, otherwise leave it in the buffer.
@@ -229,7 +229,7 @@ where
     #[inline]
     fn try_get_non_skipped<S>(&mut self, skip: S) -> Result<char, StreamError>
     where
-        S: Pattern<Item = Char>,
+        S: CharSet<Item = Char>,
     {
         loop {
             if let Some(n) = skip.find_first_not_matching(self.get_cur_line()) {
@@ -245,7 +245,7 @@ where
     #[inline]
     fn try_skip_all<S>(&mut self, skip: S) -> Result<usize, StreamError>
     where
-        S: Pattern<Item = Char>,
+        S: CharSet<Item = Char>,
     {
         let mut count = 0;
         loop {
@@ -270,7 +270,7 @@ where
     #[inline]
     fn try_get_until_in_line<F>(&mut self, pattern: F) -> Result<&str, StreamError>
     where
-        F: Pattern<Item = Char>,
+        F: CharSet<Item = Char>,
     {
         let line = self.get_line()?;
         let cursor = pattern.find_first_matching_or_whole_length(line);
@@ -281,16 +281,35 @@ where
         Ok(selected)
     }
 
+    /// Read while matching the `pattern`.
+    #[inline]
+    fn try_get_while_in_line<F>(&mut self, pattern: F) -> Result<&str, PatternError<StreamError>>
+    where
+        F: Pattern<Item = Char>,
+    {
+        let line = self.get_line()?;
+        let cursor = pattern.forward(line)?;
+        debug_assert!(line.is_char_boundary(cursor));
+        let selected: &str = unsafe { line.get_unchecked(0..cursor) };
+        let selected: &str = unsafe { transmute(selected) };
+        unsafe { self.skip(cursor) };
+        Ok(selected)
+    }
+
     /// Get a single `skipped`-separated string.
     /// If current line is empty or all `skipped`, it will read a new line.
     #[inline]
-    fn try_get_string_some<S, A>(&mut self, skip: S, accept: A) -> Result<&str, StreamError>
+    fn try_get_string_some<S, A>(
+        &mut self,
+        skip: S,
+        accept: A,
+    ) -> Result<&str, PatternError<StreamError>>
     where
-        S: Pattern<Item = Char>,
+        S: CharSet<Item = Char>,
         A: Pattern<Item = Char>,
     {
         let _ = self.try_skip_all(skip)?;
-        let s = self.try_get_until_in_line(accept.except(skip).not())?;
+        let s = self.try_get_while_in_line(accept.except(skip))?;
         // debug_assert!(!s.is_empty());
         Ok(s)
     }
@@ -301,7 +320,7 @@ where
     #[inline]
     fn try_get_line_trimmed<S>(&mut self, skip: S) -> Result<&str, StreamError>
     where
-        S: Pattern<Item = Char>,
+        S: CharSet<Item = Char>,
     {
         let line = self.try_get_line()?;
         Ok(skip.trim_end(line))
@@ -313,7 +332,7 @@ where
     #[inline]
     fn try_get_line_some_trimmed<S>(&mut self, skip: S) -> Result<&str, StreamError>
     where
-        S: Pattern<Item = Char>,
+        S: CharSet<Item = Char>,
     {
         loop {
             let line = self.try_get_line_some()?;
@@ -330,7 +349,7 @@ impl<S, Char> BufReadExtWithFormat<Char> for S
 where
     S: ?Sized + BufReadExt<Char>,
     Char: CharExt + Into<char> + Copy,
-    for<'a> &'a [Char]: Pattern<Item = Char>,
+    for<'a> &'a [Char]: CharSet<Item = Char>,
     for<'a> &'a str: StrExt<'a, Char>,
 {
 }

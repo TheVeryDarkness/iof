@@ -18,7 +18,7 @@ where
     S: BufReadExt<Char> + BufReadExtWithFormat<Char>,
     for<'a> &'a Skip<Char>: Format<Char>,
     Char: CharExt + Copy + From<char> + Ord + PartialEq<char>,
-    for<'a> &'a [Char]: ext::Pattern<Item = Char>,
+    for<'a> &'a [Char]: ext::CharSet<Item = Char>,
     for<'a> &'a str: ext::StrExt<'a, Char>,
     char: From<Char>,
     Default<Char>: Format<Char>,

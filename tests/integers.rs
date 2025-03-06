@@ -167,7 +167,7 @@ fn read_char_empty() {
 }
 
 #[test]
-#[should_panic = "invalid digit found in string"]
+#[should_panic = "found unexpected character at the end of the string \"-\" during converting it to a value of \"u32\""]
 fn read_sign_error() {
     let reader = Cursor::new("-1".as_bytes());
     let mut reader = InputStream::new(reader);
@@ -176,7 +176,7 @@ fn read_sign_error() {
 }
 
 #[test]
-#[should_panic = "Error during converting a string \"-1\" to a value of `u32`: invalid digit found in string"]
+#[should_panic = "found unexpected character at the end of the string \"-\" during converting it to a value of \"u32\""]
 fn try_read_sign_error() {
     let reader = Cursor::new("-1".as_bytes());
     let mut reader = InputStream::new(reader);
@@ -203,7 +203,7 @@ fn try_read_empty() {
 }
 
 #[test]
-#[should_panic = "Error during converting a string \"1 2 3\" to a value of `u32`: invalid digit found in string"]
+#[should_panic = "error during converting a string \"1 2 3\" to a value of `u32`: invalid digit found in string"]
 fn try_read_line_too_much() {
     let reader = Cursor::new("1 2 3".as_bytes());
     let mut reader = InputStream::new(reader);
@@ -212,7 +212,7 @@ fn try_read_line_too_much() {
 }
 
 #[test]
-#[should_panic = "Error during converting a string \"-\" to a value of `i32`: invalid digit found in string"]
+#[should_panic = "error during converting a string \"-\" to a value of `i32`: invalid digit found in string"]
 fn try_read_char_only_sign() {
     let reader = Cursor::new("-1".as_bytes());
     let mut reader = InputStream::new(reader);

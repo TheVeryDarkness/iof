@@ -32,6 +32,8 @@ macro_rules! impl_read_into_for_tuple {
                     ReadFromError::<$t>::IOError(e) => ReadFromError::<Self>::IOError(e),
                     ReadFromError::<$t>::EOF => ReadFromError::<Self>::EOF,
                     ReadFromError::<$t>::EOL => ReadFromError::<Self>::EOL,
+                    ReadFromError::<$t>::UnexpectedChar(c, s) => ReadFromError::<Self>::UnexpectedChar(c, s),
+                    ReadFromError::<$t>::Unfulfilled(s) => ReadFromError::<Self>::Unfulfilled(s),
                     ReadFromError::<$t>::FromStrError(e, s, n) => ReadFromError::<Self>::FromStrError($e::$t(e), s, n),
                 })?, )+ ))
             }

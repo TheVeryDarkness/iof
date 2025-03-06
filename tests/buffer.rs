@@ -1,5 +1,5 @@
 use iof::{
-    ext::{Any, Pattern},
+    ext::{Any, Pattern, State},
     fmt::{Default, Format, Skip},
     unwrap, BufReadExt, BufReadExtWithFormat as _, InputStream,
 };
@@ -182,8 +182,11 @@ fn read_one_then_read_line() {
     struct F;
     impl Pattern for F {
         type Item = char;
-        fn matches(&self, c: Self::Item) -> bool {
+        fn step(&mut self, c: Self::Item) -> bool {
             c.is_ascii_digit()
+        }
+        fn state(&self) -> State {
+            State::Stoppable
         }
     }
     let f = F;

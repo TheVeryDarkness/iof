@@ -1,4 +1,4 @@
-use crate::stream::{self, MSG_EOF, MSG_EOL};
+use crate::stream::{error::StreamError, MSG_EOF, MSG_EOL};
 use std::fmt::{self, Debug, Display};
 
 /// Error during using [ReadInto] or [ReadOneFrom].
@@ -15,6 +15,10 @@ pub enum ReadError<E> {
     EOF,
     /// Unexpected end of line.
     EOL,
+    /// Error during matching a pattern.
+    UnexpectedChar(String, &'static str),
+    /// Unfulfilled pattern.
+    Unfulfilled(String),
     /// Error during converting a string to a value, usually caused by calling [std::str::FromStr::from_str].
     FromStrError(E, String, &'static str),
 }
@@ -32,24 +36,38 @@ where
             Self::FromStrError(error, s, name) => {
                 write!(
                     f,
-                    "Error during converting a string {:?} to a value of `{}`: ",
-                    s, name,
+                    "error during converting a string {s:?} to a value of `{name}`: ",
                 )?;
                 Display::fmt(error, f)
             }
+            Self::UnexpectedChar(s, t) => write!(f, "found unexpected character at the end of the string {s:?} during converting it to a value of {t:?}"),
+            Self::Unfulfilled(s) => write!(f, "unfulfilled pattern in {s:?}"),
         }
     }
 }
 
 impl<E> std::error::Error for ReadError<E> where E: std::error::Error {}
 
-impl<E> From<stream::error::StreamError> for ReadError<E> {
+impl<E> From<StreamError> for ReadError<E> {
     #[inline]
-    fn from(error: stream::error::StreamError) -> Self {
+    fn from(error: StreamError) -> Self {
         match error {
-            stream::error::StreamError::IOError(e) => Self::IOError(e),
-            stream::error::StreamError::Eof => Self::EOF,
-            stream::error::StreamError::Eol => Self::EOL,
+            StreamError::IOError(e) => Self::IOError(e),
+            StreamError::Eof => Self::EOF,
+            StreamError::Eol => Self::EOL,
         }
     }
 }
+
+// impl<E> From<PatternError<StreamError>> for ReadError<E> {
+//     #[inline]
+//     fn from(error: PatternError<StreamError>) -> Self {
+//         match error {
+//             PatternError::Extra(StreamError::IOError(e)) => Self::IOError(e),
+//             PatternError::Extra(StreamError::Eof) => Self::EOF,
+//             PatternError::Extra(StreamError::Eol) => Self::EOL,
+//             PatternError::UnexpectedChar(c) => Self::UnexpectedChar(c),
+//             // PatternError::Unfulfilled(s) => Self::Unfulfilled(s),
+//         }
+//     }
+// }

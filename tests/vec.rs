@@ -81,7 +81,7 @@ fn read_any_in_line() {
 }
 
 #[test]
-#[should_panic = "invalid digit found in string"]
+#[should_panic = "found unexpected character at the end of the string \"-\" during converting it to a value of \"u32\""]
 fn read_n_from_str_err() {
     let reader = Cursor::new("1 -2 -3".as_bytes());
     let mut reader = InputStream::new(reader);
@@ -90,7 +90,7 @@ fn read_n_from_str_err() {
 }
 
 #[test]
-#[should_panic = "invalid digit found in string"]
+#[should_panic = "found unexpected character at the end of the string \"-\" during converting it to a value of \"u32\""]
 fn read_from_str_err() {
     let reader = Cursor::new("1 -2 -3".as_bytes());
     let mut reader = InputStream::new(reader);
@@ -147,7 +147,7 @@ fn read_all_encoding_error() {
 }
 
 #[test]
-#[should_panic = "Error during converting a string \"\" to a value of `u32`: cannot parse integer from empty string"]
+#[should_panic = "found unexpected character at the end of the string \",\" during converting it to a value of \"u32\""]
 fn read_all_digit_error() {
     let reader = Cursor::new("3 2 ,1".as_bytes());
     let mut reader = InputStream::new(reader);

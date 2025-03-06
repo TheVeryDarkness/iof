@@ -38,15 +38,12 @@ fn try_read_tuple_3_from_str_err() {
 
     let vec: Result<(i32, i8, u32), _> = reader.try_read();
     let err = vec.unwrap_err();
-    assert_eq!(err.to_string(), "Error during converting a string \"-3\" to a value of `u32`: invalid digit found in string");
-    assert_eq!(
-        format!("{:?}", err),
-        "FromStrError(T3(ParseIntError { kind: InvalidDigit }), \"-3\", \"u32\")"
-    );
+    assert_eq!(err.to_string(), "found unexpected character at the end of the string \"-\" during converting it to a value of \"u32\"");
+    assert_eq!(format!("{:?}", err), "UnexpectedChar(\"-\", \"u32\")");
 }
 
 #[test]
-#[should_panic = "invalid digit found in string"]
+#[should_panic = "found unexpected character at the end of the string \"-\" during converting it to a value of \"u32\""]
 fn read_tuple_3_from_str_err() {
     let reader = Cursor::new("1 2 -3".as_bytes());
     let mut reader = InputStream::new(reader);

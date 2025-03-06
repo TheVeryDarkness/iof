@@ -32,7 +32,7 @@ fn from_all_spaces() {
 }
 
 #[test]
-#[should_panic = "Error during converting a string \"abc\" to a value of `char`: too many characters in string"]
+#[should_panic = "error during converting a string \"abc\" to a value of `char`: too many characters in string"]
 fn from_multiple() {
     let reader = Cursor::new("abc".as_bytes());
     let mut reader = InputStream::new(reader);

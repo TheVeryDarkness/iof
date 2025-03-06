@@ -57,6 +57,7 @@ impl<B: BufRead> BufReadExt<char> for InputStream<B> {
 #[cfg(test)]
 mod tests {
     use crate::{
+        ext::PatternError,
         fmt::{Default, Format},
         stream::{
             error::StreamError, ext::Any, input_stream::InputStream, traits::BufReadExtWithFormat,
@@ -134,7 +135,7 @@ mod tests {
             stream
                 .try_get_string_some(Default::<char>::new().skip(), Any::new())
                 .unwrap_err(),
-            StreamError::Eof
+            PatternError::Extra(StreamError::Eof)
         ),);
         assert_eq!(
             stream.try_get().unwrap_err().to_string(),

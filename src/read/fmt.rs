@@ -3,7 +3,7 @@
 use crate::{
     ext::CharExt,
     stream::{
-        ext::{Pattern, StrExt},
+        ext::{CharSet, StrExt},
         COMMA, CR, HT, LF, SP,
     },
     utf8char::FixedUtf8Char,
@@ -16,7 +16,7 @@ where
     for<'s> &'s str: StrExt<'s, Char>,
 {
     /// The type for skipped characters.
-    type Skip: Pattern<Item = Char>;
+    type Skip: CharSet<Item = Char>;
     /// Get the pattern for skipped characters.
     fn skip(self) -> Self::Skip;
 
@@ -264,7 +264,7 @@ pub fn skip<Char: Ord, T: IntoIterator<Item = Char>>(iter: T) -> Skip<Char> {
 mod tests {
     use super::Default;
     use crate::{
-        ext::{Any, Pattern as _},
+        ext::{Any, CharSet as _},
         fmt::{Format, Skip, CSV, WHITE_SPACES},
         utf8char::FixedUtf8Char,
     };

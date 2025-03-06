@@ -3,12 +3,11 @@ use super::{
     iter::{ReadAll, ReadAllIn},
 };
 use crate::{
-    stream::{
-        ext::{Any, Pattern},
-        traits::BufReadExtWithFormat,
-    },
+    ext::{Pattern, PatternError},
+    stream::{error::StreamError, ext::Any, traits::BufReadExtWithFormat},
     BufReadExt, ReadError,
 };
+use std::any::type_name;
 
 /// The error type for [ReadOneFrom].
 pub type ReadOneFromError<T> = ReadError<<T as ReadOneFrom>::ParseError>;
@@ -45,7 +44,16 @@ pub trait ReadOneFrom: Sized {
         stream: &mut S,
         format: F,
     ) -> Result<Self, ReadError<Self::ParseError>> {
-        let s = stream.try_get_string_some(format.skip(), Self::accept())?;
+        let s = stream
+            .try_get_string_some(format.skip(), Self::accept())
+            .map_err(|error| match error {
+                PatternError::Extra(StreamError::IOError(e)) => ReadError::IOError(e),
+                PatternError::Extra(StreamError::Eof) => ReadError::EOF,
+                PatternError::Extra(StreamError::Eol) => ReadError::EOL,
+                PatternError::UnexpectedChar(c) => {
+                    ReadError::UnexpectedChar(c, type_name::<Self>())
+                } // PatternError::Unfulfilled(s) => ReadError::Unfulfilled(s),
+            })?;
         Self::parse(s)
     }
 

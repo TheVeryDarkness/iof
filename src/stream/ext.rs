@@ -2,10 +2,10 @@
 
 use super::{CR, LF};
 use crate::utf8char::{FixedUtf8Char, IterFixedUtf8Char};
-use std::{marker::PhantomData, ops::Not};
+use std::{error::Error, fmt::Debug, marker::PhantomData, ops::Not};
 
 /// Extension traits for characters.
-pub trait CharExt: Copy {
+pub trait CharExt: Copy + Debug {
     /// End of line characters.
     ///
     /// Represents the characters `'\n'` and `'\r'` respectively.
@@ -157,10 +157,10 @@ impl<'s> StrExt<'s, char> for &'s str {
     }
 }
 
-/// Extension trait for patterns.
-pub trait Pattern: Sized + Copy
+/// A set of chars.
+pub trait CharSet: Sized + Copy
 where
-    for<'s> &'s str: StrExt<'s, <Self as Pattern>::Item>,
+    for<'s> &'s str: StrExt<'s, Self::Item>,
 {
     /// The item type.
     type Item: CharExt;
@@ -239,18 +239,32 @@ where
 
     /// Subtract another pattern from this pattern.
     #[inline]
-    fn except<B: Pattern<Item = Self::Item>>(self, b: B) -> Subtract<Self::Item, Self, B> {
+    fn except<B: CharSet<Item = Self::Item>>(self, b: B) -> Subtract<Self, B> {
         Subtract::new(self, b)
     }
 
     /// Reverse the pattern.
     #[inline]
-    fn not(self) -> Subtract<Self::Item, Any<Self::Item>, Self> {
+    fn not(self) -> Subtract<Any<Self::Item>, Self> {
         Subtract::new(Any::new(), self)
     }
 }
 
 impl Pattern for &[FixedUtf8Char] {
+    type Item = FixedUtf8Char;
+
+    #[inline]
+    fn step(&mut self, c: <Self as Pattern>::Item) -> bool {
+        self.contains(&c)
+    }
+
+    #[inline]
+    fn state(&self) -> State {
+        State::Stoppable
+    }
+}
+
+impl CharSet for &[FixedUtf8Char] {
     type Item = FixedUtf8Char;
 
     #[inline]
@@ -314,6 +328,20 @@ impl Pattern for &[char] {
     type Item = char;
 
     #[inline]
+    fn step(&mut self, c: <Self as Pattern>::Item) -> bool {
+        self.contains(&c)
+    }
+
+    #[inline]
+    fn state(&self) -> State {
+        State::Stoppable
+    }
+}
+
+impl CharSet for &[char] {
+    type Item = char;
+
+    #[inline]
     fn matches(&self, c: Self::Item) -> bool {
         self.contains(&c)
     }
@@ -354,6 +382,32 @@ impl Pattern for &[char] {
     }
 }
 
+// macro_rules! impl_pattern_for_range {
+//     ($ty:ty) => {
+//         impl Pattern for $ty {
+//             type Item = char;
+
+//             #[inline]
+//             fn step<E>(
+//                 &mut self,
+//                 c: <Self as Pattern>::Item,
+//             ) -> Result<bool, PatternError<E, Self::Item>> {
+//                 if self.contains(&c) {
+//                     Ok(false)
+//                 } else {
+//                     Err(PatternError::UnexpectedChar(c))
+//                 }
+//             }
+//         }
+//     };
+// }
+
+// impl_pattern_for_range!(Range<char>);
+// impl_pattern_for_range!(RangeInclusive<char>);
+// impl_pattern_for_range!(RangeToInclusive<char>);
+// impl_pattern_for_range!(RangeTo<char>);
+// impl_pattern_for_range!(RangeFrom<char>);
+
 /// A pattern that matches any character.
 #[derive(Clone, Copy, Debug, Default, Eq, PartialEq)]
 pub struct Any<Char>(PhantomData<Char>);
@@ -365,7 +419,7 @@ impl<Char> Any<Char> {
     }
 }
 
-impl<Char: CharExt> Pattern for Any<Char>
+impl<Char: CharExt> CharSet for Any<Char>
 where
     for<'s> &'s str: StrExt<'s, Char>,
 {
@@ -395,22 +449,16 @@ where
 
 /// A pattern that match `A` but not `B`.
 #[derive(Clone, Copy, Debug, Default, Eq, PartialEq)]
-pub struct Subtract<Char: CharExt, A: Pattern<Item = Char>, B: Pattern<Item = Char>>(A, B)
-where
-    for<'s> &'s str: StrExt<'s, Char>;
+pub struct Subtract<A, B>(A, B);
 
-impl<Char: CharExt, A: Pattern<Item = Char>, B: Pattern<Item = Char>> Subtract<Char, A, B>
-where
-    for<'s> &'s str: StrExt<'s, Char>,
-{
+impl<A, B> Subtract<A, B> {
     /// Create a new instance.
     pub const fn new(a: A, b: B) -> Self {
         Self(a, b)
     }
 }
 
-impl<Char: CharExt, A: Pattern<Item = Char>, B: Pattern<Item = Char>> Pattern
-    for Subtract<Char, A, B>
+impl<Char: CharExt, A: CharSet<Item = Char>, B: CharSet<Item = Char>> CharSet for Subtract<A, B>
 where
     for<'s> &'s str: StrExt<'s, Char>,
 {
@@ -421,15 +469,133 @@ where
     }
 }
 
+impl<Char: CharExt, A: Pattern<Item = Char>, B: CharSet<Item = Char>> Pattern for Subtract<A, B>
+where
+    for<'s> &'s str: StrExt<'s, Char>,
+{
+    type Item = Char;
+
+    fn step(&mut self, c: <Self as Pattern>::Item) -> bool {
+        !self.1.matches(c) && self.0.step(c)
+    }
+
+    fn state(&self) -> State {
+        self.0.state()
+    }
+}
+
+/// An error that occurs during pattern matching.
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub enum PatternError<E> {
+    /// An unexpected character at the end of the string.
+    UnexpectedChar(String),
+    /// An extra error. Probably from reading.
+    Extra(E),
+}
+
+impl<E: Error> From<E> for PatternError<E> {
+    fn from(value: E) -> Self {
+        Self::Extra(value)
+    }
+}
+
+impl<E: Error> std::fmt::Display for PatternError<E> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::UnexpectedChar(s) => write!(f, "unexpected character at the end of {s:?}"),
+            // Self::Unfulfilled(s) => write!(f, "unfulfilled pattern in {s:?}"),
+            Self::Extra(e) => write!(f, "{}", e),
+        }
+    }
+}
+
+/// The state of a pattern matcher.
+pub enum State {
+    /// The pattern is unfulfilled.
+    Unfulfilled,
+    /// The pattern is stoppable.
+    Stoppable,
+    // /// The pattern is overrun and not recoverable.
+    // Overrun,
+}
+
+/// A state-machine for pattern matching.
+pub trait Pattern: Sized + Copy
+where
+    for<'s> &'s str: StrExt<'s, <Self as Pattern>::Item>,
+{
+    /// The item type.
+    type Item: CharExt;
+
+    /// Step the pattern with a character.
+    ///
+    /// # Returns
+    ///
+    /// - `true`: Stepped.
+    /// - `false`: Unexpected character, and not recoverable.
+    fn step(&mut self, c: <Self as Pattern>::Item) -> bool;
+
+    /// Get the current [`State`] of the pattern.
+    fn state(&self) -> State;
+
+    /// Step the pattern with a string to check if it matches the prefix.
+    #[inline]
+    fn forward<E>(mut self, s: &str) -> Result<usize, PatternError<E>> {
+        let mut cursor = 0;
+        let mut last_stoppable = None;
+        for c in s.chars_ext() {
+            if self.step(c) {
+                match self.state() {
+                    State::Stoppable => {
+                        cursor += c.len_utf8();
+                        last_stoppable = Some(cursor);
+                    }
+                    // State::Overrun => {
+                    //     break;
+                    // }
+                    State::Unfulfilled => {
+                        cursor += c.len_utf8();
+                    }
+                }
+            } else {
+                cursor += c.len_utf8();
+                break;
+            }
+        }
+        last_stoppable.ok_or(PatternError::UnexpectedChar(s[..cursor].to_owned()))
+    }
+
+    /// Subtract another pattern from this pattern.
+    #[inline]
+    fn except<B: CharSet<Item = Self::Item>>(self, b: B) -> Subtract<Self, B> {
+        Subtract::new(self, b)
+    }
+}
+
+impl<Char: CharExt> Pattern for Any<Char>
+where
+    for<'s> &'s str: StrExt<'s, Char>,
+{
+    type Item = Char;
+
+    fn step(&mut self, _: <Self as Pattern>::Item) -> bool {
+        true
+    }
+
+    fn state(&self) -> State {
+        State::Stoppable
+    }
+}
+
 #[cfg(test)]
 mod tests {
-    use super::{CharExt, Pattern};
+    use super::*;
     use crate::{ext::Any, stream::ext::StrExt, utf8char::FixedUtf8Char};
     use std::fmt::{Debug, Display};
 
     fn chars<Char>()
     where
-        for<'a> &'a [Char]: Pattern<Item = Char>,
+        for<'a> &'a [Char]: CharSet<Item = Char>,
         Char: From<char> + Copy + CharExt + PartialEq<Char> + PartialEq<char> + Debug + Display,
         for<'a> &'a str: StrExt<'a, Char>,
         char: PartialEq<Char> + From<Char>,
@@ -535,4 +701,37 @@ mod tests {
     fn chars_fixed_utf8_char() {
         chars::<FixedUtf8Char>();
     }
+
+    // fn test_forward<Char>()
+    // where
+    //     Char: CharExt + PartialEq + From<char>,
+    //     for<'a> &'a [Char]: Pattern<Item = Char>,
+    //     for<'s> &'s str: StrExt<'s, Char>,
+    // {
+    //     type E = ();
+    //     let ws = Char::EOL;
+    //     let ws = ws.as_slice();
+    //     let p = ws;
+    //     assert_eq!(
+    //         p.forward::<E>(" \n\r\n"),
+    //         Err(PatternError::UnexpectedChar(' '.into()))
+    //     );
+    //     assert_eq!(p.forward::<E>("\r\nabc\n"), Ok(2));
+    //     assert_eq!(p.forward::<E>("\n\r\n"), Ok(3));
+    //     assert_eq!(
+    //         p.forward::<E>("+-*/"),
+    //         Err(PatternError::UnexpectedChar('+'.into()))
+    //     );
+    //     assert_eq!(p.forward::<E>(""), Err(PatternError::Unfulfilled));
+    // }
+
+    // #[test]
+    // fn forward_char() {
+    //     test_forward::<char>();
+    // }
+
+    // #[test]
+    // fn forward_fixed_utf8_char() {
+    //     test_forward::<FixedUtf8Char>();
+    // }
 }

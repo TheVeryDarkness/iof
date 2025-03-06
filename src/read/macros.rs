@@ -121,7 +121,7 @@ macro_rules! read {
 /// [ReadInto]: crate::ReadInto
 #[macro_export]
 macro_rules! impl_read_one_from_for_from_str {
-    ($($ty:ty)*) => {
+    ($($ty:ty)+) => {
         $(
             impl $crate::ReadOneFrom for $ty {
                 type ParseError = <Self as ::core::str::FromStr>::Err;
@@ -133,46 +133,51 @@ macro_rules! impl_read_one_from_for_from_str {
             }
         )*
     };
-    ($($ty:ty)* => $accept:pat) => {
+    ($($ty:ty)+ => $accept:expr) => {
         $(
             impl $crate::ReadOneFrom for $ty {
                 type ParseError = <Self as ::core::str::FromStr>::Err;
 
                 #[inline]
-                fn accept() -> impl $crate::ext::Pattern<Item = char> {
-                    #[derive(Debug, Clone, Copy)]
-                    struct Accept;
+                fn accept() -> impl $crate::ext::Pattern<Item = ::core::primitive::char> {
+                    $accept
+                    // #[derive(Debug, Clone, Copy)]
+                    // struct Pattern;
 
-                    impl $crate::ext::Pattern for Accept {
-                        type Item = char;
+                    // impl $crate::ext::Pattern for Pattern {
+                    //     type Item = ::core::primitive::char;
 
-                        #[inline]
-                        fn matches(&self, c: char) -> bool {
-                            ::core::matches!(c, $accept)
-                        }
+                    //     fn step<E: ::std::error::Error>(&mut self, _: ::core::primitive::char) -> ::core::result::Result<::core::primitive::bool, $crate::ext::PatternError<E, char>> {
+                    //         todo!()
+                    //     }
 
-                        // /// Trim the start of the string.
-                        // fn trim_start(self, s: &str) -> &str {
-                        //     s.trim_start_matches(|c| matches!(c, $accept))
-                        // }
+                    //     // #[inline]
+                    //     // fn matches(&self, c: char) -> bool {
+                    //     //     ::core::matches!(c, $accept)
+                    //     // }
 
-                        // /// Trim the end of the string.
-                        // fn trim_end(self, s: &str) -> &str {
-                        //     s.trim_end_matches(|c| matches!(c, $accept))
-                        // }
+                    //     // /// Trim the start of the string.
+                    //     // fn trim_start(self, s: &str) -> &str {
+                    //     //     s.trim_start_matches(|c| matches!(c, $accept))
+                    //     // }
 
-                        // /// Find the first matching character.
-                        // fn find_first_matching(self, s: &str) -> Option<usize> {
-                        //     s.find(|c| matches!(c, $accept))
-                        // }
+                    //     // /// Trim the end of the string.
+                    //     // fn trim_end(self, s: &str) -> &str {
+                    //     //     s.trim_end_matches(|c| matches!(c, $accept))
+                    //     // }
 
-                        // /// Find the first not matching character.
-                        // fn find_first_not_matching(self, s: &str) -> Option<usize> {
-                        //     s.find(|c| !matches!(c, $accept))
-                        // }
-                    }
+                    //     // /// Find the first matching character.
+                    //     // fn find_first_matching(self, s: &str) -> Option<usize> {
+                    //     //     s.find(|c| matches!(c, $accept))
+                    //     // }
 
-                    Accept
+                    //     // /// Find the first not matching character.
+                    //     // fn find_first_not_matching(self, s: &str) -> Option<usize> {
+                    //     //     s.find(|c| !matches!(c, $accept))
+                    //     // }
+                    // }
+
+                    // Pattern
                 }
 
                 #[inline]

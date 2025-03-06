@@ -46,6 +46,7 @@ impl BufReadExt<char> for LineBuf<'_> {
 #[cfg(test)]
 mod tests {
     use crate::{
+        ext::PatternError,
         fmt::{Default, Format, Skip},
         stream::{
             error::StreamError, ext::Any, line_buf::LineBuf, traits::BufReadExtWithFormat as _,
@@ -90,7 +91,7 @@ mod tests {
         assert_eq!(stream.try_get_string_some(d.skip(), a).unwrap(), "world!");
         assert!(matches!(
             stream.try_get_string_some(d.skip(), a).unwrap_err(),
-            StreamError::Eol,
+            PatternError::Extra(StreamError::Eol),
         ));
         assert_eq!(
             stream
