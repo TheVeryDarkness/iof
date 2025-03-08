@@ -250,28 +250,41 @@ where
 
     /// Subtract another pattern from this pattern.
     #[inline]
-    fn except<B: CharSet<Item = Self::Item>>(self, b: B) -> Subtract<Self, B> {
-        Subtract::new(self, b)
+    fn except<B: CharSet<Item = Self::Item>>(self, b: B) -> impl CharSet<Item = Self::Item> {
+        CharSetSubtract::new(self, b)
     }
 
     /// Reverse the pattern.
     #[inline]
-    fn not(self) -> Subtract<Any<Self::Item>, Self> {
-        Subtract::new(Any::new(), self)
+    fn not(self) -> impl CharSet<Item = Self::Item> {
+        CharSetSubtract::new(Any::new(), self)
     }
 }
 
-impl Pattern for &[FixedUtf8Char] {
-    type Item = FixedUtf8Char;
+impl<Char: CharExt, C: CharSet<Item = Char>> Pattern for C
+where
+    for<'s> &'s str: StrExt<'s, Char>,
+{
+    type Item = Char;
 
     #[inline]
     fn step(&mut self, c: <Self as Pattern>::Item) -> bool {
-        self.contains(&c)
+        self.matches(c)
     }
 
     #[inline]
     fn state(&self) -> State {
         State::Stoppable
+    }
+
+    #[inline]
+    fn forward<E>(self, s: &str) -> Result<usize, PatternError<E>> {
+        Ok(self.find_first_not_matching_or_whole_length(s))
+    }
+
+    #[inline]
+    fn except<B: CharSet<Item = Self::Item>>(self, b: B) -> impl Pattern<Item = Self::Item> {
+        self.except(b)
     }
 }
 
@@ -332,20 +345,6 @@ impl CharSet for &[FixedUtf8Char] {
             cursor += c.len_utf8();
         }
         None
-    }
-}
-
-impl Pattern for &[char] {
-    type Item = char;
-
-    #[inline]
-    fn step(&mut self, c: <Self as Pattern>::Item) -> bool {
-        self.contains(&c)
-    }
-
-    #[inline]
-    fn state(&self) -> State {
-        State::Stoppable
     }
 }
 
@@ -461,20 +460,79 @@ where
         let _ = s;
         None
     }
+
+    #[inline]
+    fn except<B: CharSet<Item = Self::Item>>(self, b: B) -> impl CharSet<Item = Self::Item> {
+        b.not()
+    }
+
+    #[inline]
+    fn not(self) -> impl CharSet<Item = Self::Item> {
+        AnyBut::new(self)
+    }
 }
 
-/// A pattern that match `A` but not `B`.
+/// A pattern that matches any character.
 #[derive(Clone, Copy, Debug, Default, Eq, PartialEq)]
-pub struct Subtract<A, B>(A, B);
+pub struct AnyBut<T>(T);
 
-impl<A, B> Subtract<A, B> {
+impl<T> AnyBut<T> {
+    /// Create a new instance.
+    pub const fn new(inner: T) -> Self {
+        Self(inner)
+    }
+}
+
+impl<Char: CharExt, C: CharSet<Item = Char>> CharSet for AnyBut<C>
+where
+    for<'s> &'s str: StrExt<'s, Char>,
+{
+    type Item = Char;
+
+    #[inline]
+    fn matches(&self, c: Self::Item) -> bool {
+        !self.0.matches(c)
+    }
+
+    #[inline]
+    fn trim_start(self, s: &str) -> &str {
+        &s[self.0.find_first_not_matching_or_whole_length(s)..]
+    }
+
+    // #[inline]
+    // fn trim_end(self, s: &str) -> &str {
+    //     &s[..0]
+    // }
+
+    #[inline]
+    fn find_first_matching(self, s: &str) -> Option<usize> {
+        self.0.find_first_not_matching(s)
+    }
+
+    #[inline]
+    fn find_first_not_matching(self, s: &str) -> Option<usize> {
+        self.0.find_first_matching(s)
+    }
+
+    #[inline]
+    fn not(self) -> impl CharSet<Item = Self::Item> {
+        self.0
+    }
+}
+
+/// A charset that match `A` but not `B`.
+#[derive(Clone, Copy, Debug, Default, Eq, PartialEq)]
+pub struct CharSetSubtract<A, B>(A, B);
+
+impl<A, B> CharSetSubtract<A, B> {
     /// Create a new instance.
     pub const fn new(a: A, b: B) -> Self {
         Self(a, b)
     }
 }
 
-impl<Char: CharExt, A: CharSet<Item = Char>, B: CharSet<Item = Char>> CharSet for Subtract<A, B>
+impl<Char: CharExt, A: CharSet<Item = Char>, B: CharSet<Item = Char>> CharSet
+    for CharSetSubtract<A, B>
 where
     for<'s> &'s str: StrExt<'s, Char>,
 {
@@ -486,7 +544,19 @@ where
     }
 }
 
-impl<Char: CharExt, A: Pattern<Item = Char>, B: CharSet<Item = Char>> Pattern for Subtract<A, B>
+/// A pattern that match `A` but not `B`.
+#[derive(Clone, Copy, Debug, Default, Eq, PartialEq)]
+pub struct PatternSubtract<A, B>(A, B);
+
+impl<A, B> PatternSubtract<A, B> {
+    /// Create a new instance.
+    pub const fn new(a: A, b: B) -> Self {
+        Self(a, b)
+    }
+}
+
+impl<Char: CharExt, A: Pattern<Item = Char>, B: CharSet<Item = Char>> Pattern
+    for PatternSubtract<A, B>
 where
     for<'s> &'s str: StrExt<'s, Char>,
 {
@@ -586,25 +656,8 @@ where
 
     /// Subtract another pattern from this pattern.
     #[inline]
-    fn except<B: CharSet<Item = Self::Item>>(self, b: B) -> Subtract<Self, B> {
-        Subtract::new(self, b)
-    }
-}
-
-impl<Char: CharExt> Pattern for Any<Char>
-where
-    for<'s> &'s str: StrExt<'s, Char>,
-{
-    type Item = Char;
-
-    #[inline]
-    fn step(&mut self, _: <Self as Pattern>::Item) -> bool {
-        true
-    }
-
-    #[inline]
-    fn state(&self) -> State {
-        State::Stoppable
+    fn except<B: CharSet<Item = Self::Item>>(self, b: B) -> impl Pattern<Item = Self::Item> {
+        PatternSubtract::new(self, b)
     }
 }
 
