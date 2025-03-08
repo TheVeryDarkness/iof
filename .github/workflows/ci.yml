@@ -79,11 +79,12 @@ jobs:
         uses: codecov/codecov-action@v5
         env:
           RUSTUP_TOOLCHAIN: ${{ steps.toolchain.outputs.name }}
+          FEATURES: false
         with:
           files: lcov.info
           flags: unittests
           name: iof
-          env_vars: OS,RUSTUP_TOOLCHAIN
+          env_vars: OS,RUSTUP_TOOLCHAIN,FEATURES
           # Failing to upload results will cause a CI error.
           # So remember to use a token.
           fail_ci_if_error: true
@@ -95,11 +96,12 @@ jobs:
         uses: codecov/codecov-action@v5
         env:
           RUSTUP_TOOLCHAIN: ${{ steps.toolchain.outputs.name }}
+          FEATURES: true
         with:
           files: lcov.info
           flags: unittests
           name: iof
-          env_vars: OS,RUSTUP_TOOLCHAIN
+          env_vars: OS,RUSTUP_TOOLCHAIN,FEATURES
           # Failing to upload results will cause a CI error.
           # So remember to use a token.
           fail_ci_if_error: true
