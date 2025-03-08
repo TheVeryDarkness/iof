@@ -75,6 +75,16 @@ fn doc_read() {
 
 #[test]
 #[cfg_attr(miri, ignore)]
+fn doc_read_c_compatible() {
+    test_example(
+        "doc_read_c_compatible",
+        include_str!("../examples/doc_read_c_compatible.txt"),
+        "",
+    );
+}
+
+#[test]
+#[cfg_attr(miri, ignore)]
 fn doc_macro_read() {
     test_example(
         "doc_macro_read",

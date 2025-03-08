@@ -29,24 +29,8 @@ jobs:
           toolchain: "1.80"
       - name: cargo test
         run: cargo test --workspace
-      - name: Install cargo-llvm-cov
-        uses: taiki-e/install-action@cargo-llvm-cov
-      - name: Generate Code Coverage
-        run: cargo llvm-cov --workspace --lcov --output-path lcov.info
-      - name: Upload Results to Codecov
-        uses: codecov/codecov-action@v3
-        env:
-          RUSTUP_TOOLCHAIN: ${{ steps.toolchain.outputs.name }}
-        with:
-          file: lcov.info
-          flags: unittests
-          name: iof
-          env_vars: OS,RUSTUP_TOOLCHAIN
-          # Failing to upload results will cause a CI error.
-          # So remember to use a token.
-          fail_ci_if_error: true
-          token: ${{ secrets.CODECOV_TOKEN }}
-          verbose: true
+      - name: cargo test with features
+        run: cargo test --workspace --all-features
 
   miri:
     name: MIRI Test
@@ -83,20 +67,36 @@ jobs:
         run: cargo fmt --all -- --check
       - name: cargo clippy
         run: cargo clippy --workspace --all-targets
+      - name: cargo clippy with features
+        run: cargo clippy --workspace --all-targets --all-features
       - name: cargo doc
-        run: cargo doc --workspace
-      - name: cargo doc test
-        run: cargo test --doc --workspace
+        run: cargo doc --workspace --no-deps
       - name: Install cargo-llvm-cov
         uses: taiki-e/install-action@cargo-llvm-cov
       - name: Generate Code Coverage
         run: cargo llvm-cov --workspace --lcov --output-path lcov.info
       - name: Upload Results to Codecov
-        uses: codecov/codecov-action@v3
+        uses: codecov/codecov-action@v5
         env:
           RUSTUP_TOOLCHAIN: ${{ steps.toolchain.outputs.name }}
         with:
-          file: lcov.info
+          files: lcov.info
+          flags: unittests
+          name: iof
+          env_vars: OS,RUSTUP_TOOLCHAIN
+          # Failing to upload results will cause a CI error.
+          # So remember to use a token.
+          fail_ci_if_error: true
+          token: ${{ secrets.CODECOV_TOKEN }}
+          verbose: true
+      - name: Generate Code Coverage with Features
+        run: cargo llvm-cov --workspace --all-features --lcov --output-path lcov.info
+      - name: Upload Results with Features to Codecov
+        uses: codecov/codecov-action@v5
+        env:
+          RUSTUP_TOOLCHAIN: ${{ steps.toolchain.outputs.name }}
+        with:
+          files: lcov.info
           flags: unittests
           name: iof
           env_vars: OS,RUSTUP_TOOLCHAIN

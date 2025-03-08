@@ -48,6 +48,11 @@ fn try_read() {
 
         assert_eq!(reader.get_cur_line(), "");
     }
+}
+
+#[test]
+#[cfg(feature = "c-compatible")]
+fn try_read_truncated() {
     for (s, i, r) in [("0+", 0u8, "+"), ("10+", 10u8, "+")] {
         let mut reader = InputStream::new(s.as_bytes());
 
@@ -63,6 +68,10 @@ fn try_read() {
 
         assert_eq!(reader.get_cur_line(), r);
     }
+}
+
+#[test]
+fn try_read_error() {
     for s in ["+", "++", "x", ".", "", " "] {
         let reader = Cursor::new(s.as_bytes());
         let mut reader = InputStream::new(reader);
@@ -216,7 +225,14 @@ fn read_char_empty() {
 }
 
 #[test]
-#[should_panic = "found unexpected character at the end of the string \"-\" during converting it to a value of \"u32\""]
+#[cfg_attr(
+    feature = "c-compatible",
+    should_panic = "found unexpected character at the end of the string \"-\" during converting it to a value of \"u32\""
+)]
+#[cfg_attr(
+    not(feature = "c-compatible"),
+    should_panic = "error during converting a string \"-1\" to a value of `u32`: invalid digit found in string"
+)]
 fn read_sign_error() {
     let reader = Cursor::new("-1".as_bytes());
     let mut reader = InputStream::new(reader);
@@ -225,7 +241,14 @@ fn read_sign_error() {
 }
 
 #[test]
-#[should_panic = "found unexpected character at the end of the string \"-\" during converting it to a value of \"u32\""]
+#[cfg_attr(
+    feature = "c-compatible",
+    should_panic = "found unexpected character at the end of the string \"-\" during converting it to a value of \"u32\""
+)]
+#[cfg_attr(
+    not(feature = "c-compatible"),
+    should_panic = "error during converting a string \"-1\" to a value of `u32`: invalid digit found in string"
+)]
 fn try_read_sign_error() {
     let reader = Cursor::new("-1".as_bytes());
     let mut reader = InputStream::new(reader);

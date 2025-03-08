@@ -81,7 +81,14 @@ fn read_any_in_line() {
 }
 
 #[test]
-#[should_panic = "found unexpected character at the end of the string \"-\" during converting it to a value of \"u32\""]
+#[cfg_attr(
+    feature = "c-compatible",
+    should_panic = "found unexpected character at the end of the string \"-\" during converting it to a value of \"u32\""
+)]
+#[cfg_attr(
+    not(feature = "c-compatible"),
+    should_panic = "error during converting a string \"-2\" to a value of `u32`: invalid digit found in string"
+)]
 fn read_n_from_str_err() {
     let reader = Cursor::new("1 -2 -3".as_bytes());
     let mut reader = InputStream::new(reader);
@@ -90,7 +97,14 @@ fn read_n_from_str_err() {
 }
 
 #[test]
-#[should_panic = "found unexpected character at the end of the string \"-\" during converting it to a value of \"u32\""]
+#[cfg_attr(
+    feature = "c-compatible",
+    should_panic = "found unexpected character at the end of the string \"-\" during converting it to a value of \"u32\""
+)]
+#[cfg_attr(
+    not(feature = "c-compatible"),
+    should_panic = "error during converting a string \"-2\" to a value of `u32`: invalid digit found in string"
+)]
 fn read_from_str_err() {
     let reader = Cursor::new("1 -2 -3".as_bytes());
     let mut reader = InputStream::new(reader);
@@ -147,7 +161,14 @@ fn read_all_encoding_error() {
 }
 
 #[test]
-#[should_panic = "found unexpected character at the end of the string \",\" during converting it to a value of \"u32\""]
+#[cfg_attr(
+    feature = "c-compatible",
+    should_panic = "found unexpected character at the end of the string \",\" during converting it to a value of \"u32\""
+)]
+#[cfg_attr(
+    not(feature = "c-compatible"),
+    should_panic = "error during converting a string \",1\" to a value of `u32`: invalid digit found in string"
+)]
 fn read_all_digit_error() {
     let reader = Cursor::new("3 2 ,1".as_bytes());
     let mut reader = InputStream::new(reader);

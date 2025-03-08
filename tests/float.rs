@@ -1,6 +1,5 @@
 use iof::{
-    dimension::Dimension, fmt::Default, read, BufReadExt, InputStream, Mat, ReadOneFrom,
-    ReadOneInto as _,
+    dimension::Dimension, fmt::Default, read, InputStream, Mat, ReadOneFrom, ReadOneInto as _,
 };
 use std::io::Cursor;
 
@@ -70,6 +69,12 @@ fn try_read_error() {
         let a: Result<f64, _> = reader.try_read_one();
         assert!(a.is_err(), "{s} {a:?}");
     }
+}
+
+#[test]
+#[cfg(feature = "c-compatible")]
+fn try_read_truncated() {
+    use iof::BufReadExt;
     for (s, f, r) in [
         ("1.e", 1., "e"),
         ("1.1ee", 1.1, "ee"),
@@ -87,9 +92,6 @@ fn try_read_error() {
         ("infini_", f64::INFINITY, "ini_"),
         ("infini_t", f64::INFINITY, "ini_t"),
         ("infinit_", f64::INFINITY, "init_"),
-        ("infinity", f64::INFINITY, ""),
-        ("iNfiNitY", f64::INFINITY, ""),
-        ("InFiNiTy", f64::INFINITY, ""),
         ("infinity_", f64::INFINITY, "_"),
         ("inf_", f64::INFINITY, "_"),
         ("infi_", f64::INFINITY, "i_"),
@@ -120,6 +122,7 @@ fn try_read_error() {
 }
 
 #[test]
+#[expect(clippy::approx_constant)]
 fn try_read_single() {
     for (s, data) in [
         ("1.", 1.0),
@@ -133,6 +136,11 @@ fn try_read_single() {
         ("3.14e1", 3.14e1),
         ("3.14e-1", 0.314),
         ("4.", 4.0),
+        ("infinity", f64::INFINITY),
+        ("iNfiNitY", f64::INFINITY),
+        ("InFiNiTy", f64::INFINITY),
+        ("+InFiNiTy", f64::INFINITY),
+        ("-InFiNiTy", f64::NEG_INFINITY),
     ] {
         let reader = Cursor::new(s.as_bytes());
         let mut reader = InputStream::new(reader);

@@ -41,15 +41,6 @@ fn main() {
     assert_eq!(m, 0.3);
     assert_eq!(n, "lmn");
 
-    // Read a tuple from input, again.
-    //
-    // v
-    // 1+2
-    let (a, op, b): (i32, char, u32) = read!();
-    assert_eq!(a, 1);
-    assert_eq!(op, '+');
-    assert_eq!(b, 2);
-
     // Read a vector of integers from input.
     // They are separated by spaces.
     //

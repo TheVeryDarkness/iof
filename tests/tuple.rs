@@ -57,7 +57,14 @@ fn try_read_tuple_3_from_str_err() {
 }
 
 #[test]
-#[should_panic = "found unexpected character at the end of the string \"-\" during converting it to a value of \"u32\""]
+#[cfg_attr(
+    feature = "c-compatible",
+    should_panic = "found unexpected character at the end of the string \"-\" during converting it to a value of \"u32\""
+)]
+#[cfg_attr(
+    not(feature = "c-compatible"),
+    should_panic = "error during converting a string \"-3\" to a value of `u32`: invalid digit found in string"
+)]
 fn read_tuple_3_unexpected_char_err() {
     let reader = Cursor::new("1 2 -3".as_bytes());
     let mut reader = InputStream::new(reader);
