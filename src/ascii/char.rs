@@ -272,6 +272,7 @@ pub enum Char {
 
 impl Char {
     /// Converts a `Char` to a `u8`.
+    #[inline]
     pub const fn to_u8(self) -> u8 {
         self as u8
     }
@@ -335,11 +336,13 @@ macro_rules! impl_arith {
         impl $trait<u8> for Char {
             type Output = Char;
 
+            #[inline]
             fn $fn(self, rhs: u8) -> Char {
                 u8::$fn(self.to_u8(), rhs).try_into().unwrap()
             }
         }
         impl $trait_assign<u8> for Char {
+            #[inline]
             fn $fn_assign(&mut self, rhs: u8) {
                 *self = Self::$fn(*self, rhs);
             }
@@ -426,21 +429,25 @@ impl fmt::Display for Char {
 }
 
 impl PartialEq<u8> for Char {
+    #[inline]
     fn eq(&self, other: &u8) -> bool {
         u8::eq(&(*self).into(), other)
     }
 }
 impl PartialEq<Char> for u8 {
+    #[inline]
     fn eq(&self, other: &Char) -> bool {
         Char::eq(other, self)
     }
 }
 impl PartialEq<char> for Char {
+    #[inline]
     fn eq(&self, other: &char) -> bool {
         char::eq(&(*self).into(), other)
     }
 }
 impl PartialEq<Char> for char {
+    #[inline]
     fn eq(&self, other: &Char) -> bool {
         Char::eq(other, self)
     }
@@ -466,6 +473,7 @@ impl std::error::Error for Error {}
 impl TryFrom<u8> for Char {
     type Error = u8;
 
+    #[inline]
     fn try_from(value: u8) -> Result<Self, u8> {
         if value > 127 {
             return Err(value);

@@ -163,6 +163,7 @@ mod inner {
             true
         }
 
+        #[inline]
         fn state(&self) -> State {
             match self {
                 Self::Inf

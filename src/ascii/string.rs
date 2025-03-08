@@ -18,14 +18,17 @@ pub struct String {
 
 impl String {
     /// Create a new empty string.
+    #[inline]
     pub const fn new() -> Self {
         Self { bytes: Vec::new() }
     }
     /// Convert the string to a slice of ASCII characters.
+    #[inline]
     pub fn as_str(&self) -> &str {
         Char::slice_as_str(self.bytes.as_slice())
     }
     /// Convert the string to a mutable slice of ASCII characters.
+    #[inline]
     pub fn as_mut_str(&mut self) -> &mut str {
         Char::slice_as_mut_str(self.bytes.as_mut_slice())
     }
@@ -35,6 +38,7 @@ impl IntoIterator for String {
     type Item = Char;
     type IntoIter = std::vec::IntoIter<Char>;
 
+    #[inline]
     fn into_iter(self) -> Self::IntoIter {
         self.bytes.into_iter()
     }
@@ -43,22 +47,26 @@ impl IntoIterator for String {
 impl Deref for String {
     type Target = [Char];
 
+    #[inline]
     fn deref(&self) -> &Self::Target {
         self.bytes.as_slice()
     }
 }
 impl DerefMut for String {
+    #[inline]
     fn deref_mut(&mut self) -> &mut Self::Target {
         self.bytes.as_mut_slice()
     }
 }
 
 impl PartialEq<str> for String {
+    #[inline]
     fn eq(&self, other: &str) -> bool {
         str::eq(self.as_str(), other)
     }
 }
 impl PartialEq<String> for str {
+    #[inline]
     fn eq(&self, other: &String) -> bool {
         str::eq(self, other.as_str())
     }
@@ -69,11 +77,13 @@ macro_rules! forward_index_impl {
         impl Index<$ty> for String {
             type Output = <Vec<Char> as Index<$ty>>::Output;
 
+            #[inline]
             fn index(&self, index: $ty) -> &Self::Output {
                 &self.bytes[index]
             }
         }
         impl IndexMut<$ty> for String {
+            #[inline]
             fn index_mut(&mut self, index: $ty) -> &mut Self::Output {
                 &mut self.bytes[index]
             }

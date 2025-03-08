@@ -27,7 +27,6 @@ impl<E> Display for ReadError<E>
 where
     E: std::error::Error,
 {
-    #[inline]
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Self::IOError(error) => Display::fmt(error, f),

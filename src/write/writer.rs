@@ -2,6 +2,7 @@ use super::{separators::Separators, WriteInto};
 use std::io::{self, Write};
 
 /// Write the given value into the buffer.
+#[inline]
 pub fn write(
     value: impl WriteInto,
     buf: &mut impl Write,

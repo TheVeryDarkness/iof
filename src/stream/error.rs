@@ -10,7 +10,6 @@ pub enum StreamError {
 }
 
 impl Display for StreamError {
-    #[inline]
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             Self::IOError(e) => Display::fmt(e, f),

@@ -34,6 +34,7 @@ pub trait ReadOneFrom: Sized {
     fn parse(s: &str) -> Result<Self, ReadError<Self::ParseError>>;
 
     /// Check if a character is acceptable.
+    #[inline]
     fn accept() -> impl Pattern<Item = char> {
         Any::new()
     }

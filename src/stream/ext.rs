@@ -73,6 +73,7 @@ pub trait StrExt<'s, C: CharExt>: Sized + Copy {
     fn chars_ext(self) -> Self::Iterator;
 
     /// Get the first character.
+    #[inline]
     fn first_char(self) -> Option<C> {
         self.chars_ext().next()
     }
@@ -174,6 +175,7 @@ where
     fn matches(&self, c: Self::Item) -> bool;
 
     /// Trim the start of the string.
+    #[inline]
     fn trim_start(self, s: &str) -> &str {
         let mut cursor = 0;
         for c in s.chars_ext() {
@@ -186,6 +188,7 @@ where
     }
 
     /// Trim the end of the string.
+    #[inline]
     fn trim_end(self, s: &str) -> &str {
         let mut cursor = s.len();
         for c in s.chars_ext().rev() {
@@ -198,11 +201,13 @@ where
     }
 
     /// Trim the string.
+    #[inline]
     fn trim(self, s: &str) -> &str {
         self.trim_end(self.trim_start(s))
     }
 
     /// Find the first matching character.
+    #[inline]
     fn find_first_matching(self, s: &str) -> Option<usize> {
         let mut cursor = 0;
         for c in s.chars_ext() {
@@ -223,6 +228,7 @@ where
     }
 
     /// Find the first not matching character.
+    #[inline]
     fn find_first_not_matching(self, s: &str) -> Option<usize> {
         let mut cursor = 0;
         for c in s.chars_ext() {
@@ -430,22 +436,27 @@ where
 {
     type Item = Char;
 
+    #[inline]
     fn matches(&self, _: Self::Item) -> bool {
         true
     }
 
+    #[inline]
     fn trim_start(self, s: &str) -> &str {
         &s[s.len()..]
     }
 
+    #[inline]
     fn trim_end(self, s: &str) -> &str {
         &s[..0]
     }
 
+    #[inline]
     fn find_first_matching(self, s: &str) -> Option<usize> {
         s.is_empty().not().then_some(0)
     }
 
+    #[inline]
     fn find_first_not_matching(self, s: &str) -> Option<usize> {
         let _ = s;
         None
@@ -469,6 +480,7 @@ where
 {
     type Item = Char;
 
+    #[inline]
     fn matches(&self, c: Self::Item) -> bool {
         self.0.matches(c) && !self.1.matches(c)
     }
@@ -480,10 +492,12 @@ where
 {
     type Item = Char;
 
+    #[inline]
     fn step(&mut self, c: <Self as Pattern>::Item) -> bool {
         !self.1.matches(c) && self.0.step(c)
     }
 
+    #[inline]
     fn state(&self) -> State {
         self.0.state()
     }
@@ -499,6 +513,7 @@ pub enum PatternError<E> {
 }
 
 impl<E: Error> From<E> for PatternError<E> {
+    #[inline]
     fn from(value: E) -> Self {
         Self::Extra(value)
     }
@@ -582,10 +597,12 @@ where
 {
     type Item = Char;
 
+    #[inline]
     fn step(&mut self, _: <Self as Pattern>::Item) -> bool {
         true
     }
 
+    #[inline]
     fn state(&self) -> State {
         State::Stoppable
     }

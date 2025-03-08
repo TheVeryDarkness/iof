@@ -109,6 +109,7 @@ where
     for<'s> &'s str: StrExt<'s, Char>,
 {
     type Skip = L::Skip;
+    #[inline]
     fn skip(self) -> Self::Skip {
         L::skip(*self)
     }
@@ -142,6 +143,7 @@ const WHITE_SPACES: [FixedUtf8Char; 4] = [SP, HT, LF, CR];
 
 impl Format<FixedUtf8Char> for Default<FixedUtf8Char> {
     type Skip = &'static [FixedUtf8Char];
+    #[inline]
     fn skip(self) -> Self::Skip {
         &WHITE_SPACES
     }
@@ -153,6 +155,7 @@ impl Format<FixedUtf8Char> for Default<FixedUtf8Char> {
 
 impl Format<char> for Default<char> {
     type Skip = &'static [char];
+    #[inline]
     fn skip(self) -> Self::Skip {
         &[' ', '\t', '\n', '\r']
     }
@@ -179,6 +182,7 @@ const CSV_SEP: [FixedUtf8Char; 5] = [SP, HT, COMMA, LF, CR];
 
 impl Format<FixedUtf8Char> for CSV<FixedUtf8Char> {
     type Skip = &'static [FixedUtf8Char];
+    #[inline]
     fn skip(self) -> Self::Skip {
         &CSV_SEP
     }
@@ -190,6 +194,7 @@ impl Format<FixedUtf8Char> for CSV<FixedUtf8Char> {
 
 impl Format<char> for CSV<char> {
     type Skip = &'static [char];
+    #[inline]
     fn skip(self) -> Self::Skip {
         &[' ', '\t', ',', '\n', '\r']
     }
@@ -222,6 +227,7 @@ impl<Char: From<C> + Ord, C> FromIterator<C> for Skip<Char> {
 
 impl<'s> Format<FixedUtf8Char> for &'s Skip<FixedUtf8Char> {
     type Skip = &'s [FixedUtf8Char];
+    #[inline]
     fn skip(self) -> Self::Skip {
         &self.0
     }
@@ -233,6 +239,7 @@ impl<'s> Format<FixedUtf8Char> for &'s Skip<FixedUtf8Char> {
 
 impl<'s> Format<char> for &'s Skip<char> {
     type Skip = &'s [char];
+    #[inline]
     fn skip(self) -> Self::Skip {
         &self.0
     }
