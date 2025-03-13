@@ -257,7 +257,7 @@ where
     /// Reverse the pattern.
     #[inline]
     fn not(self) -> impl CharSet<Item = Self::Item> {
-        CharSetSubtract::new(Any::new(), self)
+        AnyBut::new(self)
     }
 }
 
@@ -279,7 +279,13 @@ where
 
     #[inline]
     fn forward<E>(self, s: &str) -> Result<usize, PatternError<E>> {
-        Ok(self.find_first_not_matching_or_whole_length(s))
+        // Ok(self.find_first_not_matching_or_whole_length(s))
+        match self.find_first_not_matching_or_whole_length(s) {
+            0 => Err(PatternError::UnexpectedChar(
+                s.chars().next().map(|c| c.to_string()).unwrap_or_default(),
+            )),
+            i => Ok(i),
+        }
     }
 
     #[inline]
@@ -599,6 +605,7 @@ impl<E: Error> fmt::Display for PatternError<E> {
 }
 
 /// The state of a pattern matcher.
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum State {
     /// The pattern is unfulfilled.
     Unfulfilled,
@@ -791,6 +798,10 @@ mod tests {
         assert_eq!(p.trim(" \n\r\n"), " ");
         assert_eq!(p.trim(" \n\r\nabc"), " \n\r\nabc");
 
+        assert_eq!(p.not().not().trim("\n\r\n"), "");
+        assert_eq!(p.not().not().trim(" \n\r\n"), " ");
+        assert_eq!(p.not().not().trim(" \n\r\nabc"), " \n\r\nabc");
+
         assert_eq!(CharSet::except(p, p).trim(" \n\r\n"), " \n\r\n");
         assert_eq!(CharSet::except(p, p).trim(""), "");
         assert_eq!(CharSet::except(p, p).find_first_matching(""), None);
@@ -813,6 +824,31 @@ mod tests {
         assert_eq!(p.not().find_first_not_matching(" "), None);
         assert_eq!(p.not().find_first_matching(""), None);
         assert_eq!(p.not().find_first_not_matching(""), None);
+
+        assert_eq!(
+            CharSet::except(p.not(), p).find_first_not_matching(" "),
+            None,
+        );
+        assert_eq!(
+            CharSet::except(p.not(), p).find_first_not_matching("\n"),
+            Some(0),
+        );
+        assert_eq!(
+            CharSet::except(p.not(), p).find_first_not_matching(""),
+            None,
+        );
+
+        assert!(!p.matches(' '.into()));
+        assert!(!p.matches('a'.into()));
+        assert!(p.matches('\r'.into()));
+        assert!(p.matches('\n'.into()));
+
+        assert!(!p.clone().step(' '.into()));
+        assert!(!p.clone().step('a'.into()));
+        assert!(p.clone().step('\r'.into()));
+        assert!(p.clone().step('\n'.into()));
+
+        assert_eq!(p.state(), State::Stoppable);
 
         assert_eq!(
             p.forward::<E>(" \n\r\n"),
