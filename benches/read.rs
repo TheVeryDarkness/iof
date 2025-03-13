@@ -1,5 +1,6 @@
 use criterion::{criterion_group, criterion_main, Criterion};
 use iof::{unwrap, InputStream, ReadInto, ReadOneInto};
+use pprof::criterion::{Output, PProfProfiler};
 use std::{
     fs::{read_to_string, File},
     io::{self, BufRead, BufReader, Read, Write},
@@ -155,5 +156,9 @@ fn lazy(c: &mut Criterion) {
     }))(c);
 }
 
-criterion_group!(benches, cursor, file);
+criterion_group!(
+    name = benches;
+    config = Criterion::default().with_profiler(PProfProfiler::new(100, Output::Flamegraph(None)));
+    targets = cursor, file
+);
 criterion_main!(benches);

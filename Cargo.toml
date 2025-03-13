@@ -24,6 +24,7 @@ c-compatible = []
 anyhow = "1.0.86"
 criterion = "0.5.1"
 ntest = "0.9.3"
+pprof = { version = "0.14", features = ["criterion", "flamegraph"] }
 
 [[bench]]
 name = "read"
