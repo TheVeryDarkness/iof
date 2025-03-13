@@ -177,27 +177,29 @@ where
     /// Trim the start of the string.
     #[inline]
     fn trim_start(self, s: &str) -> &str {
-        let mut cursor = 0;
-        for c in s.chars_ext() {
-            if !self.matches(c) {
-                return &s[cursor..];
-            }
-            cursor += c.len_utf8();
-        }
-        &s[s.len()..]
+        self.find_first_not_matching(s).map_or(s, |i| &s[i..])
+        // let mut cursor = 0;
+        // for c in s.chars_ext() {
+        //     if !self.matches(c) {
+        //         return &s[cursor..];
+        //     }
+        //     cursor += c.len_utf8();
+        // }
+        // &s[s.len()..]
     }
 
     /// Trim the end of the string.
     #[inline]
     fn trim_end(self, s: &str) -> &str {
-        let mut cursor = s.len();
-        for c in s.chars_ext().rev() {
-            if !self.matches(c) {
-                return &s[..cursor];
-            }
-            cursor -= c.len_utf8();
-        }
-        &s[..0]
+        self.find_last_not_matching(s).map_or(&s[..0], |i| &s[..i])
+        // let mut cursor = s.len();
+        // for c in s.chars_ext().rev() {
+        //     if !self.matches(c) {
+        //         return &s[..cursor];
+        //     }
+        //     cursor -= c.len_utf8();
+        // }
+        // &s[..0]
     }
 
     /// Trim the string.
@@ -219,14 +221,6 @@ where
         None
     }
 
-    /// Find the first matching character or the whole length.
-    ///
-    /// Returns the whole length if the string is fully not matching.
-    #[inline]
-    fn find_first_matching_or_whole_length(self, s: &str) -> usize {
-        self.find_first_matching(s).unwrap_or(s.len())
-    }
-
     /// Find the first not matching character.
     #[inline]
     fn find_first_not_matching(self, s: &str) -> Option<usize> {
@@ -240,12 +234,30 @@ where
         None
     }
 
-    /// Find the first not matching character or the whole length.
-    ///
-    /// Returns the whole length if the string is fully matching.
+    /// Find the end offset of the last matching character.
     #[inline]
-    fn find_first_not_matching_or_whole_length(self, s: &str) -> usize {
-        self.find_first_not_matching(s).unwrap_or(s.len())
+    fn find_last_matching(self, s: &str) -> Option<usize> {
+        let mut cursor = s.len();
+        for c in s.chars_ext().rev() {
+            if self.matches(c) {
+                return Some(cursor);
+            }
+            cursor -= c.len_utf8();
+        }
+        None
+    }
+
+    /// Find the end offset of the last not matching character.
+    #[inline]
+    fn find_last_not_matching(self, s: &str) -> Option<usize> {
+        let mut cursor = s.len();
+        for c in s.chars_ext().rev() {
+            if !self.matches(c) {
+                return Some(cursor);
+            }
+            cursor -= c.len_utf8();
+        }
+        None
     }
 
     /// Subtract another pattern from this pattern.
@@ -280,7 +292,7 @@ where
     #[inline]
     fn forward<E>(self, s: &str) -> Result<usize, PatternError<E>> {
         // Ok(self.find_first_not_matching_or_whole_length(s))
-        match self.find_first_not_matching_or_whole_length(s) {
+        match self.find_first_not_matching(s).unwrap_or(s.len()) {
             0 => Err(PatternError::UnexpectedChar(
                 s.chars().next().map(|c| c.to_string()).unwrap_or_default(),
             )),
@@ -328,30 +340,6 @@ impl CharSet for &[FixedUtf8Char] {
     fn trim(self, s: &str) -> &str {
         self.trim_end(self.trim_start(s))
     }
-
-    #[inline]
-    fn find_first_matching(self, s: &str) -> Option<usize> {
-        let mut cursor = 0;
-        for c in <&str as StrExt<FixedUtf8Char>>::chars_ext(s) {
-            if self.contains(&c) {
-                return Some(cursor);
-            }
-            cursor += c.len_utf8();
-        }
-        None
-    }
-
-    #[inline]
-    fn find_first_not_matching(self, s: &str) -> Option<usize> {
-        let mut cursor = 0;
-        for c in <&str as StrExt<FixedUtf8Char>>::chars_ext(s) {
-            if !self.contains(&c) {
-                return Some(cursor);
-            }
-            cursor += c.len_utf8();
-        }
-        None
-    }
 }
 
 impl CharSet for &[char] {
@@ -393,8 +381,25 @@ impl CharSet for &[char] {
     }
 
     #[inline]
-    fn find_first_not_matching_or_whole_length(self, s: &str) -> usize {
-        s.len() - s.trim_start_matches(self).len()
+    fn find_last_matching(self, s: &str) -> Option<usize> {
+        let start = s.rfind(self);
+        start.map(|i| {
+            i + s[i..]
+                .char_indices()
+                .next()
+                .map(|(_, c)| c.len_utf8())
+                .unwrap_or_else(|| unreachable!())
+        })
+    }
+
+    #[inline]
+    fn find_last_not_matching(self, s: &str) -> Option<usize> {
+        let l = s.trim_end_matches(self).len();
+        if l == 0 {
+            None
+        } else {
+            Some(l)
+        }
     }
 }
 
@@ -502,7 +507,8 @@ where
 
     #[inline]
     fn trim_start(self, s: &str) -> &str {
-        &s[self.0.find_first_not_matching_or_whole_length(s)..]
+        let cursor = self.0.find_first_matching(s).unwrap_or(s.len());
+        &s[cursor..]
     }
 
     // #[inline]
@@ -518,6 +524,16 @@ where
     #[inline]
     fn find_first_not_matching(self, s: &str) -> Option<usize> {
         self.0.find_first_matching(s)
+    }
+
+    #[inline]
+    fn find_last_matching(self, s: &str) -> Option<usize> {
+        self.0.find_last_not_matching(s)
+    }
+
+    #[inline]
+    fn find_last_not_matching(self, s: &str) -> Option<usize> {
+        self.0.find_last_matching(s)
     }
 
     #[inline]
@@ -695,8 +711,6 @@ mod tests {
 
         assert_eq!(ws.find_first_matching(s), Some(1));
         assert_eq!(ws.find_first_not_matching(s), Some(0));
-        assert_eq!(ws.find_first_matching_or_whole_length(s), 1);
-        assert_eq!(ws.find_first_not_matching_or_whole_length(s), 0);
 
         let s = "\r\nabc\n";
         assert_eq!(ws.trim_start(s), "abc\n");
@@ -705,8 +719,6 @@ mod tests {
 
         assert_eq!(ws.find_first_matching(s), Some(0));
         assert_eq!(ws.find_first_not_matching(s), Some(2));
-        assert_eq!(ws.find_first_matching_or_whole_length(s), 0);
-        assert_eq!(ws.find_first_not_matching_or_whole_length(s), 2);
 
         let s = "\n\r\n";
         assert_eq!(ws.trim_start(s), "");
@@ -715,8 +727,6 @@ mod tests {
 
         assert_eq!(ws.find_first_matching(s), Some(0));
         assert_eq!(ws.find_first_not_matching(s), None);
-        assert_eq!(ws.find_first_matching_or_whole_length(s), 0);
-        assert_eq!(ws.find_first_not_matching_or_whole_length(s), 3);
 
         let s = "+-*/";
         assert_eq!(ws.trim_start(s), "+-*/");
@@ -725,8 +735,6 @@ mod tests {
 
         assert_eq!(ws.find_first_matching(s), None);
         assert_eq!(ws.find_first_not_matching(s), Some(0));
-        assert_eq!(ws.find_first_matching_or_whole_length(s), 4);
-        assert_eq!(ws.find_first_not_matching_or_whole_length(s), 0);
 
         let s = "";
         assert_eq!(ws.trim_start(s), "");
@@ -735,8 +743,6 @@ mod tests {
 
         assert_eq!(ws.find_first_matching(s), None);
         assert_eq!(ws.find_first_not_matching(s), None);
-        assert_eq!(ws.find_first_matching_or_whole_length(s), 0);
-        assert_eq!(ws.find_first_not_matching_or_whole_length(s), 0);
 
         for s in [
             "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789)(*&^%$#@!~",
@@ -747,10 +753,13 @@ mod tests {
             assert_eq!(s.is_empty(), <&str as StrExt<Char>>::is_empty(s));
 
             assert_eq!(Some(0), Any::new().find_first_matching(s));
+            assert_eq!(None, Any::new().not().find_first_matching(s));
+            assert_eq!(Some(0), Any::new().not().find_first_not_matching(s));
             assert_eq!(None, Any::new().find_first_not_matching(s));
 
             let characters = s.chars().collect::<Vec<_>>();
             for (i, c) in <&str as StrExt<Char>>::chars_ext(s).enumerate() {
+                assert!(Any::new().matches(c));
                 assert_eq!(c, characters[i]);
                 assert_eq!(c.to_string(), characters[i].to_string());
                 assert_eq!(c.len_utf8(), characters[i].len_utf8());
@@ -808,23 +817,70 @@ mod tests {
         assert_eq!(CharSet::except(p, p).find_first_not_matching(""), None);
         assert_eq!(CharSet::except(p, p).find_first_matching("a"), None);
         assert_eq!(CharSet::except(p, p).find_first_not_matching("a"), Some(0));
+        assert_eq!(CharSet::except(p, p).find_last_matching(""), None);
+        assert_eq!(CharSet::except(p, p).find_last_not_matching(""), None);
+        assert_eq!(CharSet::except(p, p).find_last_matching("a"), None);
+        assert_eq!(CharSet::except(p, p).find_last_not_matching("a"), Some(1));
 
-        assert_eq!(p.not().trim(" \n\r\n"), "\n\r\n");
-        assert_eq!(p.not().trim("\n\r\n"), "\n\r\n");
-        assert_eq!(p.not().trim(" \n\r\n xyz"), "\n\r\n");
+        assert!(!p.matches(' '.into()));
+        assert!(!p.matches('a'.into()));
+        assert!(p.matches('\r'.into()));
+        assert!(p.matches('\n'.into()));
 
         for s in [" ", "", "\r\n", "🦀", "中文", "aå bß"] {
             assert_eq!(p.find_first_matching(s), p.not().find_first_not_matching(s));
             assert_eq!(p.find_first_not_matching(s), p.not().find_first_matching(s));
+            assert_eq!(p.find_last_matching(s), p.not().find_last_not_matching(s));
+            assert_eq!(p.find_last_not_matching(s), p.not().find_last_matching(s));
         }
+
+        assert_eq!(p.find_first_matching(" \n\r\n xyz"), Some(1));
+        assert_eq!(p.find_first_not_matching(" \n\r\n xyz"), Some(0));
+        assert_eq!(p.find_last_matching(" \n\r\n xyz"), Some(4));
+        assert_eq!(p.find_last_not_matching(" \n\r\n xyz"), Some(8));
 
         assert_eq!(p.not().find_first_matching(" \n\r\n xyz"), Some(0));
         assert_eq!(p.not().find_first_not_matching(" \n\r\n xyz"), Some(1));
+        assert_eq!(p.not().find_last_matching(" \n\r\n xyz"), Some(8));
+        assert_eq!(p.not().find_last_not_matching(" \n\r\n xyz"), Some(4));
+
+        assert_eq!(p.find_first_matching(" "), None);
+        assert_eq!(p.find_first_not_matching(" "), Some(0));
+        assert_eq!(p.find_last_matching(" "), None);
+        assert_eq!(p.find_last_not_matching(" "), Some(1));
+
         assert_eq!(p.not().find_first_matching(" "), Some(0));
         assert_eq!(p.not().find_first_not_matching(" "), None);
+        assert_eq!(p.not().find_last_matching(" "), Some(1));
+        assert_eq!(p.not().find_last_not_matching(" "), None);
+
+        assert_eq!(p.find_first_matching(""), None);
+        assert_eq!(p.find_first_not_matching(""), None);
+        assert_eq!(p.find_last_matching(""), None);
+        assert_eq!(p.find_last_not_matching(""), None);
+
         assert_eq!(p.not().find_first_matching(""), None);
         assert_eq!(p.not().find_first_not_matching(""), None);
+        assert_eq!(p.not().find_last_matching(""), None);
+        assert_eq!(p.not().find_last_not_matching(""), None);
 
+        assert_eq!(p.not().trim_start(" \n\r\n"), "\n\r\n");
+        assert_eq!(p.not().trim_end(" \n\r\n"), " \n\r\n");
+        assert_eq!(p.not().trim(" \n\r\n"), "\n\r\n");
+        assert_eq!(p.not().trim_start("\n\r\n"), "\n\r\n");
+        assert_eq!(p.not().trim_end("\n\r\n"), "\n\r\n");
+        assert_eq!(p.not().trim("\n\r\n"), "\n\r\n");
+        assert_eq!(p.not().trim_start(" \n\r\n xyz"), "\n\r\n xyz");
+        assert_eq!(p.not().trim_end(" \n\r\n xyz"), " \n\r\n");
+        assert_eq!(p.not().trim(" \n\r\n xyz"), "\n\r\n");
+
+        assert_eq!(CharSet::except(p, p.not()).trim_start(" \n "), " \n ");
+        assert_eq!(CharSet::except(p, p.not()).trim_end(" \n "), " \n ");
+        assert_eq!(CharSet::except(p, p.not()).trim(" \n "), " \n ");
+
+        assert_eq!(CharSet::except(p.not(), p).trim_start(" \n "), "\n ");
+        assert_eq!(CharSet::except(p.not(), p).trim_end(" \n "), " \n");
+        assert_eq!(CharSet::except(p.not(), p).trim(" \n "), "\n");
         assert_eq!(
             CharSet::except(p.not(), p).find_first_not_matching(" "),
             None,
@@ -837,11 +893,6 @@ mod tests {
             CharSet::except(p.not(), p).find_first_not_matching(""),
             None,
         );
-
-        assert!(!p.matches(' '.into()));
-        assert!(!p.matches('a'.into()));
-        assert!(p.matches('\r'.into()));
-        assert!(p.matches('\n'.into()));
 
         assert!(!p.clone().step(' '.into()));
         assert!(!p.clone().step('a'.into()));

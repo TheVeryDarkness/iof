@@ -136,7 +136,9 @@ where
     fn try_skip_eol(&mut self) -> Result<Option<bool>, StreamError> {
         let _: bool = self.fill_buf_if_eol()?;
         let line = self.get_cur_line();
-        let count = Char::EOL.find_first_not_matching_or_whole_length(line);
+        let count = Char::EOL
+            .find_first_not_matching(line)
+            .unwrap_or(line.len());
         unsafe { self.skip(count) };
         if self.is_eol() {
             return Ok(Some(self.read_buf()?));
@@ -273,7 +275,7 @@ where
         F: CharSet<Item = Char>,
     {
         let line = self.get_line()?;
-        let cursor = pattern.find_first_matching_or_whole_length(line);
+        let cursor = pattern.find_first_matching(line).unwrap_or(line.len());
         debug_assert!(line.is_char_boundary(cursor));
         let selected: &str = unsafe { line.get_unchecked(0..cursor) };
         let selected: &str = unsafe { transmute(selected) };
