@@ -1,5 +1,2 @@
-[profile.bench]
-debug = true
-
 [env]
 RUST_BACKTRACE = "1"
