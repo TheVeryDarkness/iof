@@ -1,3 +1,4 @@
+#![cfg(any(target_os = "linux", target_os="macos"))]
 use criterion::{criterion_group, criterion_main, Criterion};
 use iof::{unwrap, InputStream, ReadInto, ReadOneInto};
 use pprof::criterion::{Output, PProfProfiler};
