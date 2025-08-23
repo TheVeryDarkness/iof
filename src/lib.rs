@@ -24,7 +24,10 @@
     clippy::allow_attributes_without_reason
 )]
 #![forbid(rustdoc::all)]
-#![expect(clippy::needless_doctest_main, reason = "External documentation must have a `fn main`")]
+#![expect(
+    clippy::needless_doctest_main,
+    reason = "External documentation must have a `fn main`"
+)]
 
 //! A utility library for reading data from input and writing data to output.
 //!
