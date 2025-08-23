@@ -14,7 +14,6 @@
     clippy::complexity,
     clippy::suspicious,
     clippy::perf,
-    clippy::style,
     clippy::cargo,
     clippy::should_panic_without_expect,
     clippy::incompatible_msrv,
