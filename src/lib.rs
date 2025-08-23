@@ -24,7 +24,7 @@
     clippy::allow_attributes_without_reason
 )]
 #![forbid(rustdoc::all)]
-#![expect(
+#![allow(
     clippy::needless_doctest_main,
     reason = "External documentation must have a `fn main`"
 )]

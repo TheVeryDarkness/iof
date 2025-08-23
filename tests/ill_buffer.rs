@@ -9,21 +9,21 @@ struct IllBuffer;
 
 impl io::Read for IllBuffer {
     fn read(&mut self, _: &mut [u8]) -> io::Result<usize> {
-        Err(io::Error::new(io::ErrorKind::Other, "ill buffer"))
+        Err(io::Error::other("ill buffer"))
     }
 }
 impl io::BufRead for IllBuffer {
     fn fill_buf(&mut self) -> io::Result<&[u8]> {
-        Err(io::Error::new(io::ErrorKind::Other, "ill buffer"))
+        Err(io::Error::other("ill buffer"))
     }
     fn consume(&mut self, _: usize) {}
 }
 impl io::Write for IllBuffer {
     fn write(&mut self, _: &[u8]) -> io::Result<usize> {
-        Err(io::Error::new(io::ErrorKind::Other, "ill buffer"))
+        Err(io::Error::other("ill buffer"))
     }
     fn flush(&mut self) -> io::Result<()> {
-        Err(io::Error::new(io::ErrorKind::Other, "ill buffer"))
+        Err(io::Error::other("ill buffer"))
     }
 }
 
