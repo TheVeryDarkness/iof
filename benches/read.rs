@@ -1,6 +1,5 @@
 use criterion::{criterion_group, criterion_main, Criterion};
 use iof::{unwrap, InputStream, ReadInto, ReadOneInto};
-use pprof::criterion::{Output, PProfProfiler};
 use std::{
     fs::{read_to_string, File},
     io::{self, BufRead, BufReader, Read, Write},
@@ -156,9 +155,20 @@ fn lazy(c: &mut Criterion) {
     }))(c);
 }
 
+fn config() -> Criterion {
+    let config = Criterion::default();
+
+    #[cfg(any(target_os = "linux", target_os = "macos"))]
+    use pprof::criterion::{Output, PProfProfiler};
+    #[cfg(any(target_os = "linux", target_os = "macos"))]
+    let config = config.with_profiler(PProfProfiler::new(100, Output::Flamegraph(None)));
+
+    config
+}
+
 criterion_group!(
     name = benches;
-    config = Criterion::default().with_profiler(PProfProfiler::new(100, Output::Flamegraph(None)));
+    config = config();
     targets = cursor, file
 );
 criterion_main!(benches);
