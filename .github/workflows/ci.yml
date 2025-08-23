@@ -2,7 +2,7 @@ on:
   push:
     branches: "*"
   schedule:
-    - cron: "0 0 * * 6" # Run benchmarks every Saturday at midnight.
+    - cron: "0 0 */14 * *" # Run benchmarks every 14 days at midnight.
 
 name: Lint and Test
 
